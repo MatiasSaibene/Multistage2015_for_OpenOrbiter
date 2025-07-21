@@ -10,7 +10,7 @@ set(ORBITER_ROOT "C:/Users/Matias_Saibene/Desktop/OpenOrbiter2024")
 # Variables de ruta
 set(ORBITER_ROOT "C:/Users/Matias_Saibene/Desktop/OpenOrbiter2024")
 set(ORBITER_SDK_INCLUDE "${ORBITER_ROOT}/Orbitersdk/include")
-set(ORBITER_SDK_LIB_RELEASE "${ORBITER_ROOT}/Orbitersdk/lib/Orbitersdk.lib")
+set(ORBITER_SDK_LIB_RELEASE "${ORBITER_ROOT}/Orbitersdk/lib")
 set(ORBITER_SDK_LIB_DEBUG "${ORBITER_ROOT}/Orbitersdk/lib_debug")
 set(ORBITER_PLUGIN "${ORBITER_ROOT}/Modules/Plugin")
 set(ORBITER_SOURCE "${ORBITER_ROOT}/sources/Multistage2015")
@@ -18,6 +18,7 @@ set(ORBITER_SOURCE "${ORBITER_ROOT}/sources/Multistage2015")
 file(TO_CMAKE_PATH "${ORBITER_SDK_LIB_DEBUG}" ORBITER_SDK_LIB_DEBUG)
 
 file(GLOB ORBITER_LIBS_DEBUG "${ORBITER_SDK_LIB_DEBUG}/*.lib")
+file(GLOB ORBITER_LIBS_RELEASE "${ORBITER_SDK_LIB_RELEASE}/*.lib")
 
 # Archivos fuente y encabezados
 set(SOURCES
@@ -42,16 +43,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # Enlace a librerías: versiones específicas por configuración
 target_link_libraries(${PROJECT_NAME}
-    debug ${ORBITER_LIBS_DEBUG}
-    optimized ${ORBITER_SDK_LIB_RELEASE}
+    ${ORBITER_LIBS_RELEASE}
 )
-
-if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-    )
-endif()
 
 # Salida en la carpeta Modules para Debug y Release
 set_target_properties(${PROJECT_NAME} PROPERTIES

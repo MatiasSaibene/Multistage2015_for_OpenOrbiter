@@ -916,9 +916,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 		VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 			skp->Text(margin,line*20,buff,len);
 		
@@ -950,9 +950,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 			VECTOR3 met=Ms->hms(Ms->MET);
 
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 			skp->Text(margin,line*20,buff,len);
 
@@ -1051,9 +1051,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 				VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 		skp->Text(margin,line*20,buff,len);
 		
@@ -1117,9 +1117,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 		VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 		skp->SetTextAlign (oapi::Sketchpad::LEFT, oapi::Sketchpad::BOTTOM);	
 		skp->Text(margin,line*20,buff,len);
@@ -1184,9 +1184,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 		VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 		skp->SetTextAlign (oapi::Sketchpad::LEFT, oapi::Sketchpad::BOTTOM);	
 		skp->Text(margin,line*20,buff,len);
@@ -1346,9 +1346,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 		VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 		skp->SetTextAlign (oapi::Sketchpad::LEFT, oapi::Sketchpad::BOTTOM);	
 		skp->Text(margin,line*20,buff,len);
@@ -1630,9 +1630,9 @@ bool Multistage2015_MFD::Update (oapi::Sketchpad *skp)
 		VECTOR3 met=Ms->hms(Ms->MET);
 		
 			if(Ms->MET>=0){
-				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"MET: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 			}else{
-				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f",met);
+				len=sprintf_s(buff,"T-: %03.0f:%02.0f:%02.0f", met.x, met.y, met.z);
 				}
 		skp->SetTextAlign (oapi::Sketchpad::LEFT, oapi::Sketchpad::BOTTOM);	
 		skp->Text(margin,line*20,buff,len);
@@ -1872,7 +1872,7 @@ bool Multistage2015_MFD::MFDSetRange(char *str)
 		AutoRange[SelectedTlm-1]= TRUE;
 		return true;
 	} else { 
-		sscanf (str, "%lf,%lf", &RangeMin[SelectedTlm-1], &RangeMax[SelectedTlm-1]); 
+		sscanf_s (str, "%lf,%lf", &RangeMin[SelectedTlm-1], &RangeMax[SelectedTlm-1]); 
 		AutoRange[SelectedTlm-1]=FALSE;
 		return true;
 	}
@@ -1889,7 +1889,7 @@ bool Multistage2015_MFD::MFDLoadTlmFile(char *str)
 bool Multistage2015_MFD::InputPMCInterval(char *str)
 {
 	double newint;
-	sscanf(str,"%lf",&newint);
+	sscanf_s(str,"%lf",&newint);
 	Ms->SetPegMajorCycleInterval(newint);
 
 	return TRUE;
@@ -1897,7 +1897,7 @@ bool Multistage2015_MFD::InputPMCInterval(char *str)
 bool Multistage2015_MFD::InputAltSteps(char *str)
 {
 	double newsteps[4];
-	sscanf(str,"%lf,%lf,%lf,%lf",&newsteps[0],&newsteps[1],&newsteps[2],&newsteps[3]);
+	sscanf_s(str,"%lf,%lf,%lf,%lf",&newsteps[0],&newsteps[1],&newsteps[2],&newsteps[3]);
 
 	Ms->SetNewAltSteps(newsteps[0],newsteps[1],newsteps[2],newsteps[3]);
 	
@@ -1907,7 +1907,7 @@ bool Multistage2015_MFD::InputAltSteps(char *str)
 bool Multistage2015_MFD::InputNewPitchLimit(char *str)
 {
 	double newpitchlimit;
-	sscanf(str,"%lf",&newpitchlimit);
+	sscanf_s(str,"%lf",&newpitchlimit);
 	Ms->SetPegPitchLimit(newpitchlimit*RAD);
 	
 	return TRUE;

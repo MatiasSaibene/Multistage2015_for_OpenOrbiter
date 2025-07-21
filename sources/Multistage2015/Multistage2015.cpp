@@ -77,7 +77,7 @@ void CloseDlg (HWND hDlg)
 
 
 //Creation
-Multistage2015::Multistage2015(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
+Multistage2015::Multistage2015(OBJHANDLE hObj, int fmodel) :VESSEL4(hObj, fmodel), tex{}, Ssound{} {
 
 	DeveloperMode=FALSE;
 	//Ms15=this;
@@ -143,7 +143,7 @@ Multistage2015::Multistage2015(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
 
 	wFairing = false;
 
-	tex = {0};
+	TEX* tex = new TEX;
 
 	currentDelta = 0.0;
 
@@ -153,7 +153,7 @@ Multistage2015::Multistage2015(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
 
 	psg = {0};
 
-	Ssound = {0};
+	SSOUND* Ssound = new SSOUND;
 	
 	currentInterstage = 0;
 
@@ -965,10 +965,10 @@ void Multistage2015::initGlobalVars(){
 	rerror=0;
 
 
-
-	int i;
+	STAGE* stage = new STAGE[10];
+	PAYLOAD* payload = new PAYLOAD[10];
+	unsigned int i;
 	for(i=0;i<10;i++){
-		stage[i]=STAGE();
 	stage[i].Ignited=FALSE;
 	stage[i].reignitable=TRUE;
 	stage[i].batteries.wBatts=FALSE;
@@ -979,14 +979,12 @@ void Multistage2015::initGlobalVars(){
 	stage[i].ParticlesPackedToEngine=0;
 	stage[i].defpitch=FALSE;
 	stage[i].defroll=FALSE;
-	stage[i].defyaw=FALSE;
-	payload[i]=PAYLOAD();
-	
+	stage[i].defyaw=FALSE;	
 	}
 
-	int ii;
+	BOOSTER* booster = new BOOSTER[10];
+	unsigned int ii;
 	for(ii=0;ii<10;ii++){
-	booster[ii]=BOOSTER();
 	booster[ii].Ignited=FALSE;
 	booster[ii].ParticlesPacked=FALSE;
 	booster[ii].ParticlesPackedToEngine=0;
@@ -1979,6 +1977,7 @@ for(int ps=0;ps<nPsh;ps++)
  //add Boosters Engines
  unsigned int bi,bii,biii;
  for(bi = currentBooster; bi < min(nBoosters, 10); bi++){
+	 sprintf(logbuff, "Accessing booster[%d], booster.N=%d", bi, booster[bi].N);
 	 for(unsigned int bn=0;bn<booster[bi].N;bn++)
 	 {
 		 VECTOR3 pos,dir;
