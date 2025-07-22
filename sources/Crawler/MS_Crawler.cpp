@@ -173,6 +173,16 @@ MS_Crawler::MS_Crawler(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
 	wCustomPadModule = false;
 
 	NoPad = false;
+
+	AnimLifter = 0;
+
+	CameraOff = _V(0, 0, 0);
+
+	for (unsigned int i = 0; i < 64; i++) {
+		for (unsigned int j = 0; j < 8; j++) {
+			animCing[i][j] = 0;
+		}
+	}
 	
 }
 
@@ -1031,7 +1041,7 @@ void MS_Crawler::clbkLoadStateEx(FILEHANDLE scn,void *vs)
 	while(oapiReadScenario_nextline(scn,line)){
 		
 		if(!strnicmp(line,"LIFTER",6)){
-		sscanf(line+6,"%lf",&StateLifter);
+		sscanf_s(line+6, "%lf", &StateLifter);
 		}else if(!strnicmp(line,"NOATTPAD",8)){
 			PadDetached=TRUE;
 		}else{

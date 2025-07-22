@@ -39,35 +39,35 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 using namespace std;
 
 class MS_Camera:public VESSEL4{
-public:
- MS_Camera(OBJHANDLE hObj,int fmodel);
- ~MS_Camera();
- void clbkSetClassCaps(FILEHANDLE cfg) override;
- void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
- void clbkSaveState(FILEHANDLE scn) override;
- void clbkPreStep(double simt, double simdt, double mjd) override;
- void clbkPostStep(double simt, double simdt, double mjd) override;
- int clbkConsumeBufferedKey(DWORD key, bool down, char *kstate) override;
- bool clbkDrawHUD (int mode, const HUDPAINTSPEC *hps, oapi::Sketchpad *skp) override;
- void clbkRenderHUD(int mode, const HUDPAINTSPEC *hps, SURFHANDLE hDefaultTex) override;
- bool clbkLoadGenericCockpit() override;
- //bool clbkLoadVC(int id);
- bool clbkLoadPanel2D(int id,PANELHANDLE hPanel,DWORD viewW,DWORD viewH) override;
- int clbkGeneric (int msgid, int prm, void *context) override;
- static bool InputNewRefVessel(void *id, char *str, void *usrdata);
- //void clbkSetStateEx (const void *status);
+	public:
+	 MS_Camera(OBJHANDLE hObj,int fmodel);
+	 ~MS_Camera();
+	 void clbkSetClassCaps(FILEHANDLE cfg) override;
+	 void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
+	 void clbkSaveState(FILEHANDLE scn) override;
+	 void clbkPreStep(double simt, double simdt, double mjd) override;
+	 void clbkPostStep(double simt, double simdt, double mjd) override;
+	 int clbkConsumeBufferedKey(DWORD key, bool down, char *kstate) override;
+	 bool clbkDrawHUD (int mode, const HUDPAINTSPEC *hps, oapi::Sketchpad *skp) override;
+	 void clbkRenderHUD(int mode, const HUDPAINTSPEC *hps, SURFHANDLE hDefaultTex) override;
+	 bool clbkLoadGenericCockpit() override;
+	 //bool clbkLoadVC(int id);
+	 bool clbkLoadPanel2D(int id,PANELHANDLE hPanel,DWORD viewW,DWORD viewH) override;
+	 int clbkGeneric (int msgid, int prm, void *context) override;
+	 static bool InputNewRefVessel(void *id, char *str, void *usrdata);
+	 //void clbkSetStateEx (const void *status);
 
- char RefVessel[256];
- double RefHeight;
- oapi::Pen *penwhite;
- VESSEL4 *v;
- double Distance;
- double Polar;
- double Azimuth;
- double Aperture;
- //bool FirstLoop;
- OBJHANDLE hMS;
- //bool TargetLock;
+	 char RefVessel[256];
+	 double RefHeight;
+	 oapi::Pen *penwhite;
+	 VESSEL4 *v;
+	 double Distance;
+	 double Polar;
+	 double Azimuth;
+	 double Aperture;
+	 //bool FirstLoop;
+	 OBJHANDLE hMS;
+	 //bool TargetLock;
 };
 
 

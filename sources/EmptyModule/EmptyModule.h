@@ -39,13 +39,13 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 using namespace std;
 
 class EmptyModule:public VESSEL4{
-public:
- EmptyModule(OBJHANDLE hObj,int fmodel);
- ~EmptyModule();
- void clbkSetClassCaps(FILEHANDLE cfg) override;
- void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
- void clbkSaveState(FILEHANDLE scn) override;
- //void clbkSetStateEx (const void *status);
+	public:
+	 EmptyModule(OBJHANDLE hObj,int fmodel);
+	 ~EmptyModule();
+	 void clbkSetClassCaps(FILEHANDLE cfg) override;
+	 void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
+	 void clbkSaveState(FILEHANDLE scn) override;
+	 //void clbkSetStateEx (const void *status);
 };
 
 

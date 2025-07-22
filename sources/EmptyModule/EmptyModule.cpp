@@ -51,42 +51,40 @@ void EmptyModule::clbkSetClassCaps(FILEHANDLE cfg){
 	  SetClipRadius(0.01);
 	double ro=10;
 			   TOUCHDOWNVTX td[4];
- for(int i=0;i<4;i++)
- {
+	 for(int i=0;i<4;i++){
 	
-	 td[i].damping=3e5;
-	 td[i].mu=3;
-	 td[i].mu_lng=3;
-	 td[i].stiffness=3e5;
- }
- td[0].pos.x=-cos(30*RAD)*ro;
- td[0].pos.y=-sin(30*RAD)*ro;
- td[0].pos.z=0.01;
- td[1].pos.x=0;
- td[1].pos.y=1*ro;
- td[1].pos.z=0.01;
- td[2].pos.x=cos(30*RAD)*ro;
- td[2].pos.y=-sin(30*RAD)*ro;
- td[2].pos.z=0.01;
- td[3].pos.x=0;
- td[3].pos.y=0;
- td[3].pos.z=5*ro;
+		 td[i].damping=3e5;
+		 td[i].mu=3;
+		 td[i].mu_lng=3;
+		 td[i].stiffness=3e5;
+	 }
+	 td[0].pos.x=-cos(30*RAD)*ro;
+	 td[0].pos.y=-sin(30*RAD)*ro;
+	 td[0].pos.z=0.01;
+	 td[1].pos.x=0;
+	 td[1].pos.y=1*ro;
+	 td[1].pos.z=0.01;
+	 td[2].pos.x=cos(30*RAD)*ro;
+	 td[2].pos.y=-sin(30*RAD)*ro;
+	 td[2].pos.z=0.01;
+	 td[3].pos.x=0;
+	 td[3].pos.y=0;
+	 td[3].pos.z=5*ro;
 
  
-SetTouchdownPoints(td,4);
-	return;
+	SetTouchdownPoints(td,4);
+		return;
 }
 
-void EmptyModule::clbkLoadStateEx(FILEHANDLE scn,void *vs)
-{
+void EmptyModule::clbkLoadStateEx(FILEHANDLE scn,void *vs){
 	char *line;
 	while(oapiReadScenario_nextline(scn,line)){
 		ParseScenarioLineEx(line,vs);}
  
 }
 //############################################################################//
-void EmptyModule::clbkSaveState(FILEHANDLE scn)
-{
+void EmptyModule::clbkSaveState(FILEHANDLE scn){
+	
 	SaveDefaultState(scn);
 	
 }

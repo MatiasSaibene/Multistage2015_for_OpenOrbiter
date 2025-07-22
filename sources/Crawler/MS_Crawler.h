@@ -43,87 +43,87 @@ using namespace std;
 
 
 class MS_Crawler:public VESSEL4{
-public:
- MS_Crawler(OBJHANDLE hObj,int fmodel);
- ~MS_Crawler();
- void clbkSetClassCaps(FILEHANDLE cfg) override;
- void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
- void clbkSaveState(FILEHANDLE scn) override;
- int clbkConsumeBufferedKey(DWORD key,bool down,char *kstate) override;
- int clbkConsumeDirectKey(char *kstate) override;
- void clbkPreStep(double simt, double simdt, double mjd) override;
- void clbkPostCreation() override;
- void MoveAround(bool FWD,bool BWD, bool LFT, bool RGT);
- bool FWD,BWD,LFT,RGT;
- void UpdateAnimations(bool Reset);
-  double Speed;
-  double LengthCrawl;
-  double rt;
-  double earth_circ;
-  double each_deg;
-  double AngSpeed;
-  double TangentSpd;
-  //void LoadMeshes();
-  void DefineAnimations();
-  /*MESHHANDLE Cingolo_mh[NANIM][NCING];
-  UINT Cingolo[NANIM][NCING];
-  UINT AnimCing[NANIM][NCING];
-  MGROUP_TRANSLATE *Tr11[NANIM];
-  MGROUP_ROTATE *Rot11[NANIM];
-  MGROUP_TRANSLATE *Tr21[NANIM];
-  MGROUP_ROTATE *Rot21[NANIM];
-  MGROUP_TRANSLATE *Tr31[NANIM];
-  MGROUP_ROTATE *Rot31[NANIM];
-  MGROUP_TRANSLATE *Tr41[NANIM];
-  MGROUP_ROTATE *Rot41[NANIM];
-  bool firstStep;
-  double Initials[NANIM];
-  double states[NANIM];*/
+	public:
+	 MS_Crawler(OBJHANDLE hObj,int fmodel);
+	 ~MS_Crawler();
+	 void clbkSetClassCaps(FILEHANDLE cfg) override;
+	 void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
+	 void clbkSaveState(FILEHANDLE scn) override;
+	 int clbkConsumeBufferedKey(DWORD key,bool down,char *kstate) override;
+	 int clbkConsumeDirectKey(char *kstate) override;
+	 void clbkPreStep(double simt, double simdt, double mjd) override;
+	 void clbkPostCreation() override;
+	 void MoveAround(bool FWD,bool BWD, bool LFT, bool RGT);
+	 bool FWD,BWD,LFT,RGT;
+	 void UpdateAnimations(bool Reset);
+	  double Speed;
+	  double LengthCrawl;
+	  double rt;
+	  double earth_circ;
+	  double each_deg;
+	  double AngSpeed;
+	  double TangentSpd;
+	  //void LoadMeshes();
+	  void DefineAnimations();
+	  /*MESHHANDLE Cingolo_mh[NANIM][NCING];
+	  UINT Cingolo[NANIM][NCING];
+	  UINT AnimCing[NANIM][NCING];
+	  MGROUP_TRANSLATE *Tr11[NANIM];
+	  MGROUP_ROTATE *Rot11[NANIM];
+	  MGROUP_TRANSLATE *Tr21[NANIM];
+	  MGROUP_ROTATE *Rot21[NANIM];
+	  MGROUP_TRANSLATE *Tr31[NANIM];
+	  MGROUP_ROTATE *Rot31[NANIM];
+	  MGROUP_TRANSLATE *Tr41[NANIM];
+	  MGROUP_ROTATE *Rot41[NANIM];
+	  bool firstStep;
+	  double Initials[NANIM];
+	  double states[NANIM];*/
 
-  UINT animCing[NANIM][NCING];
-  double StateCing[NANIM][NCING];
-  double Initials[NANIM][NCING];
- MGROUP_TRANSLATE *Tr1[NANIM][NCING];
-  MGROUP_ROTATE *Rot1[NANIM][NCING];
-  MGROUP_TRANSLATE *Tr2[NANIM][NCING];
-  MGROUP_ROTATE *Rot2[NANIM][NCING];
-  MGROUP_TRANSLATE *Tr3[NANIM][NCING];
-  MGROUP_ROTATE *Rot3[NANIM][NCING];
-  MGROUP_TRANSLATE *Tr4[NANIM][NCING];
-  MGROUP_ROTATE *Rot4[NANIM][NCING];
+	  UINT animCing[NANIM][NCING];
+	  double StateCing[NANIM][NCING];
+	  double Initials[NANIM][NCING];
+	 MGROUP_TRANSLATE *Tr1[NANIM][NCING];
+	  MGROUP_ROTATE *Rot1[NANIM][NCING];
+	  MGROUP_TRANSLATE *Tr2[NANIM][NCING];
+	  MGROUP_ROTATE *Rot2[NANIM][NCING];
+	  MGROUP_TRANSLATE *Tr3[NANIM][NCING];
+	  MGROUP_ROTATE *Rot3[NANIM][NCING];
+	  MGROUP_TRANSLATE *Tr4[NANIM][NCING];
+	  MGROUP_ROTATE *Rot4[NANIM][NCING];
   
   
   
-  UINT AnimLifter;
-  double StateLifter;
-  double SpeedLifter;
-  MGROUP_TRANSLATE *Lifter;
-  MGROUP_SCALE *Pistons;
-  bool GoingUp,GoingDown;
-  VECTOR3 CameraOff;
-  void UpdateLifter();
+	  UINT AnimLifter;
+	  double StateLifter;
+	  double SpeedLifter;
+	  MGROUP_TRANSLATE *Lifter;
+	  MGROUP_SCALE *Pistons;
+	  bool GoingUp,GoingDown;
+	  VECTOR3 CameraOff;
+	  void UpdateLifter();
 
-  LightEmitter* lights[4];
+	  LightEmitter* lights[4];
   
-	COLOUR4 col_d;
-	COLOUR4 col_s;
-	COLOUR4 col_a;
-	COLOUR4 col_white;
+		COLOUR4 col_d;
+		COLOUR4 col_s;
+		COLOUR4 col_a;
+		COLOUR4 col_white;
 
 
 
-OBJHANDLE hPad;
-VESSEL4 *vPad;
-VESSELSTATUS2 vsPad;
-ATTACHMENTHANDLE AttPadCrawler,AttPadRocket,AttCrawlerPad;
+	OBJHANDLE hPad;
+	VESSEL4 *vPad;
+	VESSELSTATUS2 vsPad;
+	ATTACHMENTHANDLE AttPadCrawler,AttPadRocket,AttCrawlerPad;
 
-MESHHANDLE msh;
-bool PadDetached;
+	MESHHANDLE msh;
+	bool PadDetached;
 
-char PadMesh[256];
-char PadModule[256];
-bool wCustomPadModule;
-bool NoPad;
+	char PadMesh[256];
+	char PadModule[256];
+	bool wCustomPadModule;
+	bool NoPad;
 };
 
 
