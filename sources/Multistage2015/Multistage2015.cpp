@@ -1,11 +1,11 @@
-/*********************************************************************************************
-This file is part of Multistage2015 project
-Copyright belogs to Fred18 for module implementation and its code
-Biggest Credit goes to Vinka for his idea of Multistage.dll. None of his code was used here since his addons are all closed source.
-Credit goes to Face for having pointed me to the GetPrivateProfileString
-Credit goes to Hlynkacg for his OrientForBurn function which was the basis on which I developed the Attitude Function.
+  /*********************************************************************************************
+  This file is part of Multistage2015 project
+  Copyright belogs to Fred18 for module implementation and its code
+  Biggest Credit goes to Vinka for his idea of Multistage.dll. None of his code was used here since his addons are all closed source.
+  Credit goes to Face for having pointed me to the GetPrivateProfileString 
+  Credit goes to Hlynkacg for his OrientForBurn function which was the basis on which I developed the Attitude Function.
 
-Multistage2015 is distributed FREEWARE. Its code is distributed along with the dll. Nobody is authorized to exploit the module or the code or parts of them commercially directly or indirectly.
+  Multistage2015 is distributed FREEWARE. Its code is distributed along with the dll. Nobody is authorized to exploit the module or the code or parts of them commercially directly or indirectly.
 You CAN distribute the dll together with your addon but in this case you MUST:
 -	Include credit to the author in your addon documentation;
 -	Add to the addon documentation the official link of Orbit Hangar Mods for download and suggest to download the latest and updated version of the module.
@@ -17,7 +17,7 @@ You CAN NOT claim that Multistage2015 is an invention of yourself or a work made
 You install and use Multistage2015 at your own risk, author will not be responsible for any claim or damage subsequent to its use or for the use of part of it or of part of its code.
 *********************************************************************************************/
 
-//****************************************************/
+ //****************************************************/
 
 
 // ==============================================================
@@ -34,19 +34,20 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 
 
 //############################################################################//
+#include <array>
 #include <cstddef>
-#include <windows.h>
+#include <format>
+#include <filesystem>
+#include <string>
 #define ORBITER_MODULE
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NONSTDC_NO_DEPRECATE
 
 #include <math.h>
 #include <stdio.h>
-#include "..//..//Orbitersdk/include/Orbitersdk.h"
-//#include "windows.h"
-//#include "DlgCtrl.h"
+
 #include "Multistage2015.h"
-//#include "resource.h"
+
 #include "DevModeCtrl.h"
 
 
@@ -64,750 +65,206 @@ GDIParams g_Param;
 //BOOL CALLBACK DlgProc (HWND, UINT, WPARAM, LPARAM);
 
 
-void OpenDlgClbk(void* context);
+void OpenDlgClbk (void *context);
 //BOOL CALLBACK MsgProc (HWND, UINT, WPARAM, LPARAM);
-void CloseDlg(HWND hDlg)
-{
-	oapiCloseDialog(hDlg);
+void CloseDlg (HWND hDlg){
+	oapiCloseDialog (hDlg);
 }
-
-
-
-
-
 
 //Creation
-Multistage2015::Multistage2015(OBJHANDLE hObj, int fmodel) :VESSEL4(hObj, fmodel), tex{}, Ssound{} {
+Multistage2015::Multistage2015(OBJHANDLE hObj,int fmodel) : VESSEL4(hObj,fmodel){
 
-	DeveloperMode = FALSE;
+	DeveloperMode = false;
 	//Ms15=this;
-	HangarMode = FALSE;
-
-	DMD = nullptr;
-
-	MyID = 0;
-
-	thg_h_main = nullptr;
-
-	particlesdt = 0.0;
-
-	GrowingParticles = false;
-
-	RefPressure = 0.0;
-
-	for (int i = 0; i < 150; i++) {
-		Gnc_step[i] = { 0 };
-	}
-
-	TotalHeight = 0.0;
-
-	dataparsed[0] = '\0';
-
-	Configuration = 0;
-
-	CogElev = 0.0;
-
-	OrbiterRoot[0] = '\0';
-
-	fileini[0] = '\0';
-
-	guidancefile[0] = '\0';
-
-	nStages = 0;
-
-	nBoosters = 0;
-
-	nInterstages = 0;
-
-	nPayloads = 0;
-
-	nTextures = 0;
-
-	nParticles = 0;
-
-	currentStage = 0;
-
-	currentBooster = 0;
-
-	currentPayload = 0;
-
-	hasFairing = false;
-
-	wLes = false;
-
-	wMach = false;
-
-	wVent = false;
-
-	wLaunchFX = false;
-
-	wFairing = false;
-
-	TEX* tex = new TEX;
-
-	currentDelta = 0.0;
-
-	nPsh = 0;
-
-	nPsg = 0;
-
-	psg = { 0 };
-
-	SSOUND* Ssound = new SSOUND;
-
-	currentInterstage = 0;
-
-	wBoosters = 0;
-
-	wAdapter = 0;
-
-	logbuff[0] = '\0';
-
-	buffreset[0] = '\0';
-
-	MET = 0.0;
-
-	stage_ignition_time = 0.0;
-
-	for (int i = 0; i < 10; i++) {
-		live_a[i] = nullptr;
-	}
-
-	lvl = 0.0;
-
-	nsteps = 0;
-
-	perror = 0.0;
-
-	yerror = 0.0;
-
-	rerror = 0.0;
-
-	pintegral = 0.0;
-
-	kp = 0.0;
-
-	kd = 0.0;
-
-	ki = 0.0;
-
-	Tu = 0.0;
-
-	Ku = 0.0;
-
-	VinkaAzimuth = 0.0;
-
-	VinkaMode = 0.0;
-
-	initlong = 0.0;
-
-	initlat = 0.0;
-
-	APstat = false;
-
-	AJdisabled = false;
-
-	rolldisabled = false;
-
-	pitchdisabled = false;
-
-	Gnc_running = false;
-
-	spinning = false;
-
-	AttCtrl = false;
-
-	PitchCtrl = false;
-
-	YawCtrl = false;
-
-	RollCtrl = false;
-
-	DeltaUpdate = 0.0;
-
-	wPeg = false;
-
-	TgtPitch = 0.0;
-
-	for (int i = 0; i < 4; i++) {
-		altsteps[i] = 0.0;
-	}
-
-	stepsloaded = 0.0;
-
-	Complex = false;
-
-	UpdateComplex = 0.0;
-
-	GT_InitPitch = 0.0;
-
-	GT_IP_Calculated = 0.0;
-
-	runningPeg = false;
-
-	op = { 0 };
-
-	el = { 0 };
-
-	epsfin = 0.0;
-
-	eps = 0.0;
-
-	coc = { 0 };
-
-	MECO_TEST = 0.0;
-
-	for (int i = 0; i < 100; i++) {
-		coeff[i] = 0.0;
-	}
-
-	avgcoeff = 0.0;
-
-	MECO_Counter = 0.0;
-
-	TMeco = 0.0;
-
-	PegPitchLimit = 0.0;
-
-	for (int i = 0; i < 10; i++) {
-		r_T[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		rdot_T[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		T[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		DeltaA[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		DeltaB[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		A[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		B[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		delta_rdot[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		delta_r[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		r_in[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		rdot_in[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		VthetaAtStaging[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		OmegaS[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		a_fin[i] = 0.0;
-	}
-
-	tgtapo = 0.0;
-
-	tgtperi = 0.0;
-
-	tgtinc = 0.0;
-
-	tgtabside = 0.0;
-
-	tgtvv = 0.0;
-
-	Azimuth = 0.0;
-
-	mu = 0.0;
-
-	rt = 0.0;
-
-	g0 = 0.0;
-
-	r = 0.0;
-
-	v = 0.0;
-
-	z = 0.0;
-
-	h = 0.0;
-
-	thrust = 0.0;
-
-	mass = 0.0;
-
-	for (int i = 0; i < 10; i++) {
-		a_[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		v_e[i] = 0.0;
-	}
-
-	for (int i = 0; i < 10; i++) {
-		tau_[i] = 0.0;
-	}
-
-	omega = 0.0;
-
-	rdot = 0.0;
-
-	vtheta = 0.0;
-
-	VertVel = 0.0;
-
-	NN = 0;
-
-	PegMajorCycleInterval = 0.0;
-
-	g = 0.0;
-
-	cent = 0.0;
-
-	g_term = 0.0;
-
-	cent_term = 0.0;
-
-	J = 0;
-
-	UpdatePegTimer = 0.0;
-
-	PegDesPitch = 0.0;
-
-	failureProbability = 0;
-
-	timeOfFailure = 0;
-
-	wFailures = false;
-
-	failed = false;
-
-	tlmfile[0] = '\0';
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmAlt[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmSpeed[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmPitch[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmThrust[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmMass[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmVv[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		tlmAcc[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmAlt[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmSpeed[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmPitch[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmThrust[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmMass[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmVv[i] = { 0 };
-	}
-
-	for (int i = 0; i < TLMSECS; i++) {
-		ReftlmAcc[i] = { 0 };
-	}
-
-	updtlm = 0.0;
-
-	writetlmTimer = 0.0;
-
-	tlmidx = 0;
-
-	tlmnlines = 0;
-
-	loadedtlmlines = 0;
-
-	updtboiloff = 0.0;
-
-	wReftlm = false;
-
-	scenario = nullptr;
-
-	config = nullptr;
-
-	loadedCurrentBooster = 0;
-
-	loadedCurrentInterstage = 0;
-
-	loadedCurrentStage = 0;
-
-	loadedCurrentPayload = 0;
-
-	loadedwFairing = 0;
-
-	loadedConfiguration = 0;
-
-	loadedGrowing = false;
-
-	loadedMET = 0.0;
-
-	vs2 = { 0 };
-
-	killDMD = false;
-
-	note = nullptr;
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			payloadrotatex[i][j] = nullptr;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			payloadrotatey[i][j] = nullptr;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			payloadrotatez[i][j] = nullptr;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			anim_x[i][j] = nullptr;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			anim_y[i][j] = nullptr;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			anim_z[i][j] = nullptr;
-		}
-	}
-
-	hramp = nullptr;
-
-	hhangar = nullptr;
-
-	hCrawler = nullptr;
-
-	vCrawler = nullptr;
-
-	vramp = nullptr;
-
-	vhangar = nullptr;
-
-	vshangar = { 0 };
-
-	AttToRamp = nullptr;
-
-	padramp = nullptr;
-
-	AttToHangar = nullptr;
-
-	PadHangar = nullptr;
-
-	AttToCrawler = nullptr;
-
-	wRamp = false;
-
-	NoMoreRamp = false;
-
-	col_d = { 0 };
-
-	col_s = { 0 };
-
-	col_a = { 0 };
-
-	col_white = { 0 };
-
-	th_main_level = 0.0;
-
-	launchFx_level = 0.0;
-
-	wCrawler = false;
-
-	wCamera = false;
-
-	CamDLat = 0.0;
-
-	CamDLng = 0.0;
-
-	AttToMSPad = false;
-
-	vsramp = { 0 };
-
-	MaxTorque = _V(0, 0, 0);
-
-	MsPadZ = _V(0, 0, 0);
-
-	RotMatrix = { 0 };
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 5; j++) {
-			RotatePayloadAnim_x[i][j] = 0;
-			RotatePayloadAnim_y[i][j] = 0;
-			RotatePayloadAnim_z[i][j] = 0;
-		}
-	}
-
-	ShipSpeed = _V(0, 0, 0);
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 32; j++) {
-			exhaustN[i][j] = 0;
-		}
-	}
-
-	fhat = _V(0, 0, 0);
-
-	hangaranims = _V(0, 0, 0);
-
-	hhat = _V(0, 0, 0);
-
-	hvec = _V(0, 0, 0);
-
-	rhat = _V(0, 0, 0);
-
-	rvec = _V(0, 0, 0);
-
-	thetahat = _V(0, 0, 0);
-
-	vvec = _V(0, 0, 0);
-
-	initGlobalVars();
+	HangarMode = false;
+	
 
 }
 
-Multistage2015::~Multistage2015() {
-	if (psg)delete[]psg;
-	for (int i = 0; i < 10; i++)
-	{
-		for (int j = 0; j < 5; j++)
-		{
-			delete payloadrotatex[i][j];
-			delete payloadrotatey[i][j];
-			delete payloadrotatez[i][j];
+Multistage2015::~Multistage2015(){
+
+	if(psg)delete []psg;
+		for(int i=0;i<10;i++){
+			for(int j=0;j<5;j++){
+				delete payloadrotatex.at(i)[j];
+				delete payloadrotatey.at(i)[j];
+				delete payloadrotatez.at(i)[j];
+			}
 		}
-	}
 
-
-	//delete Ms15;
 }
 
 
-VECTOR4F Multistage2015::_V4(double x, double y, double z, double t) {
+VECTOR4F Multistage2015::_V4(double x, double y, double z, double t){
+	
 	VECTOR4F v4;
-	v4.x = x;
-	v4.y = y;
-	v4.z = z;
-	v4.t = t;
+
+	v4.x=x;
+	v4.y=y;
+	v4.z=z;
+	v4.t=t;
+
 	return v4;
 }
 
-VECTOR2 Multistage2015::_V2(double x, double y)
-{
+VECTOR2 Multistage2015::_V2(double x, double y){
+	
 	VECTOR2 v2;
-	v2.x = x;
-	v2.y = y;
+
+	v2.x=x;
+	v2.y=y;
+
 	return v2;
 }
+
 //returns 1 if X is positive or -1 if X is negative
-int Multistage2015::SignOf(double X)
-{
-	return X / abs(X);
+int Multistage2015::SignOf(double X){
+	
+	return X/abs(X);
+
 }
 
 //returns true if a number is odd
 
-bool Multistage2015::IsOdd(int integer)
-{
-	if (integer % 2 == 0)
-		return true;
-	else
-		return false;
+bool Multistage2015::IsOdd( int integer ){
+	
+	if (integer % 2== 0){
+     	return true;
+	} else {
+     	return false;
+	}
 }
+
 //transforms char variable in v3
-VECTOR3 Multistage2015::CharToVec(char charvar[MAXLEN], VECTOR3* outvec) {
+VECTOR3 Multistage2015::CharToVec(char charvar[MAXLEN],VECTOR3* outvec){
 
 	double dbuff[3];
-	char* cbuff;
-	cbuff = NULL;
-	cbuff = strtok(charvar, ",");
-	int k = 0;
-	while (cbuff != NULL)
-	{
-		int cbs;
-		for (cbs = 0; cbs < sizeof(cbuff); cbs++) {
-			if (cbuff[cbs] == '(') cbuff[cbs] = ' ';
-			else if (cbuff[cbs] == ')') cbuff[cbs] = ' ';
+	char *cbuff;
+	cbuff=NULL;
+	cbuff=strtok(charvar,",");
+	int k=0;
+	 while (cbuff != NULL)
+		{
+			int cbs;
+			for(cbs=0;cbs<sizeof(cbuff);cbs++){
+				if(cbuff[cbs]=='(') cbuff[cbs]=' ';
+				else if(cbuff[cbs]==')') cbuff[cbs]=' ';
+							}
+			
+			
+		dbuff[k]=atof(cbuff);
+				
+		switch(k){
+			case 0:
+			outvec->x=dbuff[k];
+			break;
+			case 1:
+			outvec->y=dbuff[k];
+			break;
+			case 2:
+			outvec->z=dbuff[k];
+			break;
 		}
+		k+=1;
+		if(k>2)k=0;
 
-
-		dbuff[k] = atof(cbuff);
-
-		switch (k) {
-		case 0:
-			outvec->x = dbuff[k];
-			break;
-		case 1:
-			outvec->y = dbuff[k];
-			break;
-		case 2:
-			outvec->z = dbuff[k];
-			break;
+		cbuff = strtok (NULL, ",");
+		
 		}
-		k += 1;
-		if (k > 2)k = 0;
-
-		cbuff = strtok(NULL, ",");
-
-	}
 	return *outvec;
 }
 
 //transforms a char variable in V4
-VECTOR4F Multistage2015::CharToVec4(char charvar[MAXLEN], VECTOR4F* outvec) {
+VECTOR4F Multistage2015::CharToVec4(char charvar[MAXLEN],VECTOR4F* outvec){
 
 	double dbuff[4];
-	char* cbuff;
-	cbuff = NULL;
-	cbuff = strtok(charvar, ",");
-	int k = 0;
-	while (cbuff != NULL)
-	{
-		int cbs;
-		for (cbs = 0; cbs < sizeof(cbuff); cbs++) {
-			if (cbuff[cbs] == '(') cbuff[cbs] = ' ';
-			else if (cbuff[cbs] == ')') cbuff[cbs] = ' ';
+	char *cbuff;
+	cbuff=NULL;
+	cbuff=strtok(charvar,",");
+	int k=0;
+	 while (cbuff != NULL)
+		{
+			int cbs;
+			for(cbs=0;cbs<sizeof(cbuff);cbs++){
+				if(cbuff[cbs]=='(') cbuff[cbs]=' ';
+				else if(cbuff[cbs]==')') cbuff[cbs]=' ';
+							}
+			
+			
+		dbuff[k]=atof(cbuff);
+				
+		switch(k){
+			case 0:
+			outvec->x=dbuff[k];
+			break;
+			case 1:
+			outvec->y=dbuff[k];
+			break;
+			case 2:
+			outvec->z=dbuff[k];
+			break;
+			case 3:
+			outvec->t=dbuff[k];
+			break;
 		}
+		k+=1;
+		if(k>3)k=0;
 
-
-		dbuff[k] = atof(cbuff);
-
-		switch (k) {
-		case 0:
-			outvec->x = dbuff[k];
-			break;
-		case 1:
-			outvec->y = dbuff[k];
-			break;
-		case 2:
-			outvec->z = dbuff[k];
-			break;
-		case 3:
-			outvec->t = dbuff[k];
-			break;
+		cbuff = strtok (NULL, ",");
+		
 		}
-		k += 1;
-		if (k > 3)k = 0;
-
-		cbuff = strtok(NULL, ",");
-
-	}
 	return *outvec;
 }
+
 //Function to Rotate a Vector3 around Z axis of a given Angle
-VECTOR3 Multistage2015::RotateVecZ(VECTOR3 input, double Angle) {
+VECTOR3 Multistage2015::RotateVecZ(VECTOR3 input, double Angle){
+
 	VECTOR3 output;
+
 	output = _V(input.x * cos(Angle) - input.y * sin(Angle), input.x * sin(Angle) + input.y * cos(Angle), input.z);
+
 	return output;
 }
 
-MATRIX3 Multistage2015::RotationMatrix(VECTOR3 angles)
-{
+MATRIX3 Multistage2015::RotationMatrix(VECTOR3 angles){
+	
 	MATRIX3 m;
-	MATRIX3 RM_X, RM_Y, RM_Z;
-	RM_X = _M(1, 0, 0, 0, cos(angles.x), -sin(angles.x), 0, sin(angles.x), cos(angles.x));
-	RM_Y = _M(cos(angles.y), 0, sin(angles.y), 0, 1, 0, -sin(angles.y), 0, cos(angles.y));
-	RM_Z = _M(cos(angles.z), -sin(angles.z), 0, sin(angles.z), cos(angles.z), 0, 0, 0, 1);
-	m = mul(RM_Z, mul(RM_Y, RM_X));
+ 	MATRIX3 RM_X,RM_Y,RM_Z;
+
+	RM_X=_M(1,0,0,0,cos(angles.x),-sin(angles.x),0,sin(angles.x),cos(angles.x));
+	
+	RM_Y=_M(cos(angles.y),0,sin(angles.y),0,1,0,-sin(angles.y),0,cos(angles.y));
+	
+	RM_Z=_M(cos(angles.z),-sin(angles.z),0,sin(angles.z),cos(angles.z),0,0,0,1);
+	
+	m=mul(RM_Z,mul(RM_Y,RM_X));
+
 	return m;
 }
 
 
-void Multistage2015::ResetVehicle(VECTOR3 hangaranimsV = _V(1.3, -10, 57.75), bool Ramp = FALSE)
-{
-
-	// 	 if(HangarMode)
-	 //{
-		// SetAttachmentParams(PadHangar,_V(0,0,100),_V(0,0,1),_V(0,1,0));
-	 //}
-
+void Multistage2015::ResetVehicle(VECTOR3 hangaranimsV = _V(1.3,-10,57.75), bool Ramp = false){
+ 
 	ClearMeshes();
 	ClearThrusterDefinitions();
 	ClearPropellantResources();
 	ClearAttachments();
 
-	//	 	if((RampCreated)&&(!RampDeleted))
-
-
 	initGlobalVars();
-	wRamp = Ramp;
-	if (wRamp)
-	{
+	wRamp=Ramp;
+	if(wRamp){
 		oapiDeleteVessel(hramp);
-		wRamp = FALSE;
+		wRamp = false;
 	}
 
+	OrbiterRoot = std::filesystem::current_path();
+	std::filesystem::path tempFile;
 
-	char tempFile[MAXLEN];
-	strcpy_s(tempFile, OrbiterRoot);
-	strcat_s(tempFile, "\\");
-	strcat_s(tempFile, fileini);
-	sprintf(logbuff, "%s: Config File: %s", GetName(), tempFile);
-	oapiWriteLog(logbuff);
-	parseinifile(tempFile);
+	tempFile = OrbiterRoot / fileini;
+
+	logbuff = std::format("{}: Config File: {}", GetName(), tempFile.string());
+ 	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+ 	parseinifile(tempFile);
 
 	currentBooster = loadedCurrentBooster;
 	currentInterstage = loadedCurrentInterstage;
@@ -815,134 +272,179 @@ void Multistage2015::ResetVehicle(VECTOR3 hangaranimsV = _V(1.3, -10, 57.75), bo
 	currentPayload = loadedCurrentPayload;
 	wFairing = loadedwFairing;
 	Configuration = loadedConfiguration;
-	GrowingParticles = loadedGrowing;
+	GrowingParticles=loadedGrowing;
 
-	MET = loadedMET;
-	if ((currentInterstage > currentStage) || (currentInterstage > nInterstages) || (currentInterstage >= stage[currentStage].IntIncremental)) { stage[currentStage].wInter = FALSE; }
-
-	if ((wFairing == 1) && (hasFairing == FALSE)) { wFairing = 0; }
-	if (Configuration == 0) {			//if only configuration is defined, reset everything
-		if (hasFairing == TRUE) {
-			wFairing = 1;
-		}
-		currentStage = 0;
-		currentPayload = 0;
-		currentBooster = 0;
-		currentInterstage = 0;
+ 	MET = loadedMET;
+	if((currentInterstage>currentStage) ||(currentInterstage>nInterstages) || (currentInterstage >= stage.at(currentStage).IntIncremental)){
+		stage.at(currentStage).wInter = false;
 	}
+ 
+ 	if((wFairing==1) && (hasFairing == false)){
+		wFairing=0;
+	}
+ 	
+	if(Configuration == 0){			//if only configuration is defined, reset everything
+	 	if(hasFairing == true){
+		  	wFairing=1;
+		}
+	 	currentStage=0;
+	 	currentPayload=0;
+		currentBooster=0;
+		currentInterstage=0;
+ 	}
 
-	parseGuidanceFile(guidancefile);
-	UpdateOffsets();
+ 	parseGuidanceFile(guidancefile);
+ 	UpdateOffsets();
 
 	VehicleSetup();
 	LoadMeshes();
 
-	//vs2.arot=_V(0,0,0);
-	vs2.rvel = _V(0, 0, 0);
+	vs2.rvel=_V(0,0,0);
+ 
+  	clbkSetStateEx(&vs2);
 
-	clbkSetStateEx(&vs2);
-
-	hangaranims = hangaranimsV;
-
-	clbkPostCreation();
-
-
+  	hangaranims=hangaranimsV;
+ 
+ 	clbkPostCreation();
+ 
 	return;
+
 }
 
 
-//Returns current Heading
-double Multistage2015::GetHeading()
-{
+ //Returns current Heading
+ double Multistage2015::GetHeading(){
+	
 	double Heading;
+ 	
 	oapiGetHeading(GetHandle(), &Heading);
+
 	return Heading;
+
 }
+
+
 //returns Vehicle Orbital Speed
-double Multistage2015::GetOS() {
+double Multistage2015::GetOS(){
+
 	OBJHANDLE hearth = GetSurfaceRef();
+
 	VECTOR3 relvel;
-	GetRelativeVel(hearth, relvel);
+
+	GetRelativeVel(hearth,relvel);
+
 	double os = length(relvel);
+
 	return os;
 }
+
 //returns Vechicle Mass at a certain stage
-double Multistage2015::GetMassAtStage(int MassStage, bool empty = TRUE) {
-	double Mass = 0;
+double Multistage2015::GetMassAtStage(int MassStage,bool empty = true){
 
-	int add = 0;
-	if (empty == TRUE) { add = 1; }
-	else { add = 0; }
+	double Mass=0;
 
-	for (int i = MassStage; i < nStages; i++) {
-		Mass += stage[i].emptymass;
+	int add=0;
+	
+	if(empty == true){
+		add=1;
+	} else {
+		add=0;
 	}
-	for (int j = MassStage + add; j < nStages; j++) {
-		Mass += stage[j].fuelmass;
+
+	for(int i = MassStage; i<nStages; i++){
+		 Mass += stage.at(i).emptymass;
 	}
-	for (int k = 0; k < nPayloads; k++) {
-		Mass += payload[k].mass;
+
+	for(int i = MassStage + add; i < nStages; i++){
+		Mass += stage.at(i).fuelmass;
 	}
-	if (hasFairing) {
+
+	for(int i = 0; i < nPayloads; i++){
+		 Mass+=payload.at(i).mass;
+	}
+
+	if(hasFairing){
 		Mass += fairing.emptymass;
 	}
-	if (wAdapter) {
-		Mass += Adapter.emptymass;
+
+	if(wAdapter){
+		Mass+=Adapter.emptymass;
 	}
-	if (wLes) {
-		Mass += Les.emptymass;
+
+	if(wLes){
+		Mass+=Les.emptymass;
 	}
 
 	return Mass;
-}
 
+}
+ 
 //Returns Remainign Stage DV
-double Multistage2015::StageDv(int dvstage) {
+double Multistage2015::StageDv(int dvstage){
+	
 	double sdv;
-	sdv = stage[dvstage].isp * log(GetMassAtStage(dvstage, FALSE) / GetMassAtStage(dvstage, TRUE));
+
+	sdv = stage.at(dvstage).isp * log(GetMassAtStage(dvstage,false) / GetMassAtStage(dvstage, true));
+
 	return sdv;
 }
 
 //Returns Remaining DV at a certain Stage
-double Multistage2015::DvAtStage(int dvatstage) {
-	double rdvas = 0;
-	for (int i = dvatstage; i < nStages; i++) {
-		rdvas += StageDv(i);
+double Multistage2015::DvAtStage(int dvatstage){
+	
+	double rdvas=0;
+
+	for(int i = dvatstage; i < nStages; i++){
+		 rdvas += StageDv(i);
 	}
+
 	return rdvas;
 }
 
 //Returns Current Stage Remaining DV
-double Multistage2015::CurrentStageRemDv() {
+double Multistage2015::CurrentStageRemDv(){
+
 	double csrd;
-	csrd = stage[currentStage].isp * log((GetMassAtStage(currentStage, TRUE) + GetPropellantMass(stage[currentStage].tank)) / GetMassAtStage(currentStage, TRUE));
+
+	csrd = stage.at(currentStage).isp * log((GetMassAtStage(currentStage, true) + GetPropellantMass(stage.at(currentStage).tank)) / GetMassAtStage(currentStage, true));
+
 	return csrd;
 }
 
-//Returns Any Stage Rmeaining DV
-double Multistage2015::StageRemDv(int dvstage)
-{
+//Returns Any Stage Remaining DV
+double Multistage2015::StageRemDv(int dvstage){
+
 	double srd;
-	srd = stage[dvstage].isp * log((GetMassAtStage(dvstage, TRUE) + GetPropellantMass(stage[dvstage].tank)) / GetMassAtStage(dvstage, TRUE));
+
+	srd = stage.at(dvstage).isp * log((GetMassAtStage(dvstage, true) + GetPropellantMass(stage.at(dvstage).tank)) / GetMassAtStage(dvstage, true));
+
 	return srd;
 }
 
 //Returns Remaining Stage Burn Time
-double Multistage2015::RemBurnTime(int rbtstage, double level = 1) {
+double Multistage2015::RemBurnTime(int rbtstage, double level=1){
+	
 	double BT;
-	BT = stage[rbtstage].isp * GetPropellantMass(stage[rbtstage].tank) / (stage[rbtstage].thrust * level);
+
+	BT = stage.at(rbtstage).isp * GetPropellantMass(stage.at(rbtstage).tank) / (stage.at(rbtstage).thrust * level);
+
 	return BT;
 }
+
 //Returns Remaining Boosters Group Burn Time
-double Multistage2015::BoosterRemBurnTime(int rbtbooster, double level = 1) {
+double Multistage2015::BoosterRemBurnTime(int rbtbooster, double level=1){
+	
 	double BT;
-	BT = booster[rbtbooster].isp * GetPropellantMass(booster[rbtbooster].tank) / ((booster[rbtbooster].thrust * booster[rbtbooster].N) * level);
+
+	BT = booster.at(rbtbooster).isp * GetPropellantMass(booster.at(rbtbooster).tank) / ((booster.at(rbtbooster).thrust * booster.at(rbtbooster).N) * level);
+	
 	return BT;
 }
 
 
 //Global Variables initialization
-void Multistage2015::initGlobalVars() {
+void Multistage2015::initGlobalVars(){
+
 	nStages = 0;
 	nBoosters = 0;
 	nInterstages = 0;
@@ -954,15 +456,15 @@ void Multistage2015::initGlobalVars() {
 	CogElev = 0;
 	Misc.VerticalAngle = 0;
 	Misc.drag_factor = 1;
-	GetCurrentDirectory(MAXLEN, OrbiterRoot); //initialize orbiter root with the current directory
-	wBoosters = FALSE;
+	OrbiterRoot = std::filesystem::current_path(); //initialize orbiter root with the current directory
+	wBoosters = false;
 	wFairing = 0;
-	wLes = FALSE;
-	wAdapter = FALSE;
-	wMach = FALSE;
-	wVent = FALSE;
-	wLaunchFX = FALSE;
-	Complex = FALSE;
+	wLes = false;
+	wAdapter = false;
+	wMach = false;
+	wVent = false;
+	wLaunchFX = false;
+	Complex = false;
 	stage_ignition_time = 0;
 
 	currentDelta = 0;
@@ -970,55 +472,41 @@ void Multistage2015::initGlobalVars() {
 	yerror = 0;
 	rerror = 0;
 
-
-	//stage = new STAGE[10];
-	for (unsigned int i = 0; i < 10; i++) {
-		stage[i] = STAGE();
+	for(int i = 0; i < 10; i++){
+		stage.at(i) = STAGE();
+		stage.at(i).Ignited = false;
+		stage.at(i).reignitable = true;
+		stage.at(i).batteries.wBatts = false;
+		stage.at(i).waitforreignition=0;
+		stage.at(i).StageState = STAGE_SHUTDOWN;
+		stage.at(i).DenyIgnition=false;
+		stage.at(i).ParticlesPacked=false;
+		stage.at(i).ParticlesPackedToEngine=0;
+		stage.at(i).defpitch=false;
+		stage.at(i).defroll=false;
+		stage.at(i).defyaw=false;
+		payload.at(i) = PAYLOAD();	
 	}
 
-	//payload = new PAYLOAD[10];
-	for (unsigned int i = 0; i < 10; i++) {
-		payload[i] = PAYLOAD();
+	for(int i = 0; i < 10; i++){
+		booster.at(i) = BOOSTER();
+		booster.at(i).Ignited = false;
+		booster.at(i).ParticlesPacked = false;
+		booster.at(i).ParticlesPackedToEngine = 0;	
 	}
 
-	unsigned int i;
-	for (i = 0; i < 10; i++) {
-		stage[i].Ignited = FALSE;
-		stage[i].reignitable = TRUE;
-		stage[i].batteries.wBatts = FALSE;
-		stage[i].waitforreignition = 0;
-		stage[i].StageState = STAGE_SHUTDOWN;
-		stage[i].DenyIgnition = FALSE;
-		stage[i].ParticlesPacked = FALSE;
-		stage[i].ParticlesPackedToEngine = 0;
-		stage[i].defpitch = FALSE;
-		stage[i].defroll = FALSE;
-		stage[i].defyaw = FALSE;
-	}
-
-	//BOOSTER* booster = new BOOSTER[10];
-	for (unsigned int i = 0; i < 10; i++) {
-		booster[i] = BOOSTER();
-	}
-
-	unsigned int ii;
-	for (ii = 0; ii < 10; ii++) {
-		booster[ii].Ignited = FALSE;
-		booster[ii].ParticlesPacked = FALSE;
-		booster[ii].ParticlesPackedToEngine = 0;
-
-	}
 	MET = 0;
-	APstat = FALSE;
-	AJdisabled = FALSE;
-	rolldisabled = FALSE;
-	pitchdisabled = FALSE;
+	APstat = false;
+	AJdisabled = false;
+	rolldisabled = false;
+	pitchdisabled = false;
 
 	Gnc_running = 0;
-	spinning = FALSE;
+	spinning = false;
 	lvl = 1;
-	for (int s = 0; s < 57; s++) {
-		Ssound.GncStepSound[s] = -5;
+
+	for(int i = 0; i < 57; i++){
+		Ssound.GncStepSound.at(i) = -5;
 	}
 
 
@@ -1028,31 +516,31 @@ void Multistage2015::initGlobalVars() {
 	GT_InitPitch = 89.5 * RAD;
 	UpdatePegTimer = 0;
 	UpdateComplex = 0;
-	wPeg = FALSE;
+	wPeg = false;
 	PegMajorCycleInterval = 0.1;
-	runningPeg = FALSE;
-	//g0=9.80655;
-	AttCtrl = TRUE;
-	PitchCtrl = TRUE;
-	YawCtrl = TRUE;
-	RollCtrl = TRUE;
+	runningPeg=false;
+
+	AttCtrl = true;
+	PitchCtrl = true;
+ 	YawCtrl = true;
+ 	RollCtrl = true;
 	TgtPitch = 0;
-	//tgtapo=200000;
-	//tgtperi=200000;
+
+
 	eps = -9000000000000;
 
 	failureProbability = -1000;
 	timeOfFailure = -10000000;
-	wFailures = FALSE;
-	failed = FALSE;
+	wFailures = false;
+	failed = false;
 
 	DMD = 0;
-	killDMD = FALSE;
-	stepsloaded = FALSE;
+	killDMD = false;
+	stepsloaded = false;
 
-	for (int q = 0; q < 150; q++)
+	for(int i = 0; i < 150; i++)
 	{
-		Gnc_step[q].GNC_Comand = CM_NOLINE;
+		Gnc_step.at(i).GNC_Comand=CM_NOLINE;
 	}
 
 
@@ -1060,31 +548,31 @@ void Multistage2015::initGlobalVars() {
 	tlmidx = 0;
 	writetlmTimer = 0;
 	tlmnlines = 0;
-	wReftlm = FALSE;
-	for (int q = 0; q < TLMSECS; q++)
-	{
-		tlmAlt[q].x = 0;
-		tlmSpeed[q].x = 0;
-		tlmPitch[q].x = 0;
-		tlmThrust[q].x = 0;
-		tlmMass[q].x = 0;
-		tlmVv[q].x = 0;
-		tlmAcc[q].x = 0;
+	wReftlm = false;
 
-		tlmAlt[q].y = 0;
-		tlmSpeed[q].y = 0;
-		tlmPitch[q].y = 0;
-		tlmThrust[q].y = 0;
-		tlmMass[q].y = 0;
-		tlmVv[q].y = 0;
-		tlmAcc[q].y = 0;
+	for(int i = 0; i < TLMSECS; i++){
+		tlmAlt.at(i).x = 0;
+		tlmSpeed.at(i).x = 0;
+		tlmPitch.at(i).x = 0;
+		tlmThrust.at(i).x = 0;
+		tlmMass.at(i).x = 0;
+		tlmVv.at(i).x = 0;
+		tlmAcc.at(i).x = 0;
+
+		tlmAlt.at(i).y = 0;
+		tlmSpeed.at(i).y = 0;
+		tlmPitch.at(i).y = 0;
+		tlmThrust.at(i).y = 0;
+		tlmMass.at(i).y = 0;
+		tlmVv.at(i).y = 0;
+		tlmAcc.at(i).y = 0;
 	}
 
 	updtboiloff = 0;
-	for (int h = 0; h < 100; h++)
-	{
-		coeff[h] = 0;
+	for(int i = 0; i < 100; i++){
+		coeff.at(i)=0;
 	}
+
 	avgcoeff = 0;
 	MECO_Counter = 0;
 
@@ -1092,15 +580,11 @@ void Multistage2015::initGlobalVars() {
 	TMeco = 600;
 	nPsg = 0;
 	particlesdt = 0;
-	GrowingParticles = FALSE;
-	//ParticleFirstLoop=TRUE;
+	GrowingParticles = false;
 	RefPressure = 101400;
 
-	//RampCreated=FALSE;
-	//AttachedToRamp=FALSE;
-	//RampDeleted=FALSE;
-	wRamp = FALSE;
-	NoMoreRamp = FALSE;
+	wRamp = false;
+	NoMoreRamp = false;
 	col_d.a = 0;
 	col_d.b = 1;
 	col_d.g = 0.8;
@@ -1120,376 +604,395 @@ void Multistage2015::initGlobalVars() {
 
 	th_main_level = 0;
 	launchFx_level = 0;
-	hangaranims = _V(1.3, -10, 57.75);
-	wCrawler = FALSE;
-	wCamera = FALSE;
-	AttToMSPad = FALSE;
-	MsPadZ = _V(0, 0, -50);
+ 	hangaranims = _V(1.3, -10, 57.75);
+ 	wCrawler = false;
+	wCamera = false;
+	AttToMSPad = false;
+ 	MsPadZ = _V(0, 0, -50);
+	
 	return;
 }
 
-PSTREAM_HANDLE Multistage2015::AddExhaustStreamGrowing(THRUSTER_HANDLE  th, const VECTOR3& pos, PARTICLESTREAMSPEC* pss = 0, bool growing = FALSE, double growfactor_size = 0, double growfactor_rate = 0, bool count = TRUE, bool ToBooster = FALSE, int N_Item = 0, int N_Engine = 0)
-{
+PSTREAM_HANDLE Multistage2015::AddExhaustStreamGrowing(THRUSTER_HANDLE  th,    const VECTOR3 &  pos,    PARTICLESTREAMSPEC *  pss = 0  , bool growing=false, double growfactor_size=0, double growfactor_rate=0, bool count=true, bool ToBooster=false,int N_Item=0, int N_Engine=0) {
+	
+	PSTREAM_HANDLE psh=AddExhaustStream(th,pos,pss);
+	
+	psg[nPsg].pss=*pss;
+	psg[nPsg].psh.at(2)=psh;
+	psg[nPsg].th=th;
+	
+	psg[nPsg].pos=pos;
+	psg[nPsg].GrowFactor_rate=growfactor_rate;
+	psg[nPsg].GrowFactor_size=growfactor_size;
+	psg[nPsg].growing=growing;
+	psg[nPsg].baserate=psg[nPsg].pss.growthrate;
+	psg[nPsg].basesize=psg[nPsg].pss.srcsize;
+	psg[nPsg].basepos=psg[nPsg].pos;
+	psg[nPsg].ToBooster=ToBooster;
+	psg[nPsg].nItem=N_Item;
+	psg[nPsg].nEngine=N_Engine;
 
-	PSTREAM_HANDLE psh = AddExhaustStream(th, pos, pss);
-
-	psg[nPsg].pss = *pss;
-	psg[nPsg].psh[2] = psh;
-	psg[nPsg].th = th;
-	//psg[nPsg].psh[0]=psh;
-	psg[nPsg].pos = pos;
-	psg[nPsg].GrowFactor_rate = growfactor_rate;
-	psg[nPsg].GrowFactor_size = growfactor_size;
-	psg[nPsg].growing = growing;
-	psg[nPsg].baserate = psg[nPsg].pss.growthrate;
-	psg[nPsg].basesize = psg[nPsg].pss.srcsize;
-	psg[nPsg].basepos = psg[nPsg].pos;
-	psg[nPsg].ToBooster = ToBooster;
-	psg[nPsg].nItem = N_Item;
-	psg[nPsg].nEngine = N_Engine;
-	/*	sprintf(logbuff,"nPsg:%i nItem:%i nEngine:%i",nPsg,psg[nPsg].nItem,psg[nPsg].nEngine);
-		oapiWriteLog(logbuff);*/
-	if (count) { nPsg++; }
-
+	if(count){
+		nPsg++;
+	}
+	
 	return psh;
 }
+
 //Create RCS 
-void Multistage2015::CreateRCS() {
-	if (stage[currentStage].pitchthrust == 0) {
-		stage[currentStage].pitchthrust = 0.25 * stage[currentStage].thrust * stage[currentStage].height;//Empirical Values
+void Multistage2015::CreateRCS(){
+	
+	if(stage.at(currentStage).pitchthrust == 0){
+		stage.at(currentStage).pitchthrust = 0.25 * stage.at(currentStage).thrust * stage.at(currentStage).height;//Empirical Values
+ 	}
+
+	if(stage.at(currentStage).yawthrust == 0){
+		stage.at(currentStage).yawthrust = 0.25 * stage.at(currentStage).thrust * stage.at(currentStage).height;//Empirical Values
 	}
-	if (stage[currentStage].yawthrust == 0) {
-		stage[currentStage].yawthrust = 0.25 * stage[currentStage].thrust * stage[currentStage].height;//Empirical Values
-	}
-	if (stage[currentStage].rollthrust == 0) {
-		stage[currentStage].rollthrust = 0.1 * stage[currentStage].thrust * stage[currentStage].diameter * 0.5 * 0.5; //Empirical Values
+
+	if(stage.at(currentStage).rollthrust == 0){
+		stage.at(currentStage).rollthrust = 0.1 * stage.at(currentStage).thrust * stage.at(currentStage).diameter * 0.5 * 0.5; //Empirical Values
 	}
 	//pitch up
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 1), _V(0, 1, 0), 2 * stage[currentStage].pitchthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, -1), _V(0, -1, 0), 2 * stage[currentStage].pitchthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_PITCHUP);
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0 ,1), _V(0, 1, 0), 2 * stage.at(currentStage).pitchthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
 
-	MaxTorque.x = 2 * GetThrusterMax(stage[currentStage].th_att_h[0]);
+ 	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, -1), _V(0, -1, 0), 2 * stage.at(currentStage).pitchthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+ 	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_PITCHUP);
+
+	MaxTorque.x = 2 * GetThrusterMax(stage.at(currentStage).th_att_h.at(0));
 
 	//pitch down
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 1), _V(0, -1, 0), 2 * stage[currentStage].pitchthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, -1), _V(0, 1, 0), 2 * stage[currentStage].pitchthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_PITCHDOWN);
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 1), _V(0, -1, 0), 2 * stage.at(currentStage).pitchthrust,stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, -1), _V(0, 1, 0), 2 * stage.at(currentStage).pitchthrust,stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_PITCHDOWN);
 
 	//yaw left
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 1), _V(-1, 0, 0), 2 * stage[currentStage].yawthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, -1), _V(1, 0, 0), 2 * stage[currentStage].yawthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_YAWLEFT);
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 1), _V(-1, 0, 0), 2 * stage.at(currentStage).yawthrust,stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+	
+	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, -1), _V(1, 0, 0), 2 * stage.at(currentStage).yawthrust,stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
 
-	MaxTorque.y = 2 * GetThrusterMax(stage[currentStage].th_att_h[0]);
+	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_YAWLEFT);
+
+	MaxTorque.y = 2 * GetThrusterMax(stage.at(currentStage).th_att_h.at(0));
+	
 	//yaw right
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 1), _V(1, 0, 0), 2 * stage[currentStage].yawthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, -1), _V(-1, 0, 0), 2 * stage[currentStage].yawthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_YAWRIGHT);
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 1), _V(1, 0, 0), 2 * stage.at(currentStage).yawthrust,stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, -1), _V(-1, 0, 0),2 * stage.at(currentStage).yawthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_YAWRIGHT);
 
 	//roll left
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(1, 0, 0), _V(0, 1, 0), 2 * stage[currentStage].rollthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(-1, 0, 0), _V(0, -1, 0), 2 * stage[currentStage].rollthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_BANKLEFT);
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(1, 0, 0), _V(0, 1, 0), 2 * stage.at(currentStage).rollthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
 
-	MaxTorque.z = 2 * GetThrusterMax(stage[currentStage].th_att_h[0]);
+	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(-1, 0, 0), _V(0, -1, 0),2 * stage.at(currentStage).rollthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
+
+	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_BANKLEFT);
+
+	MaxTorque.z=2*GetThrusterMax(stage.at(currentStage).th_att_h.at(0));
+
 	//roll right
-	stage[currentStage].th_att_h[0] = CreateThruster(_V(1, 0, 0), _V(0, -1, 0), 2 * stage[currentStage].rollthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	stage[currentStage].th_att_h[1] = CreateThruster(_V(-1, 0, 0), _V(0, 1, 0), 2 * stage[currentStage].rollthrust, stage[currentStage].tank, stage[currentStage].isp * 100);
-	CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_BANKRIGHT);
-	if (stage[currentStage].linearthrust > 0) {
+	stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(1, 0, 0), _V(0, -1, 0), 2 * stage.at(currentStage).rollthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
 
-		if (stage[currentStage].linearisp <= 0) { stage[currentStage].linearisp = stage[currentStage].isp * 100; }
+	stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(-1, 0, 0), _V(0, 1, 0), 2 * stage.at(currentStage).rollthrust, stage.at(currentStage).tank, stage.at(currentStage).isp * 100);
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_FORWARD);
+	CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_BANKRIGHT);
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(0, 0, -1), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(0, 0, -1), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_BACK);
+	if(stage.at(currentStage).linearthrust > 0){
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(-1, 0, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(-1, 0, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_LEFT);
+		if(stage.at(currentStage).linearisp<=0){
+			stage.at(currentStage).linearisp=stage.at(currentStage).isp * 100;
+		}
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(1, 0, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(1, 0, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_RIGHT);
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(0, 1, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(0, 1, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_UP);
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
 
-		stage[currentStage].th_att_h[0] = CreateThruster(_V(0, 0, 0), _V(0, -1, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		stage[currentStage].th_att_h[1] = CreateThruster(_V(0, 0, 0), _V(0, -1, 0), stage[currentStage].linearthrust * 0.5, stage[currentStage].tank, stage[currentStage].linearisp);
-		CreateThrusterGroup(stage[currentStage].th_att_h, 2, THGROUP_ATT_DOWN);
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_FORWARD);
+	
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(0, 0, -1), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(0, 0, -1), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_BACK);
+	
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(-1, 0, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(-1, 0, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_LEFT);
+	
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(1, 0, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(1, 0, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_RIGHT);
+		
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(0, 1, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(0, 1, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_UP);
+		
+		stage.at(currentStage).th_att_h.at(0) = CreateThruster(_V(0, 0, 0), _V(0, -1, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		stage.at(currentStage).th_att_h.at(1) = CreateThruster(_V(0, 0, 0), _V(0, -1, 0), stage.at(currentStage).linearthrust * 0.5, stage.at(currentStage).tank, stage.at(currentStage).linearisp);
+
+		CreateThrusterGroup(stage.at(currentStage).th_att_h.data(), 2, THGROUP_ATT_DOWN);
+	
 	}
+
 	return;
 }
 
 //Creates Main Thrusters and relevant Exhausts
-void Multistage2015::CreateMainThruster() {
+void Multistage2015::CreateMainThruster(){
 
-	if (stage[currentStage].nEngines == 0) {    //if no stage engines are defined there will be anyway one displayed
-		stage[currentStage].nEngines = 1;
-		stage[currentStage].eng[0].x = 0;
-		stage[currentStage].eng[0].y = 0;
-		stage[currentStage].eng[0].z = -stage[currentStage].height * 0.5;
+	if(stage.at(currentStage).nEngines == 0){    //if no stage engines are defined there will be anyway one displayed
+	 	stage.at(currentStage).nEngines = 1;
+	 	stage.at(currentStage).eng.at(0).x = 0;
+	 	stage.at(currentStage).eng.at(0).y = 0;
+	 	stage.at(currentStage).eng.at(0).z = -stage.at(currentStage).height * 0.5;
+ 	}
 
+
+ 
+//added by rcraig42 to handle ispref in ini but no pressure, to default to earth -------------------------
+
+ 	if((stage.at(currentStage).ispref >= 0) && (stage.at(currentStage).pref==0)){
+		stage.at(currentStage).pref = 101400.0;
 	}
 
+//-------------------------------------------------------------------------------------------------------	
+ 
+ //modded by rcraig42 to add ispref and pref to createthruster -------------------------------------------------
+	
+	if(Misc.thrustrealpos){ 
 
-
-	//added by rcraig42 to handle ispref in ini but no pressure, to default to earth -------------------------
-
-	if ((stage[currentStage].ispref >= 0) && (stage[currentStage].pref == 0)) {
-		stage[currentStage].pref = 101400.0;
-	}
-
-	//-------------------------------------------------------------------------------------------------------	
-
-	 //modded by rcraig42 to add ispref and pref to createthruster -------------------------------------------------
-
-	if (Misc.thrustrealpos) {
-		for (int i = 0; i < stage[currentStage].nEngines; i++) {
-			stage[currentStage].th_main_h[i] = CreateThruster(stage[currentStage].off, stage[currentStage].eng_dir, stage[currentStage].thrust / stage[currentStage].nEngines, stage[currentStage].tank, stage[currentStage].isp, stage[currentStage].ispref, stage[currentStage].pref);
+		for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+			stage.at(currentStage).th_main_h.at(i) = CreateThruster(stage.at(currentStage).off, stage.at(currentStage).eng_dir, stage.at(currentStage).thrust / stage.at(currentStage).nEngines, stage.at(currentStage).tank, stage.at(currentStage).isp, stage.at(currentStage).ispref, stage.at(currentStage).pref);
 		}
-		//stage[currentStage].th_main_h[0]=CreateThruster(stage[currentStage].off,stage[currentStage].eng_dir,stage[currentStage].thrust,stage[currentStage].tank,stage[currentStage].isp);
-	}
-	else {
-		for (int i = 0; i < stage[currentStage].nEngines; i++) {
-			stage[currentStage].th_main_h[i] = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage[currentStage].thrust / stage[currentStage].nEngines, stage[currentStage].tank, stage[currentStage].isp, stage[currentStage].ispref, stage[currentStage].pref);
+
+	} else {
+		
+		for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+			stage.at(currentStage).th_main_h.at(i) = CreateThruster(_V(0, 0, 0),_V(0, 0, 1), stage.at(currentStage).thrust / stage.at(currentStage).nEngines, stage.at(currentStage).tank, stage.at(currentStage).isp, stage.at(currentStage).ispref, stage.at(currentStage).pref);
 		}
+
 	}
+	
+	thg_h_main = CreateThrusterGroup(stage.at(currentStage).th_main_h.data(), stage.at(currentStage).nEngines, THGROUP_MAIN);
 
-	//-------------------------------------------------------------------------------------------------------	
+ 	SetDefaultPropellantResource(stage.at(currentStage).tank);
 
+	SURFHANDLE ChoosenTexture = nullptr; //Initialization of Texture
+ 
 
-
-
-
-
-
-
-
-		/*
-		if(Misc.thrustrealpos){
-			for(int i=0;i<stage[currentStage].nEngines;i++){
-				stage[currentStage].th_main_h[i]=CreateThruster(stage[currentStage].off,stage[currentStage].eng_dir,stage[currentStage].thrust/stage[currentStage].nEngines,stage[currentStage].tank,stage[currentStage].isp);
-			}
-			//stage[currentStage].th_main_h[0]=CreateThruster(stage[currentStage].off,stage[currentStage].eng_dir,stage[currentStage].thrust,stage[currentStage].tank,stage[currentStage].isp);
-		}else{
-			for(int i=0;i<stage[currentStage].nEngines;i++){
-				stage[currentStage].th_main_h[i]=CreateThruster(_V(0,0,0),_V(0,0,1),stage[currentStage].thrust/stage[currentStage].nEngines,stage[currentStage].tank,stage[currentStage].isp);
-					}
-		}*/
-		//stage[currentStage].th_main_h[0]=CreateThruster(_V(0,0,0),_V(0,0,1),stage[currentStage].thrust,stage[currentStage].tank,stage[currentStage].isp);}
- //thg_h_main=CreateThrusterGroup(stage[currentStage].th_main_h,1,THGROUP_MAIN);
-	thg_h_main = CreateThrusterGroup(stage[currentStage].th_main_h, stage[currentStage].nEngines, THGROUP_MAIN);
-	SetDefaultPropellantResource(stage[currentStage].tank);
-
-	SURFHANDLE ChoosenTexture = NULL; //Initialization of Texture
-
-
-	int i;
-	for (i = 0; i < stage[currentStage].nEngines; i++) {
-
-		exhaustN[currentStage][i] = AddExhaust(stage[currentStage].th_main_h[i], 10 * stage[currentStage].eng_diameter * stage[currentStage].engV4[i].t, stage[currentStage].eng_diameter * stage[currentStage].engV4[i].t, stage[currentStage].eng[i], operator*(stage[currentStage].eng_dir, -1), GetProperExhaustTexture(stage[currentStage].eng_tex));
-
-		if (!stage[currentStage].ParticlesPacked) {
-			if (stage[currentStage].wps1) {
-				PARTICLE ps = GetProperPS(stage[currentStage].eng_pstream1);
-				AddExhaustStreamGrowing(
-					stage[currentStage].th_main_h[i],
-					stage[currentStage].eng[i],
+	for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+	 
+		exhaustN.at(currentStage).at(i) = AddExhaust(stage.at(currentStage).th_main_h.at(i), 10 * stage.at(currentStage).eng_diameter * stage.at(currentStage).engV4.at(i).t, stage.at(currentStage).eng_diameter * stage.at(currentStage).engV4.at(i).t, stage.at(currentStage).eng.at(i), operator*(stage.at(currentStage).eng_dir,-1), GetProperExhaustTexture(stage.at(currentStage).eng_tex));
+	  
+		if(!stage.at(currentStage).ParticlesPacked){
+	  		if(stage.at(currentStage).wps1){
+					PARTICLE ps = GetProperPS(stage.at(currentStage).eng_pstream1);
+					AddExhaustStreamGrowing(
+					stage.at(currentStage).th_main_h.at(i),
+					stage.at(currentStage).eng.at(i),
 					&ps.Pss,
-					ps.Growing,
-					ps.GrowFactor_size,
-					ps.GrowFactor_rate,
-					TRUE,
-					FALSE,
+					GetProperPS(stage.at(currentStage).eng_pstream1).Growing,
+					GetProperPS(stage.at(currentStage).eng_pstream1).GrowFactor_size,
+					GetProperPS(stage.at(currentStage).eng_pstream1).GrowFactor_rate,
+					true,
+					false,
 					currentStage,
 					i);
-				sprintf(logbuff, "%s: Stage n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), currentStage + 1, stage[currentStage].eng_pstream1, i + 1);
-				oapiWriteLog(logbuff);
+
+				logbuff = std::format("{}: Stage n.{} Engine Exhaust Stream Added: {} to engine n.{}", GetName(),currentStage + 1, stage.at(currentStage).eng_pstream1, i + 1);
+
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 			}
-			if (stage[currentStage].wps2) {
-				PARTICLE ps = GetProperPS(stage[currentStage].eng_pstream2);
-				AddExhaustStreamGrowing(
-					stage[currentStage].th_main_h[i],
-					stage[currentStage].eng[i],
-					&ps.Pss,
-					ps.Growing,
-					ps.GrowFactor_size,
-					ps.GrowFactor_rate,
-					TRUE,
-					FALSE,
-					currentStage,
+
+			if(stage.at(currentStage).wps2){
+				PARTICLE ps = GetProperPS(stage.at(currentStage).eng_pstream2);
+	  			AddExhaustStreamGrowing(
+					stage.at(currentStage).th_main_h.at(i), 
+					stage.at(currentStage).eng.at(i), 
+					&ps.Pss, 
+					GetProperPS(stage.at(currentStage).eng_pstream2).Growing, 
+					GetProperPS(stage.at(currentStage).eng_pstream2).GrowFactor_size, 
+					GetProperPS(stage.at(currentStage).eng_pstream2).GrowFactor_rate, 
+					true, 
+					false, 
+					currentStage, 
 					i);
-				sprintf(logbuff, "%s: Stage n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), currentStage + 1, stage[currentStage].eng_pstream2, i + 1);
-				oapiWriteLog(logbuff);
+
+				logbuff = std::format("{}: Stage n.{} Engine Exhaust Stream Added: {} to engine n.{}", GetName(),currentStage + 1, stage.at(currentStage).eng_pstream2, i + 1);
+
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 			}
-		}
-		sprintf(logbuff, "%s: Stage n. %i Engines Exhaust Added--> number of engines: %i , diameter: %.3f, position x: %.3f y: %.3f z: %.3f", GetName(), currentStage + 1, stage[currentStage].nEngines, stage[currentStage].eng_diameter * stage[currentStage].engV4[i].t, stage[currentStage].eng[i].x, stage[currentStage].eng[i].y, stage[currentStage].eng[i].z);
-		oapiWriteLog(logbuff);
-		//oapiWriteLogV("Adding 1: %s 2: %s",stage[currentStage].eng_pstream1,stage[currentStage].eng_pstream2);
+	 	}
+		
+	 	logbuff = std::format("{}: Stage n. {} Engines Exhaust Added--> number of engines: {} , diameter: {:.3f}, position x: {:.3f} y: {:.3f} z: {:.3f}", GetName(), currentStage + 1, stage.at(currentStage).nEngines, stage.at(currentStage).eng_diameter * stage.at(currentStage).engV4.at(i).t, stage.at(currentStage).eng.at(i).x, stage.at(currentStage).eng.at(i).y, stage.at(currentStage).eng.at(i).z);
+
+	 	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 	}
 
-	if (stage[currentStage].ParticlesPacked)
-	{
-		PARTICLESTREAMSPEC partpacked[2];
-		partpacked[0] = GetProperPS(stage[currentStage].eng_pstream1).Pss;
-		partpacked[1] = GetProperPS(stage[currentStage].eng_pstream2).Pss;
+ 	if(stage.at(currentStage).ParticlesPacked){
 
+		std::array<PARTICLESTREAMSPEC, 2> partpacked;
+		partpacked.at(0)=GetProperPS(stage.at(currentStage).eng_pstream1).Pss;
+		partpacked.at(1)=GetProperPS(stage.at(currentStage).eng_pstream2).Pss;
 
-		int engine = abs(stage[currentStage].ParticlesPackedToEngine) - 1;
+		
+		int engine = abs(stage.at(currentStage).ParticlesPackedToEngine) - 1;
 
-		VECTOR3 thdir, Pos[2];
-		GetThrusterDir(stage[currentStage].th_main_h[engine], thdir);
+		VECTOR3 thdir;
+		std::array<VECTOR3, 2> Pos;
+		GetThrusterDir(stage.at(currentStage).th_main_h[engine],thdir);
 		thdir.x *= -1;
 		thdir.y *= -1;
 		thdir.z *= -1;
-		if (stage[currentStage].ParticlesPackedToEngine > 0) {
-			/*Pos[0].x=stage[currentStage].eng[engine].x+thdir.x*partpacked[0].srcsize*0.5;
-			Pos[0].y=stage[currentStage].eng[engine].y+thdir.y*partpacked[0].srcsize*0.5;
-			Pos[0].z=stage[currentStage].eng[engine].z+thdir.z*partpacked[0].srcsize*0.5;
 
-			Pos[1].x=stage[currentStage].eng[engine].x+thdir.x*partpacked[1].srcsize*0.5;
-			Pos[1].y=stage[currentStage].eng[engine].y+thdir.y*partpacked[1].srcsize*0.5;
-			Pos[1].z=stage[currentStage].eng[engine].z+thdir.z*partpacked[1].srcsize*0.5;*/
-			Pos[0] = stage[currentStage].eng[engine];
-			Pos[1] = stage[currentStage].eng[engine];
-		}
-		else {
-			double Posx = 0;
-			double Posy = 0;
-			double Posz = 0;
-			for (int x = 0; x < stage[currentStage].nEngines; x++)
-			{
-				Posx += stage[currentStage].eng[x].x;
-				Posy += stage[currentStage].eng[x].y;
-				Posz += stage[currentStage].eng[x].z;
+		if(stage.at(currentStage).ParticlesPackedToEngine > 0){
+			Pos.at(0)=stage.at(currentStage).eng[engine];
+			Pos.at(1)=stage.at(currentStage).eng[engine];
+		} else {
+
+			double Posx=0;
+			double Posy=0;
+			double Posz=0;
+
+			for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+				Posx+=stage.at(currentStage).eng.at(i).x;
+				Posy+=stage.at(currentStage).eng.at(i).y;
+				Posz+=stage.at(currentStage).eng.at(i).z;
 			}
 
-			Posx /= stage[currentStage].nEngines;
-			Posy /= stage[currentStage].nEngines;
-			Posz /= stage[currentStage].nEngines;
+			Posx /= stage.at(currentStage).nEngines;
+			Posy /= stage.at(currentStage).nEngines;
+			Posz /= stage.at(currentStage).nEngines;
 
-			Pos[0].x = Posx;
-			Pos[0].y = Posy;
-			Pos[0].z = Posz;
-			Pos[1] = Pos[0];
+			Pos.at(0).x = Posx;
+			Pos.at(0).y = Posy;
+			Pos.at(0).z = Posz;
+			Pos.at(1) = Pos.at(0);
 
 
 		}
-		if (stage[currentStage].wps1) {
-			AddExhaustStreamGrowing(stage[currentStage].th_main_h[engine], Pos[0], &partpacked[0], GetProperPS(stage[currentStage].eng_pstream1).Growing, GetProperPS(stage[currentStage].eng_pstream1).GrowFactor_size, GetProperPS(stage[currentStage].eng_pstream1).GrowFactor_rate, TRUE, FALSE, currentStage, engine);
-			sprintf(logbuff, "%s: Stage n.%i Engine Packed Exhaust Stream Added: %s to engine n.%i", GetName(), currentStage + 1, stage[currentStage].eng_pstream1, engine + 1);
-			oapiWriteLog(logbuff);
+
+		if(stage.at(currentStage).wps1){
+	 		AddExhaustStreamGrowing(stage.at(currentStage).th_main_h[engine], Pos.at(0), &partpacked.at(0), GetProperPS(stage.at(currentStage).eng_pstream1).Growing, GetProperPS(stage.at(currentStage).eng_pstream1).GrowFactor_size, GetProperPS(stage.at(currentStage).eng_pstream1).GrowFactor_rate, true, false, currentStage, engine);
+
+			logbuff = std::format("{}: Stage n.{} Engine Packed Exhaust Stream Added: {} to engine n.{}", GetName(), currentStage + 1 , stage.at(currentStage).eng_pstream1, engine + 1);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
-		if (stage[currentStage].wps2) {
-			AddExhaustStreamGrowing(stage[currentStage].th_main_h[engine], Pos[1], &partpacked[1], GetProperPS(stage[currentStage].eng_pstream2).Growing, GetProperPS(stage[currentStage].eng_pstream2).GrowFactor_size, GetProperPS(stage[currentStage].eng_pstream2).GrowFactor_rate, TRUE, FALSE, currentStage, engine);
-			sprintf(logbuff, "%s: Stage n.%i Engine Packed Exhaust Stream Added: %s to engine n.%i", GetName(), currentStage + 1, stage[currentStage].eng_pstream2, engine + 1);
-			oapiWriteLog(logbuff);
+		
+		if(stage.at(currentStage).wps2){
+
+			AddExhaustStreamGrowing(stage.at(currentStage).th_main_h[engine],Pos.at(1),&partpacked.at(1),GetProperPS(stage.at(currentStage).eng_pstream2).Growing,GetProperPS(stage.at(currentStage).eng_pstream2).GrowFactor_size,GetProperPS(stage.at(currentStage).eng_pstream2).GrowFactor_rate,TRUE,false,currentStage,engine);
+
+			logbuff = std::format("{}: Stage n.{} Engine Packed Exhaust Stream Added: {} to engine n.{}", GetName(),currentStage + 1, stage.at(currentStage).eng_pstream2, engine + 1);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 
 	}
 
-
-
-
-	if (stage[currentStage].DenyIgnition) {
-		for (int i = 0; i < stage[currentStage].nEngines; i++)
-		{
-			SetThrusterResource(stage[currentStage].th_main_h[i], NULL);
+	if(stage.at(currentStage).DenyIgnition){
+		for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+		SetThrusterResource(stage.at(currentStage).th_main_h.at(i), nullptr);
 		}
 	}
 
 
-	LightEmitter* le = AddPointLight(stage[currentStage].eng[0], 200, 1e-3, 0, 2e-3, col_d, col_s, col_a);
+	LightEmitter *le = AddPointLight(stage.at(currentStage).eng.at(0), 200, 1e-3, 0, 2e-3, col_d, col_s, col_a);
 	le->SetIntensityRef(&th_main_level);
 
 	return;
+
 }
 
 //Get Boosters Position given group number and booster number inside the group
-VECTOR3 Multistage2015::GetBoosterPos(int nBooster, int N) {
+VECTOR3 Multistage2015::GetBoosterPos(int nBooster, int N){
 
-	VECTOR3 bpos = booster[nBooster].off;
-	double arg = booster[nBooster].angle * RAD + (N - 1) * 2 * PI / booster[nBooster].N;
-	VECTOR3 bposdef = _V(bpos.x * cos(arg) - bpos.y * sin(arg), bpos.x * sin(arg) + bpos.y * cos(arg), bpos.z);
+	VECTOR3 bpos = booster.at(nBooster).off;
+	
+	double arg = booster.at(nBooster).angle * RAD + (N-1) * 2 * PI / booster.at(nBooster).N;
 
+	VECTOR3 bposdef = _V(bpos.x * cos(arg) - bpos.y * sin(arg), bpos.x * sin(arg) + bpos.y * cos(arg), bpos.z);			
+	 
 	return bposdef;
 }
 
-char* Multistage2015::GetProperPayloadMeshName(int pnl, int n) {
-	if (n == 0) {
+std::string Multistage2015::GetProperPayloadMeshName(int pnl, int n){
+
+	if(n == 0){
 		return payload[pnl].meshname0;
-	}
-	else if (n == 1) {
+	} else if(n == 1){
 		return payload[pnl].meshname1;
-	}
-	else if (n == 2) {
+	} else if(n == 2){
 		return payload[pnl].meshname2;
-	}
-	else if (n == 3) {
+	} else if(n == 3){
 		return payload[pnl].meshname3;
-	}
-	else if (n == 4) {
+	} else if(n == 4){
 		return payload[pnl].meshname4;
-	}
-	else {
+	} else {
 		return payload[pnl].meshname0;
 	}
+
 }
 
 
-void Multistage2015::RotatePayload(int pns, int nm, VECTOR3 anglesrad) {
-
+void Multistage2015::RotatePayload(int pns, int nm,VECTOR3 anglesrad){
+	
 	VECTOR3 state = _V(anglesrad.x / (2 * PI), anglesrad.y / (2 * PI), anglesrad.z / (2 * PI));//portion of 2*PI to rotate
 	VECTOR3 reference;
+	
+	if(nm == 0){
+		reference = _V(0, 0, 0);
+	} else {
+		reference = operator-(payload[pns].off[nm], payload[pns].off.at(0));
+	}
 
-	if (nm == 0) { reference = _V(0, 0, 0); }
-	else { reference = operator-(payload[pns].off[nm], payload[pns].off[0]); }
+	if(!DeveloperMode){
+		payloadrotatex[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(1, 0, 0),(float)2 * PI);
 
-	if (!DeveloperMode) {
-		payloadrotatex[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(1, 0, 0), (float)2 * PI);
 		RotatePayloadAnim_x[pns][nm] = CreateAnimation(0);
-		anim_x[pns][nm] = AddAnimationComponent(RotatePayloadAnim_x[pns][nm], 0.0f, 1.0f, payloadrotatex[pns][nm]);
-		payloadrotatey[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(0, 1, 0), (float)2 * PI);
+
+		anim_x[pns][nm] = AddAnimationComponent(RotatePayloadAnim_x[pns][nm], 0.0f, 1.0f,payloadrotatex[pns][nm]);
+
+		payloadrotatey[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(0, 1, 0), (float)2 * PI); 
+		
 		RotatePayloadAnim_y[pns][nm] = CreateAnimation(0);
+
 		anim_y[pns][nm] = AddAnimationComponent(RotatePayloadAnim_y[pns][nm], 0.0f, 1.0f, payloadrotatey[pns][nm]);
 
-		payloadrotatez[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(0, 0, 1), (float)2 * PI);
+		payloadrotatez[pns][nm] = new MGROUP_ROTATE(payload[pns].msh_idh[nm], NULL, NULL, reference, _V(0, 0, 1), (float)2 * PI); 
+
 		RotatePayloadAnim_z[pns][nm] = CreateAnimation(0);
+
 		anim_z[pns][nm] = AddAnimationComponent(RotatePayloadAnim_z[pns][nm], 0.0f, 1.0f, payloadrotatez[pns][nm]);
 
-
-
-
-	}
-	else {
-		SetAnimation(RotatePayloadAnim_z[pns][nm], 0);
-		SetAnimation(RotatePayloadAnim_y[pns][nm], 0);
-		SetAnimation(RotatePayloadAnim_x[pns][nm], 0);
-
-		/*DelAnimationComponent(RotatePayloadAnim_z[pns][nm],anim_z[pns][nm]);
-		DelAnimationComponent(RotatePayloadAnim_y[pns][nm],anim_y[pns][nm]);
-		DelAnimationComponent(RotatePayloadAnim_x[pns][nm],anim_x[pns][nm]);*/
-
+	} else {
+		SetAnimation(RotatePayloadAnim_z[pns][nm],0);
+		SetAnimation(RotatePayloadAnim_y[pns][nm],0);
+		SetAnimation(RotatePayloadAnim_x[pns][nm],0);
 	}
 
 
-	SetAnimation(RotatePayloadAnim_x[pns][nm], state.x);
-	SetAnimation(RotatePayloadAnim_y[pns][nm], state.y);
-	SetAnimation(RotatePayloadAnim_z[pns][nm], state.z);
+	SetAnimation(RotatePayloadAnim_x[pns][nm],state.x);
+	SetAnimation(RotatePayloadAnim_y[pns][nm],state.y);
+	SetAnimation(RotatePayloadAnim_z[pns][nm],state.z);
 
 
 	return;
 }
 
-VECTOR3 Multistage2015::RotateVector(const VECTOR3& input, double angle, const VECTOR3& rotationaxis)
+VECTOR3 Multistage2015::RotateVector(const VECTOR3& input, double angle, const VECTOR3& rotationaxis) 
 {
 	// To rotate a vector in 3D space we'll need to build a matrix, these are the variables treqired to do so.
 	MATRIX3 rMatrix;
@@ -1513,362 +1016,478 @@ VECTOR3 Multistage2015::RotateVector(const VECTOR3& input, double angle, const V
 
 	// Perform Rotation
 	VECTOR3 output = mul(rMatrix, input); // multiply the input vector by our rotation matrix to get our output vector
+	
 	return output; // Return rotated vector
 }
 
 //Load Meshes
-void Multistage2015::LoadMeshes() {
+void Multistage2015::LoadMeshes(){
+		
+	for(int i = currentStage; i < nStages; i++){
 
-	int q;
-	for (q = currentStage; q < nStages; q++) {
-		VECTOR3 pos = stage[q].off;
-		stage[q].msh_h = oapiLoadMeshGlobal(stage[q].meshname);
-		sprintf(logbuff, "%s: Stage n.%i Mesh Preloaded: %s", GetName(), q + 1, stage[q].meshname);
-		oapiWriteLog(logbuff);
-		stage[q].msh_idh = AddMesh(stage[q].msh_h, &pos);
-		sprintf(logbuff, "%s: Stage n.%i Mesh Added Mesh: %s @ x:%.3f y:%.3f z:%.3f", GetName(), q + 1, stage[q].meshname, pos.x, pos.y, pos.z);
-		oapiWriteLog(logbuff);
-		if (stage[q].wInter == TRUE) {
+		VECTOR3 pos=stage.at(i).off;
 
-			VECTOR3 inspos = stage[q].interstage.off;
-			stage[q].interstage.msh_h = oapiLoadMeshGlobal(stage[q].interstage.meshname);
-			sprintf(logbuff, "%s: Interstage Mesh Preloaded for Stage %i", GetName(), q + 1);
-			oapiWriteLog(logbuff);
-			stage[q].interstage.msh_idh = AddMesh(stage[q].interstage.msh_h, &inspos);
-			sprintf(logbuff, "%s: Interstage Mesh Added: %s @ x:%.3f y:%.3f z:%.3f", GetName(), stage[q].interstage.meshname, inspos.x, inspos.y, inspos.z);
-			oapiWriteLog(logbuff);
+		stage.at(i).msh_h = oapiLoadMeshGlobal(stage.at(i).meshname.c_str());
+
+		logbuff = std::format("{}: Stage n.{} Mesh Preloaded: {}", GetName(), i + 1, stage.at(i).meshname);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+		stage.at(i).msh_idh = AddMesh(stage.at(i).msh_h,&pos);
+
+		logbuff = std::format("{}: Stage n.{} Mesh Added Mesh: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), i + 1, stage.at(i).meshname, pos.x, pos.y, pos.z);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+		if(stage.at(i).wInter == true){
+				
+			VECTOR3 inspos=stage.at(i).interstage.off;
+
+			stage.at(i).interstage.msh_h = oapiLoadMeshGlobal(stage.at(i).interstage.meshname.c_str());
+
+			logbuff = std::format("{}: Interstage Mesh Preloaded for Stage {}", GetName(), i + 1);
+			
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+			stage.at(i).interstage.msh_idh = AddMesh(stage.at(i).interstage.msh_h, &inspos);
+
+			logbuff = std::format("{}: Interstage Mesh Added: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), stage.at(i).interstage.meshname, inspos.x, inspos.y, inspos.z);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
+
 	}
+  
+	for(int i = currentPayload; i < nPayloads; i++){
 
+		if(!payload.at(i).live){
 
+			for(int j = 0; j < payload.at(i).nMeshes; j++){
+				
+				VECTOR3 pos=payload.at(i).off.at(j);
 
-	for (int pns = currentPayload; pns < nPayloads; pns++) {
+				payload.at(i).msh_h.at(j) = oapiLoadMeshGlobal(GetProperPayloadMeshName(i, j).c_str());
 
-		if (!payload[pns].live) {
-			for (int nm = 0; nm < payload[pns].nMeshes; nm++) {
+				logbuff = std::format("{} Payload Mesh Preloaded {}", GetName(), i + 1);
 
-				VECTOR3 pos = payload[pns].off[nm];
-				payload[pns].msh_h[nm] = oapiLoadMeshGlobal(GetProperPayloadMeshName(pns, nm));
-				sprintf(logbuff, "%s Payload Mesh Preloaded %i", GetName(), pns + 1);
-				oapiWriteLog(logbuff);
-				payload[pns].msh_idh[nm] = AddMesh(payload[pns].msh_h[nm], &pos);
-				sprintf(logbuff, "%s: Payload n.%i Mesh Added: %s @ x:%.3f y:%.3f z:%.3f", GetName(), pns + 1, GetProperPayloadMeshName(pns, nm), pos.x, pos.y, pos.z);
-				oapiWriteLog(logbuff);
-				if ((payload[pns].render == 0) && (wFairing == 1)) {
-					SetMeshVisibilityMode(payload[pns].msh_idh[nm], MESHVIS_NEVER);
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+				payload.at(i).msh_idh.at(j) = AddMesh(payload.at(i).msh_h.at(j), &pos);
+
+				logbuff = std::format("{}: Payload n.{} Mesh Added: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), i + 1,GetProperPayloadMeshName(i, j), pos.x, pos.y, pos.z);
+
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+				if((payload.at(i).render == 0) && (wFairing == 1)){
+					SetMeshVisibilityMode(payload.at(i).msh_idh.at(j), MESHVIS_NEVER);
 				}
-				//if(payload[pns].rotated){
-				RotatePayload(pns, nm, payload[pns].Rotation);
-				//	}
 
-
+				RotatePayload(i, j, payload[i].Rotation);
+				
 				/// ATTACHMENT POINTS MUST BE CREATED ANYWAY TO GET THE PAYLOAD BACK ONCE RELOADING THE SCENARIO
+				}
+
 			}
-		}//else{
-		VECTOR3 direction, normal;
-		if (!payload[pns].rotated) { direction = _V(0, 0, 1); normal = _V(0, 1, 0); }
-		else {
-			direction = payload[pns].Rotation;
-			VECTOR3 rotation;
-			rotation = payload[pns].Rotation;
-			direction = mul(RotationMatrix(rotation), _V(0, 0, 1));
-			normal = mul(RotationMatrix(rotation), _V(0, 1, 0));
-			normalise(normal);
-			normalise(direction);
-		}
 
-		live_a[pns] = CreateAttachment(false, payload[pns].off[0], direction, normal, "MS2015", false);
 
-		//}
+			VECTOR3 direction, normal;
+			if(!payload.at(i).rotated){
+				direction = _V(0, 0, 1);
+				normal = _V(0, 1, 0);
+			} else {
+				direction = payload.at(i).Rotation;
+
+				VECTOR3 rotation;
+
+				rotation = payload.at(i).Rotation;
+
+				direction = mul(RotationMatrix(rotation), _V(0, 0, 1));
+
+				normal = mul(RotationMatrix(rotation), _V(0, 1, 0));
+
+				normalise(normal);
+
+				normalise(direction);
+
+			}
+
+			live_a.at(i) = CreateAttachment(false, payload.at(i).off.at(0), direction, normal, "MS2015", false);
+
 	}
-	int qb;
-	for (qb = currentBooster; qb < nBoosters; qb++) {
-		VECTOR3 bpos = booster[qb].off;
+
+	for(int i = currentBooster; i < nBoosters; i++){
+ 		
+		VECTOR3 bpos = booster.at(i).off;
+ 		
 		VECTOR3 bposxy = bpos;
-		bposxy.z = 0;
+
+ 		bposxy.z = 0;
+ 		
 		double bro = length(bposxy);
-		int NN;
-		for (NN = 1; NN < booster[qb].N + 1; NN++) {
-			char boosbuff[32], boosmhname[MAXLEN];
-			sprintf(boosbuff, "_%i", NN);
-			strcpy_s(boosmhname, booster[qb].meshname);
-			strcat_s(boosmhname, boosbuff);
 
-			double arg = booster[qb].angle * RAD + (NN - 1) * 2 * PI / booster[qb].N;
+		for(int j = 1; j < booster.at(i).N + 1; j++){
+		
+			std::string boosbuff, boosmhname;
+
+			boosbuff = std::format("_{}", j);
+			
+			boosmhname = booster.at(i).meshname;
+			
+			boosmhname += boosbuff;
+
+			double arg = booster.at(i).angle * RAD + (j-1) * 2 * PI / booster.at(i).N;
+
 			VECTOR3 bposdef = _V(bpos.x * cos(arg) - bpos.y * sin(arg), bpos.x * sin(arg) + bpos.y * cos(arg), bpos.z);
-			booster[qb].msh_h[NN] = oapiLoadMeshGlobal(boosmhname);
-			sprintf(logbuff, "%s: Booster Mesh Preloaded: %s", GetName(), boosmhname);
-			oapiWriteLog(logbuff);
-			booster[qb].msh_idh[NN] = AddMesh(booster[qb].msh_h[NN], &bposdef);
-			sprintf(logbuff, "%s: Booster Mesh Added Mesh: %s @ x:%.3f y:%.3f z:%.3f", GetName(), boosmhname, bposdef.x, bposdef.y, bposdef.z);
-			oapiWriteLog(logbuff);
+
+			booster.at(i).msh_h.at(j) = oapiLoadMeshGlobal(boosmhname.c_str());
+
+			logbuff = std::format("{}: Booster Mesh Preloaded: {}", GetName(), boosmhname);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+			booster.at(i).msh_idh.at(j) = AddMesh(booster.at(i).msh_h.at(j), &bposdef);
+
+			logbuff = std::format("{}: Booster Mesh Added Mesh: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), boosmhname,bposdef.x, bposdef.y, bposdef.z);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 	}
 
-	if (wFairing == 1) {
+	if(wFairing == 1){
 		VECTOR3 fpos = fairing.off;
-		VECTOR3 fposxy = fpos;
-		fposxy.z = 0;
-		double fro = length(fposxy);
-		int NF;
-		for (NF = 1; NF < fairing.N + 1; NF++) {
-			char fairbuff[32], fairmshname[MAXLEN];
-			sprintf(fairbuff, "_%i", NF);
-			strcpy_s(fairmshname, fairing.meshname);
-			strcat_s(fairmshname, fairbuff);
-			VECTOR3 fposdef = _V(fro * cos(fairing.angle * RAD + (NF - 1) * 2 * PI / fairing.N), fro * sin(fairing.angle * RAD + (NF - 1) * 2 * PI / fairing.N), fpos.z);
-			fairing.msh_h[NF] = oapiLoadMeshGlobal(fairmshname);
-			sprintf(logbuff, "%s: Fairing Mesh Preloaded: %s", GetName(), fairmshname);
-			oapiWriteLog(logbuff);
-			fairing.msh_idh[NF] = AddMesh(fairing.msh_h[NF], &fposdef);
-			sprintf(logbuff, "%s: Fairing Mesh Added Mesh: %s @ x:%.3f y:%.3f z:%.3f", GetName(), fairmshname, fposdef.x, fposdef.y, fposdef.z);
-			oapiWriteLog(logbuff);
 
+		VECTOR3 fposxy = fpos;
+
+		fposxy.z = 0;
+
+		double fro = length(fposxy);
+
+		for(int i = 1; i < fairing.N + 1; i++){
+			std::string fairbuff, fairmshname;
+
+			fairbuff = std::format("_{}", i);
+
+			fairmshname = fairing.meshname;
+
+			fairmshname += fairbuff;
+
+			VECTOR3 fposdef = _V(fro * cos(fairing.angle * RAD + (i - 1) * 2 * PI / fairing.N), fro * sin(fairing.angle * RAD + (i-1) * 2 * PI / fairing.N), fpos.z);
+
+			fairing.msh_h.at(i) = oapiLoadMeshGlobal(fairmshname.c_str());
+
+			logbuff = std::format("{}: Fairing Mesh Preloaded: {}", GetName(), fairmshname);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+			fairing.msh_idh.at(i) = AddMesh(fairing.msh_h.at(i), &fposdef);
+
+			logbuff = std::format("{}: Fairing Mesh Added Mesh: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), fairmshname,fposdef.x, fposdef.y, fposdef.z);
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 
 	}
-	if (wAdapter == TRUE) {
+
+	if(wAdapter == false){
+
 		VECTOR3 adappos = Adapter.off;
-		Adapter.msh_h = oapiLoadMeshGlobal(Adapter.meshname);
-		sprintf(logbuff, "%s: Adapter Mesh Preloaded", GetName());
-		oapiWriteLog(logbuff);
+
+		Adapter.msh_h = oapiLoadMeshGlobal(Adapter.meshname.c_str());
+
+		logbuff = std::format("{}: Adapter Mesh Preloaded", GetName());
+
+		oapiWriteLog(const_cast<char*>(logbuff.c_str()));
+
 		Adapter.msh_idh = AddMesh(Adapter.msh_h, &adappos);
-		sprintf(logbuff, "%s: Adapter Mesh Added: %s @ x:%.3f y:%.3f z:%.3f", GetName(), Adapter.meshname, adappos.x, adappos.y, adappos.z);
-		oapiWriteLog(logbuff);
 
+		logbuff = std::format("{}: Adapter Mesh Added: {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), Adapter.meshname,adappos.x, adappos.y, adappos.z);
+
+		oapiWriteLog(const_cast<char*>(logbuff.c_str()));
+		
 	}
-	if (wLes == TRUE)
-	{
+
+	if(wLes==TRUE){
+		
 		VECTOR3 LesPos = Les.off;
-		Les.msh_h = oapiLoadMeshGlobal(Les.meshname);
-		sprintf(logbuff, "%s: Les Mesh Preloaded", GetName());
-		oapiWriteLog(logbuff);
-		Les.msh_idh = AddMesh(Les.msh_h, &LesPos);
-		sprintf(logbuff, "%s: Les Mesh Added %s @ x:%.3f y:%.3f z:%.3f", GetName(), Les.meshname, LesPos.x, LesPos.y, LesPos.z);
-		oapiWriteLog(logbuff);
-	}
 
+		Les.msh_h = oapiLoadMeshGlobal(Les.meshname.c_str());
+
+		logbuff = std::format("{}: Les Mesh Preloaded", GetName());
+
+		oapiWriteLog(const_cast<char*>(logbuff.c_str()));
+
+		Les.msh_idh = AddMesh(Les.msh_h, &LesPos);
+
+		logbuff = std::format("{}: Les Mesh Added {} @ x:{:.3f} y:{:.3f} z:{:.3f}", GetName(), Les.meshname, LesPos.x,LesPos.y, LesPos.z);
+
+		oapiWriteLog(const_cast<char*>(logbuff.c_str()));
+	}
+	
 	return;
 }
 
 //Updates PMI, Cross Sections etc.
-void Multistage2015::UpdatePMI() {
-	double TotalVolume = 0;
-	TotalHeight = 0;
-	int i;
-	for (i = currentStage; i < nStages; i++) {
-		TotalHeight += stage[i].height;
-		stage[i].volume = stage[i].height * 0.25 * PI * stage[i].diameter * stage[i].diameter;
-		TotalVolume += stage[i].volume;
-		stage[i].interstage.volume = stage[i].interstage.height * 0.25 * PI * stage[i].interstage.diameter * stage[i].interstage.diameter;
-		TotalVolume += stage[i].interstage.volume;
-	}
-	int q;
-	double CSBoosters = 0;
-	for (q = currentBooster; q < nBoosters; q++) {
-		booster[q].volume = booster[q].N * booster[q].height * 0.25 * PI * booster[q].diameter * booster[q].diameter;
-		CSBoosters += 0.25 * PI * booster[q].diameter * booster[q].diameter;
-		//	TotalVolume+=booster[q].volume;
-	}
+void Multistage2015::UpdatePMI(){
 
-	int k;
-	for (k = currentPayload; k < nPayloads; k++) {
-		//TotalHeight+=payload[k].height; //Not Considered in Height
-		payload[k].volume = payload[k].height * 0.25 * PI * payload[k].diameter * payload[k].diameter;
-		TotalVolume += payload[k].volume;
+	double TotalVolume = 0.0;
+
+	TotalHeight = 0.0;
+
+	for(int i = currentStage; i < nStages; i++){
+
+		TotalHeight += stage.at(i).height;
+
+		stage.at(i).volume = stage.at(i).height * 0.25 * PI * stage.at(i).diameter * stage.at(i).diameter;
+
+		TotalVolume += stage.at(i).volume;
+
+		stage.at(i).interstage.volume = stage.at(i).interstage.height * 0.25 * PI * stage.at(i).interstage.diameter * stage.at(i).interstage.diameter;
+
+		TotalVolume += stage.at(i).interstage.volume;
 
 	}
 
-	if (wFairing == 1) {
-		//TotalHeight+=fairing.height; //Not Considered in Height
-		fairing.volume = fairing.height * 0.25 * PI * fairing.diameter * fairing.diameter;
+	double CSBoosters = 0.0;
+
+	for(int i = currentBooster; i < nBoosters; i++){
+		booster.at(i).volume = booster.at(i).N * booster.at(i).height * 0.25 * PI * booster.at(i).diameter * booster.at(i).diameter;
+		CSBoosters += 0.25 * PI * booster.at(i).diameter * booster.at(i).diameter;
+	}
+
+	for(int i = currentPayload; i < nPayloads; i++){
+		payload.at(i).volume=payload.at(i).height * 0.25 * PI * payload.at(i).diameter * payload.at(i).diameter;
+
+		TotalVolume += payload.at(i).volume;
+	}
+
+	if(wFairing == 1){
+		fairing.volume=fairing.height * 0.25 * PI * fairing.diameter * fairing.diameter;
 		TotalVolume += fairing.volume;
 	}
-	if (wLes == TRUE) {
+
+	if(wLes == true){
 		Les.volume = Les.height * 0.25 * PI * Les.diameter * Les.diameter;
 		TotalVolume += Les.volume;
 	}
+
 	double PhiEq = sqrt(4 * TotalVolume / (PI * TotalHeight));
 
-	double CSX, CSY, CSZ;
-	CSX = TotalHeight * PhiEq;
+	double CSX,CSY,CSZ;
+
+	CSX=TotalHeight * PhiEq;
+
 	CSY = CSX;
+
 	CSZ = PI * 0.25 * PhiEq * PhiEq + CSBoosters;
+
 	SetCrossSections(_V(CSX, CSY, CSZ));
 
-	double IZ = (PhiEq * 0.5) * (PhiEq * 0.5) * 0.5;
+	double IZ=(PhiEq * 0.5) * (PhiEq * 0.5) * 0.5;
+	
 	double IX, IY;
-	IX = (3 * (PhiEq * 0.5) * (PhiEq * 0.5) + TotalHeight * TotalHeight) / 12;
+
+	IX=(3 * (PhiEq * 0.5) * (PhiEq * 0.5) + TotalHeight * TotalHeight) / 12;
+
 	IY = IX;
+
 	SetPMI(_V(IX, IY, IZ));
-	//  SetSize(10*TotalHeight);
-	if (Configuration == 0) {
-		SetSize(stage[0].height * 0.5 + Misc.COG);
-		//if(GetSize()<=0){SetSize(stage[0].height*0.5+Misc.COG);}
-	}
-	else {
+
+	if(Configuration == 0){
+		SetSize(stage.at(0).height * 0.5 + Misc.COG);
+	} else {
 		SetSize(TotalHeight);
 	}
-	//	oapiWriteLogV("####### SIZE: %.3f",GetSize());
+
 	return;
 }
 
 //Update Mass of the Vehicle on call
-void Multistage2015::UpdateMass() {
+void Multistage2015::UpdateMass(){
+	
+	double EM = stage.at(currentStage).emptymass;
+	
+	for(int i = currentStage + 1; i < nStages; i++){
+		
+		EM+=stage.at(i).emptymass;
 
-	double EM = stage[currentStage].emptymass;
-
-	int s;
-	for (s = currentStage + 1; s < nStages; s++) {
-		EM += stage[s].emptymass;
-		if (stage[s].wInter == TRUE) {
-			EM += stage[s].interstage.emptymass;
+		if(stage.at(i).wInter == true){
+			EM+=stage.at(i).interstage.emptymass;
 		}
 	}
+	
+	for(int i = currentBooster; i < nBoosters; i++){
 
-	int bs;
-	for (bs = currentBooster; bs < nBoosters; bs++) {
-		EM += (booster[bs].emptymass * booster[bs].N);
+		EM += (booster.at(i).emptymass * booster.at(i).N);
+
+	}
+		
+	for(int i = currentPayload; i < nPayloads; i++){
+		EM+=payload.at(i).mass;
 	}
 
-	int pns;
-	for (pns = currentPayload; pns < nPayloads; pns++) {
-		EM += payload[pns].mass;
+	if(wFairing == 1){
+		EM += 2 * fairing.emptymass;
 	}
-	if (wFairing == 1) { EM += 2 * fairing.emptymass; }
-	if (wAdapter == TRUE) { EM += Adapter.emptymass; }
-	if (wLes == TRUE) { EM += Les.emptymass; }
+	
+	if(wAdapter == true){
+		EM += Adapter.emptymass;
+	}
+	
+	if(wLes == true){
+		EM+=Les.emptymass;
+	}
+
 	SetEmptyMass(EM);
-
-
-
+	
 	return;
 }
 
 //Update mesh offsets
-void Multistage2015::UpdateOffsets() {
-	currentDelta = stage[currentStage].off.z;
-	int i;
-	for (i = currentStage; i < nStages; i++) {
-		stage[i].off.z -= currentDelta;
-		if (stage[i].wInter == TRUE) {
-			stage[i].interstage.off.z -= currentDelta;
-		}
-	}
-	int p;
-	for (p = currentPayload; p < nPayloads; p++) {
-		for (int s = 0; s < payload[p].nMeshes; s++) {
-			payload[p].off[s].z -= currentDelta;
+void Multistage2015::UpdateOffsets(){
+
+	currentDelta=stage.at(currentStage).off.z;
+
+	for(int i = currentStage; i < nStages; i++){
+		
+		stage.at(i).off.z -= currentDelta;
+		
+		if(stage.at(i).wInter == true){
+			stage.at(i).interstage.off.z -= currentDelta;
 		}
 	}
 
-	int z;
-	for (z = currentBooster; z < nBoosters; z++) {
-		booster[z].off.z -= currentDelta;
+
+	for(int i = currentPayload; i < nPayloads; i++){
+		
+		for(int j = 0; j < payload.at(j).nMeshes; j++){
+			payload.at(i).off.at(j).z -= currentDelta;
+		}
+
+	}
+		
+
+	for(int i = currentBooster; i < nBoosters; i++){
+		booster.at(i).off.z -= currentDelta;
 	}
 
-	if (wFairing == 1) {
+	if(wFairing == 1){
 		fairing.off.z -= currentDelta;
 	}
 
-	if (wAdapter == TRUE) {
+	if(wAdapter == true){
 		Adapter.off.z -= currentDelta;
 	}
-	if (wLes == TRUE) {
+
+	if(wLes == true){
 		Les.off.z -= currentDelta;
 	}
+
 	return;
 }
-void Multistage2015::UpdateLivePayloads() {
 
-	for (int pns = currentPayload; pns < nPayloads; pns++) {
-		if (payload[pns].live) {
+void Multistage2015::UpdateLivePayloads(){
+	
+	for(int i = currentPayload; i < nPayloads; i++){
+		if(payload.at(i).live){
 			VESSELSTATUS2 vslive;
-			memset(&vslive, 0, sizeof(vslive));
-			vslive.version = 2;
-			OBJHANDLE checklive = oapiGetVesselByName(payload[pns].name);
-			if (oapiIsVessel(checklive)) {
+			memset(&vslive,0,sizeof(vslive));
+			vslive.version=2;
+			OBJHANDLE checklive = oapiGetVesselByName(const_cast<char *>(payload.at(i).name.c_str()));
+			if(oapiIsVessel(checklive)){
 				ATTACHMENTHANDLE liveatt;
-				VESSEL4* livepl;
-				livepl = static_cast<VESSEL4*>(oapiGetVesselInterface(checklive));
-				liveatt = livepl->CreateAttachment(TRUE, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "MS2015", FALSE);
-				AttachChild(checklive, live_a[pns], liveatt);
-				if (payload[pns].mass <= 0) {
-					payload[pns].mass = livepl->GetMass();
+				VESSEL3 *livepl;
+				livepl = (VESSEL3*)oapiGetVesselInterface(checklive);
+			  	liveatt=livepl->CreateAttachment(true, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "MS2015", false);
+			  	AttachChild(checklive,live_a.at(i),liveatt);
+			  	if(payload.at(i).mass<=0){
+				  	payload.at(i).mass=livepl->GetMass();}
+			  	if(payload.at(i).height<=0){
+					payload.at(i).height=livepl->GetSize();
+					payload.at(i).diameter=payload.at(i).height * 0.1;
 				}
-				if (payload[pns].height <= 0) {
-					payload[pns].height = livepl->GetSize();
-					payload[pns].diameter = payload[pns].height * 0.1;
-				}
-			}
-			else {
+			} else {
 
-				VESSEL4* v;
+				VESSEL3 *v;
 				OBJHANDLE hObj;
 				ATTACHMENTHANDLE liveatt;
 				GetStatusEx(&vslive);
-				hObj = oapiCreateVesselEx(payload[pns].name, payload[pns].module, &vslive);
+				hObj=oapiCreateVesselEx(payload.at(i).name.c_str(), payload.at(i).module.c_str(), &vslive);
+		
+		
+				if(oapiIsVessel(hObj)){
+		            v = (VESSEL3*)oapiGetVesselInterface(hObj);
+					
+			  		liveatt=v->CreateAttachment(TRUE,_V(0,0,0),_V(0,0,-1),_V(0,1,0),"MS2015",false);
+			 
+			  		AttachChild(hObj,live_a.at(i),liveatt);
 
-
-				if (oapiIsVessel(hObj)) {
-					v = static_cast<VESSEL4*>(oapiGetVesselInterface(hObj));
-
-					liveatt = v->CreateAttachment(TRUE, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "MS2015", FALSE);
-
-					AttachChild(hObj, live_a[pns], liveatt);
-					if (payload[pns].mass <= 0) {
-						payload[pns].mass = v->GetMass();
+		      		if(payload.at(i).mass<=0){
+				  		payload.at(i).mass=v->GetMass();
 					}
-					if (payload[pns].height <= 0) {
-						payload[pns].height = v->GetSize();
-						payload[pns].diameter = payload[pns].height * 0.1;
+			  		if(payload.at(i).height <= 0){
+						payload.at(i).height = v->GetSize();
+						payload.at(i).diameter=payload.at(i).height * 0.1;
 					}
 				}
 			}
 		}
 	}
+	
 	UpdateMass();
+
 	UpdatePMI();
+
 	return;
+
 }
+
+
 //Returns the particlestream specification to use or the empty one if not found
-PARTICLE Multistage2015::GetProperPS(char name[MAXLEN]) {
-	for (int z = 0; z < MAXLEN; z++) {
-		name[z] = tolower(name[z]);
+PARTICLE Multistage2015::GetProperPS(std::string name) {
+
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
+		return std::tolower(c);
+		});
+
+
+	std::string checktxt;
+
+	for (unsigned int i = 0; i < 16; i++) {
+
+
+		checktxt = Particle.at(i).ParticleName;
+
+
+		std::transform(checktxt.begin(), checktxt.end(), checktxt.begin(), [](unsigned char c) {
+			return std::tolower(c);
+			});
+
+
+		if(name == checktxt){
+
+			return Particle.at(i);
+
+		}
+
 	}
-	char checktxt[MAXLEN];
-	int nt = 0;
-	int k;
-	for (nt = 0; nt < 16; nt++) {
-		for (k = 0; k < MAXLEN; k++) {
-			checktxt[k] = Particle[nt].ParticleName[k];
-		}
-		for (int z = 0; z < MAXLEN; z++) {
-			checktxt[z] = tolower(checktxt[z]);
-		}
 
-		if (strncmp(name, checktxt, MAXLEN - 5) == 0) {
+	return Particle.at(15);
 
-			return Particle[nt];
-		}
-
-	}
-	return Particle[15];
 }
 
-//returns the texture to be used or the empty one
-SURFHANDLE Multistage2015::GetProperExhaustTexture(char name[MAXLEN]) {
-	char checktxt[MAXLEN];
-	int nt = 0;
-	int k;
-	for (nt = 0; nt < nTextures; nt++) {
-		for (k = 0; k < MAXLEN; k++) {
-			checktxt[k] = tex.TextureName[k][nt];
-		}
+ //returns the texture to be used or the empty one
+SURFHANDLE Multistage2015::GetProperExhaustTexture(const std::string name) {
 
-		if (strncmp(name, checktxt, MAXLEN - 5) == 0) {
+	std::string checktxt;
 
-			return tex.hTex[nt];
+	for (unsigned int i = 0; i < nTextures; i++) {
+
+		checktxt = tex.TextureName[i];
+
+		if (name == checktxt){
+
+			return tex.hTex.at(i);
+
 		}
 
 	}
@@ -1877,858 +1496,794 @@ SURFHANDLE Multistage2015::GetProperExhaustTexture(char name[MAXLEN]) {
 }
 
 //creates Ullage engine and exhausts
-void Multistage2015::CreateUllageAndBolts() {
-	if (stage[currentStage].ullage.wUllage)
-	{
-		stage[currentStage].ullage.ignited = FALSE;
-		stage[currentStage].ullage.th_ullage = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage[currentStage].ullage.thrust, stage[currentStage].tank, 100000);
-		/*VECTOR3 *ullpos=new VECTOR3[stage[currentStage].ullage.N];
-		VECTOR3 *ulldir=new VECTOR3[stage[currentStage].ullage.N];
-*/
-//double angleprog=0;
-		for (int i = 0; i < stage[currentStage].ullage.N; i++)
-		{
+void Multistage2015::CreateUllageAndBolts(){
+	
+	if(stage.at(currentStage).ullage.wUllage){
+		
+		stage.at(currentStage).ullage.ignited = false;
+		
+		stage.at(currentStage).ullage.th_ullage = CreateThruster(_V(0, 0, 0), _V(0, 0, 1), stage.at(currentStage).ullage.thrust, stage.at(currentStage).tank, 100000);
+
+		for(int i = 0; i < stage.at(currentStage).ullage.N; i++){
+			
 			double ull_angle;
-			if (IsOdd((int)stage[currentStage].ullage.N))
-			{
-				if (i < (int)(stage[currentStage].ullage.N * 0.5)) {
-					ull_angle = stage[currentStage].ullage.angle * RAD + (i) * ((2 * PI / stage[currentStage].ullage.N) / stage[currentStage].ullage.rectfactor);
 
-					//angleprog+=ull_angle;
-				}
-				else if (i == (int)(stage[currentStage].ullage.N * 0.5)) {
-					ull_angle = PI + stage[currentStage].ullage.angle * RAD;
-					/*sprintf(logbuff,"i: %i ull_angle: %.3f",i,ull_angle*DEG);
-				 oapiWriteLog(logbuff);*/
-				}
-				else {
-					ull_angle = stage[currentStage].ullage.angle * RAD + PI + (i - (int)(stage[currentStage].ullage.N * 0.5)) * ((2 * PI / stage[currentStage].ullage.N) / stage[currentStage].ullage.rectfactor);
-					/*sprintf(logbuff,"i: %i ull_angle: %.3f",i,ull_angle*DEG);
-					oapiWriteLog(logbuff);*/
-				}
-			}
-			else {
-				ull_angle = stage[currentStage].ullage.angle * RAD + (i) * (2 * PI / stage[currentStage].ullage.N);
-			}
-			VECTOR3 ulldir = RotateVecZ(stage[currentStage].ullage.dir, ull_angle);
-			VECTOR3 ullpos = RotateVecZ(stage[currentStage].ullage.pos, ull_angle);
-			//VECTOR3 ull_ofs=operator+(GetBoosterPos(bi,biii),RotateVecZ(booster[bi].eng[bii],angle));
+			if(IsOdd((int)stage.at(currentStage).ullage.N)){
+				
+				if(i < (int)(stage.at(currentStage).ullage.N * 0.5)){
+			 		
+					ull_angle = stage.at(currentStage).ullage.angle * RAD + (i) * ((2 * PI / stage.at(currentStage).ullage.N) / stage.at(currentStage).ullage.rectfactor);
 
-			AddExhaust(stage[currentStage].ullage.th_ullage, stage[currentStage].ullage.length, stage[currentStage].ullage.diameter, ullpos, ulldir, GetProperExhaustTexture(stage[currentStage].ullage.tex));
+				} else if(i == (int)(stage.at(currentStage).ullage.N * 0.5)){ 
+					ull_angle = PI + stage.at(currentStage).ullage.angle * RAD;
+				} else {
+				 	ull_angle = stage.at(currentStage).ullage.angle * RAD + PI + (i - (int)(stage.at(currentStage).ullage.N * 0.5)) * ((2 * PI / stage.at(currentStage).ullage.N) / stage.at(currentStage).ullage.rectfactor);
+				}
+			} else {
+				ull_angle = stage.at(currentStage).ullage.angle * RAD + (i) * (2 * PI / stage.at(currentStage).ullage.N);
+			}
+
+			VECTOR3 ulldir = RotateVecZ(stage.at(currentStage).ullage.dir, ull_angle);
+
+			VECTOR3 ullpos = RotateVecZ(stage.at(currentStage).ullage.pos, ull_angle);
+
+			AddExhaust(stage.at(currentStage).ullage.th_ullage, stage.at(currentStage).ullage.length, stage.at(currentStage).ullage.diameter, ullpos, ulldir, GetProperExhaustTexture(stage.at(currentStage).ullage.tex));
 		}
 	}
 
-	if (stage[currentStage].expbolt.wExpbolt)
-	{
-		PARTICLE ps = GetProperPS(stage[currentStage].expbolt.pstream);
-		stage[currentStage].expbolt.threxp_h = CreateThruster(stage[currentStage].expbolt.pos,
-			stage[currentStage].expbolt.dir,
-			0,
-			stage[currentStage].tank,
-			100000,
-			100000);
-		AddExhaustStream(stage[currentStage].expbolt.threxp_h,
-			&ps.Pss);
+	if(stage.at(currentStage).expbolt.wExpbolt){
+		
+		stage.at(currentStage).expbolt.threxp_h = CreateThruster(stage.at(currentStage).expbolt.pos, stage.at(currentStage).expbolt.dir, 0, stage.at(currentStage).tank, 100000, 100000);
+
+		PARTICLE ps = GetProperPS(stage.at(currentStage).expbolt.pstream);
+
+		AddExhaustStream(stage.at(currentStage).expbolt.threxp_h, &ps.Pss);
 	}
 
 	return;
 }
+
 //Setting up of the vehicle, it's the setclass caps, but called after the ini is parsed
-void Multistage2015::VehicleSetup() {
+void Multistage2015::VehicleSetup(){
+	SetRotDrag(_V(0.7,0.7,0.06)); //Got from Vinka
+	
+ 	///PROPELLANTS
+ 	for(int i = currentBooster; i < nBoosters; i++){
+  		
+		booster.at(i).tank = CreatePropellantResource(booster.at(i).fuelmass * booster.at(i).N);
 
+  		logbuff = std::format("{}: booster n. {} Tank Added: {:.3f} kg", GetName(), i + 1, booster.at(i).fuelmass * booster.at(i).N);
 
-	SetRotDrag(_V(0.7, 0.7, 0.06)); //Got from Vinka
+  		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+ 	}
+	
 
-	///PROPELLANTS
-	unsigned int bk;
-	for (bk = currentBooster; bk < nBoosters; bk++) {
-		booster[bk].tank = CreatePropellantResource(booster[bk].fuelmass * booster[bk].N);
-		sprintf(logbuff, "%s: booster n. %i Tank Added: %.3f kg", GetName(), bk + 1, booster[bk].fuelmass * booster[bk].N);
-		oapiWriteLog(logbuff);
+	for(int i = nStages - 1; i > currentStage - 1; i--){
+	 	stage.at(i).tank = CreatePropellantResource(stage.at(i).fuelmass);
+
+	 	logbuff = std::format("{}: Stage n. {} Tank Added: {:.3f} kg", GetName(), i + 1, stage.at(i).fuelmass);
+	 	
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+ 	}
+ 
+ 	////ISP
+
+ 	for(int i = currentStage; r < nStages; r++){
+	 	stage.at(i).isp = stage.at(i).thrust * stage.at(i).burntime / stage.at(i).fuelmass;
 	}
 
-	unsigned int k;
-	for (k = nStages - 1; k > currentStage - 1; k--) {
-		stage[k].tank = CreatePropellantResource(stage[k].fuelmass);
-		sprintf(logbuff, "%s: Stage n. %i Tank Added: %.3f kg", GetName(), k + 1, stage[k].fuelmass);
-		oapiWriteLog(logbuff);
-	}
-
-	////ISP
-	unsigned int r;
-	for (r = currentStage; r < nStages; r++) {
-		stage[r].isp = stage[r].thrust * stage[r].burntime / stage[r].fuelmass;
-	}
-
-	unsigned int br;
-	for (br = currentBooster; br < nBoosters; br++) {
-		booster[br].isp = (booster[br].thrust * booster[br].N) * booster[br].burntime / (booster[br].fuelmass * booster[br].N);
-	}
+ 	for(int i = currentBooster; i < nBoosters; i++){
+	 	booster.at(i).isp = (booster.at(i).thrust * booster.at(i).N) * booster.at(i).burntime / (booster.at(i).fuelmass * booster.at(i).N);
+ 	}
 
 
 
-	nPsh = 0;
-	for (unsigned int pp = 0; pp < nStages; pp++)
-	{
-		for (unsigned int ppp = 0; ppp < stage[pp].nEngines; ppp++)
-		{
+	nPsh=0;
+
+	for(int i = 0; i < nStages; i++){
+		for(int j = 0; j < stage.at(i).nEngines; j++){
 			nPsh++;
 		}
 	}
-	for (unsigned int pb = 0; pb < nBoosters; pb++)
-	{
-		for (unsigned int ppb = 0; ppb < booster[pb].N; ppb++)
-		{
-			for (unsigned int ppbb = 0; ppbb < booster[pb].nEngines; ppbb++)
-			{
+
+	for(int i = 0; i < nBoosters; i++){
+		for(int j = 0; j < booster.at(i).N; j++){
+			for(int k = 0; k < booster.at(i).nEngines; k++){
 				nPsh++;
 			}
 		}
-
 	}
-	nPsh *= 2;
-	//if(psg){delete[] psg;}
+
+	nPsh*=2;
 
 	psg = new PSGROWING[nPsh];
 
-	for (unsigned int ps = 0; ps < nPsh; ps++)
-	{
-		psg[ps].GrowFactor_rate = 0;
-		psg[ps].GrowFactor_size = 0;
-		psg[ps].growing = FALSE;
-		psg[ps].pos = _V(0, 0, 0);
-		psg[ps].psh[0] = NULL;
-		psg[ps].psh[1] = NULL;
-		psg[ps].psh[2] = NULL;
-
-		psg[ps].th = NULL;
-		psg[ps].pss = Particle[15].Pss;
-		psg[ps].status = 1;
-		psg[ps].counting = FALSE;
-		psg[ps].doublepstime = 0;
-		psg[ps].baserate = 0;
-		psg[ps].basesize = 0;
-		psg[ps].basepos = _V(0, 0, 0);
-		psg[ps].FirstLoop = TRUE;
-
-		//	psg[ps].Th_idx=ps;
+	for(int i = 0; i < nPsh; i++){
+		psg[i].GrowFactor_rate = 0;
+		psg[i].GrowFactor_size = 0;
+		psg[i].growing = false;
+		psg[i].pos = _V(0, 0, 0);
+		psg[i].psh.at(0) = nullptr;
+		psg[i].psh.at(1) = nullptr;
+		psg[i].psh[2] = nullptr;
+		
+		psg[i].th = nullptr;
+		psg[i].pss = Particle.at(15).Pss;
+		psg[i].status = 1;
+		psg[i].counting = false;
+		psg[i].doublepstime = 0;
+		psg[i].baserate = 0;
+		psg[i].basesize = 0;
+		psg[i].basepos = _V(0, 0, 0);
+		psg[i].FirstLoop = true;
 	}
 	/////MAIN THRUSTERS
-
-	CreateMainThruster();
-
-	//attitude thrusters
-	CreateRCS();
-
-	//add Boosters Engines
-	unsigned int bi, bii, biii;
-	for (bi = currentBooster; bi < min(nBoosters, 10); bi++) {
-		sprintf(logbuff, "Accessing booster[%d], booster.N=%d", bi, booster[bi].N);
-		for (unsigned int bn = 0; bn < booster[bi].N; bn++)
-		{
+ 
+ 	CreateMainThruster();
+ 
+ 	//attitude thrusters
+ 	CreateRCS();
+ 
+ 	//add Boosters Engines
+ 	for(int i = currentBooster; i < nBoosters; i++){
+	 	for(int j = 0; j < booster.at(i).N; j++){
 			VECTOR3 pos, dir;
-			if (Misc.thrustrealpos) {
-				pos = GetBoosterPos(bi, bn);
-				dir = booster[bi].eng_dir;
-
+			if(Misc.thrustrealpos){
+				pos = GetBoosterPos(i, j);
+				dir = booster.at(i).eng_dir;
+			}else{
+				pos=_V(0, 0, 0);
+				dir=_V(0, 0, 1);
 			}
-			else {
-				pos = _V(0, 0, 0);
-				dir = _V(0, 0, 1);
-			}
-			//booster[bi].th_booster_h[0]=CreateThruster(pos,dir,booster[bi].N*booster[bi].thrust,booster[bi].tank,booster[bi].isp);
-			booster[bi].th_booster_h[bn] = CreateThruster(pos, dir, booster[bi].thrust, booster[bi].tank, booster[bi].isp);
+		
+			booster.at(i).th_booster_h.at(j) = CreateThruster(pos, dir, booster.at(i).thrust, booster.at(i).tank, booster.at(i).isp);
 		}
-		booster[bi].Thg_boosters_h = CreateThrusterGroup(booster[bi].th_booster_h, booster[bi].N, THGROUP_USER);
+		
+		booster.at(i).Thg_boosters_h = CreateThrusterGroup(booster.at(i).th_booster_h.data(), booster.at(i).N, THGROUP_USER);
+	
+	 	Particle.at(13).Pss.srcsize = stage.at(0).diameter;
+	 	Particle.at(14).Pss.srcsize = 0.5 * stage.at(0).diameter;
 
-		Particle[13].Pss.srcsize = stage[0].diameter;
-		Particle[14].Pss.srcsize = 0.5 * stage[0].diameter;
+		if(booster.at(i).nEngines == 0){
 
-		if (booster[bi].nEngines == 0) {
-			for (bii = 0; bii < booster[bi].N; bii++) {
-				booster[bi].eng[bii] = _V(0, 0, -booster[bi].height * 0.5);
-				VECTOR3 engofs = operator+(GetBoosterPos(bi, bii), booster[bi].eng[bii]);
-				AddExhaust(booster[bi].th_booster_h[bii], 10 * booster[bi].eng_diameter, booster[bi].eng_diameter, engofs, operator*(booster[bi].eng_dir, -1), GetProperExhaustTexture(booster[bi].eng_tex));
+	 		for(int j = 0; j < booster.at(i).N; j++){
 
-				if (booster[bi].wps1) {
-					PARTICLE ps = GetProperPS(booster[bi].eng_pstream1);
-					AddExhaustStreamGrowing(booster[bi].th_booster_h[bii],
-						engofs,
-						&ps.Pss,
-						ps.Growing,
-						ps.GrowFactor_size,
-						ps.GrowFactor_rate,
-						TRUE,
-						TRUE,
-						bi,
-						bii);
-					sprintf(logbuff, "%s: Booster Group n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), bi + 1, booster[bi].eng_pstream1, bii + 1);
-					oapiWriteLog(logbuff);
-				}
-				if (booster[bi].wps2) {
-					PARTICLE ps = GetProperPS(booster[bi].eng_pstream2);
-					AddExhaustStreamGrowing(booster[bi].th_booster_h[bii],
-						engofs,
-						&ps.Pss,
-						ps.Growing,
-						ps.GrowFactor_size,
-						ps.GrowFactor_rate,
-						TRUE,
-						TRUE,
-						bi,
-						bii);
-					sprintf(logbuff, "%s: Booster Group n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), bi + 1, booster[bi].eng_pstream2, bii + 1);
-					oapiWriteLog(logbuff);
+		  		booster.at(i).eng.at(j) = _V(0, 0, -booster.at(i).height * 0.5);
+
+	 			VECTOR3 engofs = operator+(GetBoosterPos(i, j), booster.at(i).eng.at(j));
+
+				AddExhaust(booster.at(i).th_booster_h.at(j), 10 * booster.at(i).eng_diameter, booster.at(i).eng_diameter, engofs, operator*(booster.at(i).eng_dir, -1), GetProperExhaustTexture(booster.at(i).eng_tex));
+
+				if(booster.at(i).wps1){
+					PARTICLE ps = GetProperPS(booster.at(i).eng_pstream1);
+					AddExhaustStreamGrowing(booster.at(i).th_booster_h.at(j), engofs, &ps.Pss, GetProperPS(booster.at(i).eng_pstream1).Growing, GetProperPS(booster.at(i).eng_pstream1).GrowFactor_size, GetProperPS(booster.at(i).eng_pstream1).GrowFactor_rate, true, true, i, j);
+
+					logbuff = std::format("{}: Booster Group n.{} Engine Exhaust Stream Added: {} to engine n.{}", GetName(), i + 1, booster.at(i).eng_pstream1, j + 1);
+
+					oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 				}
 
-				sprintf(logbuff, "%s: Booster Engines Exhaust Added--> Booster Group: %i number of engines: %i , diameter: %.3f, position x: %.3f y: %.3f z: %.3f", GetName(), bi + 1, booster[bi].nEngines, booster[bi].eng_diameter, engofs.x, engofs.y, engofs.z);
-				oapiWriteLog(logbuff);
-			}
-		}
-		else {
+				if(booster.at(i).wps2){
+					PARTICLE ps = GetProperPS(booster.at(i).eng_pstream2);
+					AddExhaustStreamGrowing(booster.at(i).th_booster_h.at(j), engofs, &ps.Pss, GetProperPS(booster.at(i).eng_pstream2).Growing, GetProperPS(booster.at(i).eng_pstream2).GrowFactor_size, GetProperPS(booster.at(i).eng_pstream2).GrowFactor_rate, true, true, i, j);
 
-			for (bii = 0; bii < booster[bi].nEngines; bii++) {
-				for (biii = 1; biii < booster[bi].N + 1; biii++) {
-					double angle = booster[bi].angle * RAD + (biii - 1) * 2 * PI / booster[bi].N;
+					logbuff = std::format("{}: Booster Group n.{} Engine Exhaust Stream Added: {} to engine n.{}", GetName(), i + 1, booster.at(i).eng_pstream2, j + 1);
 
-					VECTOR3 engofs = operator+(GetBoosterPos(bi, biii), RotateVecZ(booster[bi].eng[bii], angle));
+					oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 
-					AddExhaust(booster[bi].th_booster_h[biii - 1], 10 * booster[bi].eng_diameter, booster[bi].eng_diameter, engofs, operator*(booster[bi].eng_dir, -1), GetProperExhaustTexture(booster[bi].eng_tex));
+				}
 
-					if (booster[bi].wps1) {
-						PARTICLE ps = GetProperPS(booster[bi].eng_pstream1);
-						AddExhaustStreamGrowing(booster[bi].th_booster_h[biii - 1],
-							engofs,
-							&ps.Pss,
-							ps.Growing,
-							ps.GrowFactor_size,
-							ps.GrowFactor_rate,
-							TRUE,
-							TRUE,
-							bi,
-							biii - 1);
-						sprintf(logbuff, "%s: Booster Group n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), bi + 1, booster[bi].eng_pstream1, biii);
-						oapiWriteLog(logbuff);
-					}
-					if (booster[bi].wps2) {
-						PARTICLE ps = GetProperPS(booster[bi].eng_pstream2);
-						AddExhaustStreamGrowing(booster[bi].th_booster_h[biii - 1],
-							engofs,
-							&ps.Pss,
-							ps.Growing,
-							ps.GrowFactor_size,
-							ps.GrowFactor_rate,
-							TRUE,
-							TRUE,
-							bi,
-							biii - 1);
-						sprintf(logbuff, "%s: Booster Group n.%i Engine Exhaust Stream Added: %s to engine n.%i", GetName(), bi + 1, booster[bi].eng_pstream2, biii);
-						oapiWriteLog(logbuff);
+				logbuff = std::format("{}: Booster Engines Exhaust Added--> Booster Group: {} number of engines: {} , diameter: {:.3f}, position x: {:.3f} y: {:.3f} z: {:.3f}", GetName(), i + 1, booster.at(i).nEngines, booster.at(i).eng_diameter, engofs.x, engofs.y, engofs.z);
+
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+	 		}
+
+		} else {
+	  
+			for(int j = 0; j < booster.at(i).nEngines; j++){
+
+				for(int k = 1; k < booster.at(i).N + 1; k++){
+
+					double angle = booster.at(i).angle * RAD + (k - 1) * 2 * PI / booster.at(i).N;
+					
+					VECTOR3 engofs = operator+(GetBoosterPos(i, k), RotateVecZ(booster.at(i).eng.at(j), angle));
+					
+					AddExhaust(booster.at(i).th_booster_h.at(k - 1), 10 * booster.at(i).eng_diameter, booster.at(i).eng_diameter, engofs, operator*(booster.at(i).eng_dir, -1), GetProperExhaustTexture(booster.at(i).eng_tex));
+
+					if(booster.at(i).wps1){
+						PARTICLE ps = GetProperPS(booster.at(i).eng_pstream1);
+						AddExhaustStreamGrowing(booster.at(i).th_booster_h.at(k - 1), engofs, &ps.Pss, GetProperPS(booster.at(i).eng_pstream1).Growing, GetProperPS(booster.at(i).eng_pstream1).GrowFactor_size, GetProperPS(booster.at(i).eng_pstream1).GrowFactor_rate, true, true, i, k - 1);
+
+						logbuff = std::format("{}: Booster Group n.{} Engine Exhaust Stream Added: {} to engine n.{}",GetName(), i + 1, booster.at(i).eng_pstream1, k);
+
+						oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 					}
 
-					sprintf(logbuff, "%s: Booster Engines Exhaust Added--> Booster Group: %i number of engines: %i , diameter: %.3f, position x: %.3f y: %.3f z: %.3f", GetName(), bi + 1, booster[bi].nEngines, booster[bi].eng_diameter, engofs.x, engofs.y, engofs.z);
-					oapiWriteLog(logbuff);
+					if(booster.at(i).wps2){
+						PARTICLE ps = GetProperPS(booster.at(i).eng_pstream2);
+						AddExhaustStreamGrowing(booster.at(i).th_booster_h.at(k - 1),engofs, &ps.Pss, GetProperPS(booster.at(i).eng_pstream2).Growing, GetProperPS(booster.at(i).eng_pstream2).GrowFactor_size, GetProperPS(booster.at(i).eng_pstream2).GrowFactor_rate, true, true, i, k - 1);
+
+						logbuff = std::format("{}: Booster Group n.{} Engine Exhaust Stream Added: {} to engine n.{}",GetName(), i + 1, booster.at(i).eng_pstream2, k);
+						
+						oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+					}
+
+					logbuff = std::format("{}: Booster Engines Exhaust Added--> Booster Group: {} number of engines: {} , diameter: {:.3f}, position x: {:.3f} y: {:.3f} z: {:.3f}", GetName(), i + 1, booster.at(i).nEngines, booster.at(i).eng_diameter, engofs.x, engofs.y, engofs.z);
+					
+					oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 				}
 			}
 		}
 
-		if (booster[bi].expbolt.wExpbolt)
-		{
-			PARTICLE ps = GetProperPS(booster[bi].expbolt.pstream);
-			booster[bi].expbolt.threxp_h = CreateThruster(booster[bi].expbolt.pos,
-				booster[bi].expbolt.dir,
-				0,
-				booster[bi].tank,
-				100000,
-				100000);
-			AddExhaustStream(booster[bi].expbolt.threxp_h,
-				&ps.Pss);
+		if(booster.at(i).expbolt.wExpbolt){
+			booster.at(i).expbolt.threxp_h = CreateThruster(booster.at(i).expbolt.pos, booster.at(i).expbolt.dir, 0, booster.at(i).tank, 100000, 100000);
+			PARTICLE ps = GetProperPS(booster.at(i).expbolt.pstream);
+			AddExhaustStream(booster.at(i).expbolt.threxp_h, &ps.Pss);
 		}
-
 	}
 
-	//Ullage
-	CreateUllageAndBolts();
+ 	//Ullage
+ 	CreateUllageAndBolts();
 
 
-	CogElev = Misc.COG;
+	CogElev=Misc.COG;
 
-	//added by rcraig42 to set drag_factor to 1 if not set in ini ------------------------------------------------
+ 	//added by rcraig42 to set drag_factor to 1 if not set in ini ------------------------------------------------
 
-
-
-
-
-
-	if (Misc.drag_factor <= 0) {
+	
+	if(Misc.drag_factor <= 0){
 		Misc.drag_factor = 1;
-
-
-
-
-
-
-
-
-
-
 	}
 
-	SetCW(0.2 * Misc.drag_factor, 0.5, 1.5, 1.5);		// Modded to miltiply drag in z_pos direction by drag_factor
+ 	SetCW(0.2 * Misc.drag_factor, 0.5, 1.5, 1.5);		// Modded to miltiply drag in z_pos direction by drag_factor
 
-	//-----------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
 
+	std::array<VECTOR3, 3> intdpts;
+	std::array<VECTOR3, 12> tdpts;
 
+ //////////////TOUCHDOWN POINTS WORKING ORIGINAL MS WAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-	VECTOR3 intdpts[3], tdpts[12];
-	/* for(int ii=0;ii<3;ii++)
-	 {
-		 intdpts[ii]=_V(cos(ii*2/3*PI)*stage[0].diameter*0.5,sin(ii*2/3*PI)*stage[0].diameter*0.5,-stage[0].height*0.5-CogElev);
-	 }*/
-
-
-
-	 //////////////TOUCHDOWN POINTS WORKING ORIGINAL MS WAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	 /*
-	 double rad=100;//stage[0].diameter*0.5;
-	 intdpts[0]=_V(0,rad,-stage[0].height*0.5-CogElev);
-	 intdpts[2]=_V(-0.866*rad,-0.5*rad,-stage[0].height*0.5-CogElev);
-	 intdpts[1]=_V(0.866*rad,-0.5*rad,-stage[0].height*0.5-CogElev);
-
-	 for(int j=0;j<3;j++)
-	 {
-		 tdpts[j].x=intdpts[j].x;
-		 tdpts[j].y=intdpts[j].y*cos(Misc.VerticalAngle)+intdpts[j].z*sin(Misc.VerticalAngle);
-		 tdpts[j].z=-intdpts[j].y*sin(Misc.VerticalAngle)+intdpts[j].z*cos(Misc.VerticalAngle);
-	 }
-	 */
-
-	 //////////////////////////////////////////////////END//////////////////////////////////////////////////
+ //////////////////////////////////////////////////END//////////////////////////////////////////////////
 
 
 
-	 /////////////////NEW DEFINITION FOR RAMP WITH ATTACHMENT!!!!!
-	intdpts[0] = _V(0, 1, 0);
-	intdpts[2] = _V(-0.866, -0.5, 0);
-	intdpts[1] = _V(0.866, -0.5, 0);
+ /////////////////NEW DEFINITION FOR RAMP WITH ATTACHMENT!!!!!
+ 	intdpts.at(0) = _V(0, 1, 0);
+ 	intdpts.at(2) = _V(-0.866, -0.5, 0);
+ 	intdpts.at(1) = _V(0.866, -0.5, 0);
 
-	for (int j = 0; j < 3; j++)
-	{
-		tdpts[j] = intdpts[j];
-
+ 	for(int i = 0; i < 3; i++){
+	 	tdpts.at(i) = intdpts.at(i);
 	}
-	//////////////////////END//////////////////////////////////////
+ //////////////////////END//////////////////////////////////////
 
 
-	/*tdpts[3]=_V(-stage[0].diameter*0.5,0,100);
-	tdpts[4]=_V(stage[0].diameter*0.5,0,100);
-	tdpts[5]=_V(-stage[0].diameter*0.5,0,10*TotalHeight*0.5);
-	tdpts[6]=_V(stage[0].diameter*0.5,0,10*TotalHeight*0.5);
-	tdpts[7]=_V(0,-stage[0].diameter*0.5,100);
-	tdpts[8]=_V(0,stage[0].diameter*0.5,100);
-	tdpts[9]=_V(0,-stage[0].diameter*0.5,10*TotalHeight*0.5);
-	tdpts[10]=_V(0,stage[0].diameter*0.5,10*TotalHeight*0.5);
+ 	tdpts.at(3) = tdpts.at(0);
+ 	tdpts.at(4) = tdpts.at(1);
+ 	tdpts.at(5) = tdpts.at(2);
 
+ 	tdpts.at(3).z *= -0.1;
+ 	tdpts.at(4).z *= -0.1;
+	tdpts.at(5).z *= -0.1;
 
-	tdpts[11]=_V(0,0,10*TotalHeight);*/
-
-	tdpts[3] = tdpts[0];
-	tdpts[4] = tdpts[1];
-	tdpts[5] = tdpts[2];
-
-	tdpts[3].z *= -0.1;
-	tdpts[4].z *= -0.1;
-	tdpts[5].z *= -0.1;
-
-
-	/*tdpts[4]=_V(-stage[0].diameter*0.5,0,0);
-	tdpts[5]=_V(stage[0].diameter*0.5,0,0);
-	tdpts[6]=_V(0,-stage[0].diameter*0.5,0);
-	tdpts[7]=_V(0,stage[0].diameter*0.5,0);*/
-	//SetTouchdownPoints(tdpts[0],tdpts[1],tdpts[2]);
-	TOUCHDOWNVTX td[12];
-	for (int i = 0; i < 12; i++)
-	{
-		td[i].pos = tdpts[i];
-		/* td[i].damping=1e7;
-		 td[i].mu=0.9;
-		 td[i].mu_lng=0.9;
-		 td[i].stiffness=1e7;
-		 */
-		td[i].damping = 3e6;
-		td[i].mu = 3;
-		td[i].mu_lng = 3;
-		td[i].stiffness = 3e7;
+	std::array<TOUCHDOWNVTX, 12> td;
+ 	for(int i=0;i<12;i++){
+	 	td.at(i).pos = tdpts.at(i);
+		td.at(i).damping = 3e6;
+	 	td.at(i).mu = 3;
+	 	td.at(i).mu_lng = 3;
+	 	td.at(i).stiffness = 3e7;
 	}
 
-	/*={
-   // for(int q=0;q<3;q++)
-	//{
+	SetTouchdownPoints(td.data(), 6);
 
-		{tdpts[0],1e8,1e7,3},
-		{tdpts[1],1e8,1e7,3},
-		{tdpts[2],1e8,1e7,3},
-		{tdpts[3],1e8,1e7,3},
-		{tdpts[4],1e8,1e7,3},
-		{tdpts[5],1e8,1e7,3},
-		{tdpts[6],1e8,1e7,3},
-		{tdpts[7],1e8,1e7,3}
-		*/
-		//{tdpts[4]},
-		//{tdpts[5]},
-		//{tdpts[6]},
-		//{tdpts[7]}
+  	if(currentBooster < nBoosters) wBoosters = true;
 
-		/*
-		{tdpts[0],3e7,3e2,0.3},
-		{tdpts[1],3e7,3e2,0.3},
-		{tdpts[2],3e7,3e2,0.3}
-		   */
-
-		   // };
-			//}
-
-	SetTouchdownPoints(td, 6);
-	//SetTouchdownPoints(tdpts[0],tdpts[1],tdpts[2]);
-
-	if (currentBooster < nBoosters) wBoosters = TRUE;
-
-	UpdateMass();
-	UpdatePMI();
-
-
-
-
-
+ 	UpdateMass();
+ 	UpdatePMI();
 
 	return;
 }
 
 //Spawns Item
-void Multistage2015::Spawn(int type, int current) {
+void Multistage2015::Spawn(int type, int current){
 
-	char mn[MAXLEN];
+	std::string mn;
 	VESSELSTATUS2 vs;
-	memset(&vs, 0, sizeof(vs));
-	vs.version = 2;
+	memset(&vs,0,sizeof(vs));
+	vs.version=2;
 	GetStatusEx(&vs);
 	VECTOR3 ofs;
-	VECTOR3 rofs, rvel = { vs.rvel.x, vs.rvel.y, vs.rvel.z }, vrot = { vs.vrot.x,vs.vrot.y,vs.vrot.z }, arot = { vs.arot.x,vs.arot.y,vs.arot.z };
-	VECTOR3 vel;
+	VECTOR3 rofs, rvel = {vs.rvel.x, vs.rvel.y, vs.rvel.z}, vrot = {vs.vrot.x ,vs.vrot.y, vs.vrot.z}, arot = {vs.arot.x, vs.arot.y, vs.arot.z};
+	VECTOR3 vel; 
 
-	switch (type) {
+	switch(type){
 
-	case TBOOSTER:
-		int i;
-		for (i = 1; i < booster[current].N + 1; i++) {
-			GetMeshOffset(booster[current].msh_idh[i], ofs);
-			//double vro=length(booster[current].speed);
-			//vel =_V(vro*cos(booster[current].angle*RAD+(i-1)*2*PI/booster[current].N),vro*sin(booster[current].angle*RAD+(i-1)*2*PI/booster[current].N),booster[current].speed.z);
-			vel = RotateVecZ(booster[current].speed, booster[current].angle * RAD + (i - 1) * 2 * PI / booster[current].N);
-			Local2Rel(ofs, vs.rpos);
-			GlobalRot(vel, rofs);
-			vs.rvel.x = rvel.x + rofs.x;
-			vs.rvel.y = rvel.y + rofs.y;
-			vs.rvel.z = rvel.z + rofs.z;
-			double arg = booster[current].angle * RAD + (i - 1) * 2 * PI / booster[current].N;
-			vs.vrot.x = vrot.x + booster[current].rot_speed.x * cos(arg) - booster[current].rot_speed.y * sin(arg);
-			vs.vrot.y = vrot.y + booster[current].rot_speed.x * sin(arg) + booster[current].rot_speed.y * cos(arg);
-			vs.vrot.z = vrot.z + booster[current].rot_speed.z;
+		case TBOOSTER:
 
-			char mn2[32];
-			sprintf(mn2, "_%i", i);
-			strcpy_s(mn, booster[current].meshname);
-			strcat_s(mn, mn2);
+			for(int i=1; i < booster.at(current).N+1; i++){
 
-			// Verificación de módulo antes de crear
-			char path[MAXLEN];
-			sprintf(path, "Modules\\%s.dll", booster[current].module);
-			FILE* f = nullptr;
-			fopen_s(&f, path, "rb");
-			if (!f) {
-				sprintf(logbuff, "ERROR: No se encontró el módulo '%s' para booster[%d]. Archivo esperado: '%s'", booster[current].module, current, path);
-				oapiWriteLog(logbuff);
-				return;
+				GetMeshOffset(booster.at(current).msh_idh.at(i), ofs);
+				
+				vel = RotateVecZ(booster.at(current).speed, booster.at(current).angle * RAD +(i - 1) * 2 * PI / booster.at(current).N);
+
+				Local2Rel(ofs, vs.rpos);
+
+				GlobalRot(vel, rofs);
+
+				vs.rvel.x = rvel.x + rofs.x;
+
+				vs.rvel.y = rvel.y + rofs.y;
+				
+				vs.rvel.z = rvel.z + rofs.z;
+
+				double arg = booster.at(current).angle * RAD + (i - 1) * 2 * PI / booster.at(current).N;
+
+				vs.vrot.x = vrot.x + booster.at(current).rot_speed.x * cos(arg) - booster.at(current).rot_speed.y * sin(arg);
+
+				vs.vrot.y = vrot.y + booster.at(current).rot_speed.x * sin(arg) + booster.at(current).rot_speed.y * cos(arg);
+				
+				vs.vrot.z = vrot.z + booster.at(current).rot_speed.z;
+				
+				std::string mn2;
+				mn2 = std::format("_{}", i);
+				mn = booster.at(current).meshname;
+				mn += mn2;
+
+
+				oapiCreateVesselEx(mn.c_str() ,booster.at(current).module.c_str(), &vs);
+
+				logbuff = std::format("{}: Booster n.{} jettisoned name: {} @{:.3f}", GetName(), current + 1, mn, MET);
+
+				oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
 			}
-			else {
-				fclose(f);
-			}
-
-			sprintf(logbuff, "%s: Booster n.%i jettisoned name: %s @%.3f", GetName(), current + 1, mn, MET);
-			oapiWriteLog(const_cast<char*>("Before oapiCreateVesselEx - Line 2313"));
-			oapiCreateVesselEx(mn, booster[current].module, &vs);
-			oapiWriteLog(logbuff);
-
-		}
-		oapiWriteLog(const_cast<char*>("Spawn TBOOSTER: fin de bloque TBOOSTER"));
 		break;
-	case TSTAGE:
 
-		GetMeshOffset(stage[current].msh_idh, ofs);
-		vel = _V(stage[current].speed.x, stage[current].speed.y, stage[current].speed.z);
-		Local2Rel(ofs, vs.rpos);
-		GlobalRot(vel, rofs);
-		vs.rvel.x = rvel.x + rofs.x;
-		vs.rvel.y = rvel.y + rofs.y;
-		vs.rvel.z = rvel.z + rofs.z;
-		vs.vrot.x = vrot.x + stage[current].rot_speed.x;
-		vs.vrot.y = vrot.y + stage[current].rot_speed.y;
-		vs.vrot.z = vrot.z + stage[current].rot_speed.z;
+		case TSTAGE:
 
-		strcpy_s(mn, stage[current].meshname);
-		oapiCreateVesselEx(mn, stage[current].module, &vs);
+			GetMeshOffset(stage.at(current).msh_idh, ofs);
 
-		sprintf(logbuff, "%s: Stage n.%i jettisoned name: %s @%.3f", GetName(), current + 1, mn, MET);
-		oapiWriteLog(logbuff);
-		stage_ignition_time = MET;
+			vel = _V(stage.at(current).speed.x, stage.at(current).speed.y, stage.at(current).speed.z);
+
+			Local2Rel (ofs, vs.rpos);
+
+			GlobalRot(vel, rofs);
+
+			vs.rvel.x = rvel.x + rofs.x;
+
+			vs.rvel.y = rvel.y + rofs.y;
+
+			vs.rvel.z = rvel.z + rofs.z;
+
+			vs.vrot.x = vrot.x + stage.at(current).rot_speed.x;
+
+			vs.vrot.y = vrot.y + stage.at(current).rot_speed.y;
+			
+			vs.vrot.z = vrot.z + stage.at(current).rot_speed.z;
+
+			mn = stage.at(current).meshname;
+
+			oapiCreateVesselEx(mn.c_str(), stage.at(current).module.c_str(), &vs);
+			
+			logbuff = std::format("{}: Stage n.{} jettisoned name: {} @{:.3f}", GetName(), current + 1, mn, MET);
+			
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+			stage_ignition_time = MET;
 		break;
 
 	case TPAYLOAD:
-		if (!payload[current].live) {
-			GetMeshOffset(payload[current].msh_idh[0], ofs);
-			vel = _V(payload[current].speed.x, payload[current].speed.y, payload[current].speed.z);
-			Local2Rel(ofs, vs.rpos);
-			GlobalRot(vel, rofs);
-			vs.rvel.x = rvel.x + rofs.x;
-			vs.rvel.y = rvel.y + rofs.y;
-			vs.rvel.z = rvel.z + rofs.z;
-			vs.vrot.x = vrot.x + payload[current].rot_speed.x;
-			vs.vrot.y = vrot.y + payload[current].rot_speed.y;
-			vs.vrot.z = vrot.z + payload[current].rot_speed.z;
 
-			if (payload[current].rotated) {
+		if(!payload.at(current).live){
+
+			GetMeshOffset(payload.at(current).msh_idh.at(0), ofs);
+
+			vel = _V(payload.at(current).speed.x, payload.at(current).speed.y, payload.at(current).speed.z);
+
+			Local2Rel (ofs, vs.rpos);
+
+			GlobalRot(vel, rofs);
+
+			vs.rvel.x = rvel.x + rofs.x;
+
+			vs.rvel.y = rvel.y + rofs.y;
+
+			vs.rvel.z = rvel.z + rofs.z;
+
+			vs.vrot.x = vrot.x + payload.at(current).rot_speed.x;
+			
+			vs.vrot.y = vrot.y + payload.at(current).rot_speed.y;
+
+			vs.vrot.z = vrot.z + payload.at(current).rot_speed.z;
+			
+			if(payload.at(current).rotated){
 				MATRIX3 RotMatrix, RotMatrix_Def;
 				GetRotationMatrix(RotMatrix);
 				VECTOR3 rotation;
-				rotation = payload[current].Rotation;
-				RotMatrix_Def = mul(RotMatrix, RotationMatrix(rotation));
+				rotation = payload.at(current).Rotation;
+				RotMatrix_Def  =mul(RotMatrix, RotationMatrix(rotation));
 				vs.arot.x = atan2(RotMatrix_Def.m23, RotMatrix_Def.m33);
 				vs.arot.y = -asin(RotMatrix_Def.m13);
 				vs.arot.z = atan2(RotMatrix_Def.m12, RotMatrix_Def.m11);
 			}
+
 			OBJHANDLE hpl;
-			hpl = oapiCreateVesselEx(payload[current].name, payload[current].module, &vs);
-			if (currentPayload + 1 == Misc.Focus) {
+
+			hpl = oapiCreateVesselEx(payload.at(current).name.c_str(), payload.at(current).module.c_str(), &vs);
+			if(currentPayload + 1 == Misc.Focus){
 				oapiSetFocusObject(hpl);
 			}
-		}
-		else {
-			if (GetAttachmentStatus(live_a[current])) {
-				OBJHANDLE live = GetAttachmentStatus(live_a[current]);
-				VESSEL4* v;
-				v = static_cast<VESSEL4*>(oapiGetVesselInterface(live));
 
-				VECTOR3 dir, rot; //only for the get params
-				GetAttachmentParams(live_a[current], ofs, dir, rot);
-				DetachChild(live_a[current], 0);//length(payload[current].speed));
+		} else {
 
-				vel = _V(payload[current].speed.x, payload[current].speed.y, payload[current].speed.z);
-				Local2Rel(ofs, vs.rpos);
+			if(GetAttachmentStatus(live_a.at(current))){
+				OBJHANDLE live=GetAttachmentStatus(live_a.at(current));
+				VESSEL3 *v;
+				v = (VESSEL3*)oapiGetVesselInterface(live);
+				
+				VECTOR3 dir,rot; //only for the get params
+				GetAttachmentParams(live_a.at(current), ofs, dir, rot);
+				DetachChild(live_a.at(current), 0);//length(payload.at(current).speed));
+			
+				vel = _V(payload.at(current).speed.x, payload.at(current).speed.y, payload.at(current).speed.z);
+				Local2Rel (ofs, vs.rpos);
 				GlobalRot(vel, rofs);
 				vs.rvel.x = rvel.x + rofs.x;
 				vs.rvel.y = rvel.y + rofs.y;
 				vs.rvel.z = rvel.z + rofs.z;
-				vs.vrot.x = vrot.x + payload[current].rot_speed.x;
-				vs.vrot.y = vrot.y + payload[current].rot_speed.y;
-				vs.vrot.z = vrot.z + payload[current].rot_speed.z;
-
-				if (payload[current].rotated) {
-					MATRIX3 RotMatrix, RotMatrix_Def;
+				vs.vrot.x = vrot.x + payload.at(current).rot_speed.x;
+				vs.vrot.y = vrot.y + payload.at(current).rot_speed.y;
+				vs.vrot.z = vrot.z + payload.at(current).rot_speed.z;
+				
+				if(payload.at(current).rotated){
+					MATRIX3 RotMatrix,RotMatrix_Def;
 					GetRotationMatrix(RotMatrix);
 					VECTOR3 rotation;
-					rotation = payload[current].Rotation;
+					rotation=payload.at(current).Rotation;
 					RotMatrix_Def = mul(RotMatrix, RotationMatrix(rotation));
 					vs.arot.x = atan2(RotMatrix_Def.m23, RotMatrix_Def.m33);
 					vs.arot.y = -asin(RotMatrix_Def.m13);
 					vs.arot.z = atan2(RotMatrix_Def.m12, RotMatrix_Def.m11);
 				}
 				v->clbkSetStateEx(&vs);
-				if (currentPayload + 1 == Misc.Focus) {
+				if(currentPayload + 1 == Misc.Focus){
 					oapiSetFocusObject(live);
 				}
 			}
 		}
-		sprintf(logbuff, "%s: Payload n.%i jettisoned name: %s @%.3f", GetName(), current + 1, payload[current].name, MET);
-		oapiWriteLog(logbuff);
+		logbuff = std::format("{}: Payload n.{} jettisoned name: {} @{:.3f}", GetName(), current + 1, payload.at(current).name, MET);
 
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+		
 		break;
+
 	case TFAIRING:
 
-		int ii;
-		for (ii = 1; ii < fairing.N + 1; ii++) {
+		for(int i = 1; i < fairing.N + 1; i++){
+					
+			GetMeshOffset(fairing.msh_idh.at(i),ofs);
 
-			GetMeshOffset(fairing.msh_idh[ii], ofs);
+			vel = RotateVecZ(fairing.speed, fairing.angle * RAD + (i - 1) * 2 * PI / fairing.N);
+			
+			Local2Rel (ofs, vs.rpos);
 
-			//double vro=length(fairing.speed);
-			//vel =_V(vro*cos(fairing.angle*RAD+(ii-1)*2*PI/fairing.N),vro*sin(fairing.angle*RAD+(ii-1)*2*PI/fairing.N),fairing.speed.z);
-			vel = RotateVecZ(fairing.speed, fairing.angle * RAD + (ii - 1) * 2 * PI / fairing.N);
-
-			Local2Rel(ofs, vs.rpos);
 			GlobalRot(vel, rofs);
+
 			vs.rvel.x = rvel.x + rofs.x;
 			vs.rvel.y = rvel.y + rofs.y;
 			vs.rvel.z = rvel.z + rofs.z;
 
-			double arg = (ii - 1) * 2 * PI / fairing.N;
+			double arg = (i - 1) * 2 * PI / fairing.N;
+
 			vs.vrot.x = vrot.x + fairing.rot_speed.x * cos(arg) - fairing.rot_speed.y * sin(arg);
+
 			vs.vrot.y = vrot.y + fairing.rot_speed.x * sin(arg) + fairing.rot_speed.y * cos(arg);
+
 			vs.vrot.z = vrot.z + fairing.rot_speed.z;
 
-			char mn2[32];
-			sprintf(mn2, "_%i", ii);
-			strcpy_s(mn, fairing.meshname);
-			strcat_s(mn, mn2);
+			std::string mn2;
+			mn2 = std::format("_{}", i);
+			mn = fairing.meshname;
+			mn += mn2;
 
-			oapiCreateVesselEx(mn, fairing.module, &vs);
-			sprintf(logbuff, "%s: Fairing jettisoned: name %s @%.3f", GetName(), mn, MET);
-			oapiWriteLog(logbuff);
+			oapiCreateVesselEx(mn.c_str(), fairing.module.c_str(), &vs);
+			logbuff = std::format("{}: Fairing jettisoned: name {} @{:.3f}", GetName(), mn, MET);
+			
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 
 		break;
-	case TINTERSTAGE:
 
-		GetMeshOffset(stage[current].interstage.msh_idh, ofs);
+case TINTERSTAGE:
 
-		vel = _V(stage[current].interstage.speed.x, stage[current].interstage.speed.y, stage[current].interstage.speed.z);
-		Local2Rel(ofs, vs.rpos);
+		GetMeshOffset(stage.at(current).interstage.msh_idh, ofs);
+
+		vel = _V(stage.at(current).interstage.speed.x, stage.at(current).interstage.speed.y, stage.at(current).interstage.speed.z);
+		
+		Local2Rel (ofs, vs.rpos);
+		
 		GlobalRot(vel, rofs);
+
 		vs.rvel.x = rvel.x + rofs.x;
+
 		vs.rvel.y = rvel.y + rofs.y;
+
 		vs.rvel.z = rvel.z + rofs.z;
-		vs.vrot.x = vrot.x + stage[current].interstage.rot_speed.x;
-		vs.vrot.y = vrot.y + stage[current].interstage.rot_speed.y;
-		vs.vrot.z = vrot.z + stage[current].interstage.rot_speed.z;
 
-		strcpy_s(mn, stage[current].interstage.meshname);
+		vs.vrot.x = vrot.x + stage.at(current).interstage.rot_speed.x;
 
-		oapiCreateVesselEx(mn, stage[current].interstage.module, &vs);
-		sprintf(logbuff, "%s: Interstage of stage %i jettisoned name: %s @%.3f", GetName(), current + 1, mn, MET);
-		oapiWriteLog(logbuff);
+		vs.vrot.y = vrot.y + stage.at(current).interstage.rot_speed.y;
 
+		vs.vrot.z = vrot.z + stage.at(current).interstage.rot_speed.z;
+
+		mn = stage.at(current).interstage.meshname;
+
+		oapiCreateVesselEx(mn.c_str(), stage.at(current).interstage.module.c_str(), &vs);
+
+		logbuff = std::format("{}: Interstage of stage {} jettisoned name: {} @{:.3f}", GetName(), current + 1, mn, MET);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+		
 		break;
-	case TLES:
-
+case TLES:
+		
 		GetMeshOffset(Les.msh_idh, ofs);
 
 		vel = _V(Les.speed.x, Les.speed.y, Les.speed.z);
-		Local2Rel(ofs, vs.rpos);
+
+		Local2Rel (ofs, vs.rpos);
+
 		GlobalRot(vel, rofs);
+
 		vs.rvel.x = rvel.x + rofs.x;
+
 		vs.rvel.y = rvel.y + rofs.y;
+
 		vs.rvel.z = rvel.z + rofs.z;
+
 		vs.vrot.x = vrot.x + Les.rot_speed.x;
+
 		vs.vrot.y = vrot.y + Les.rot_speed.y;
+
 		vs.vrot.z = vrot.z + Les.rot_speed.z;
 
-		strcpy_s(mn, Les.meshname);
+		mn = Les.meshname;
 
-		oapiCreateVesselEx(mn, Les.module, &vs);
-		sprintf(logbuff, "%s: Les jettisoned name: %s @%.3f", GetName(), mn, MET);
-		oapiWriteLog(logbuff);
+		oapiCreateVesselEx(mn.c_str(), Les.module.c_str(), &vs);
+
+		logbuff = std::format("{}: Les jettisoned name: {} @{:.3f}", GetName(), mn, MET);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
 		break;
 
-
 	}
+
 	return;
 }
 
 //Jettison item
-void Multistage2015::Jettison(int type, int current) {
-	switch (type) {
-	case TBOOSTER:
-		Spawn(type, current);
+void Multistage2015::Jettison(int type,int current){
 
-		int i;
-		for (i = 1; i < booster[current].N + 1; i++) {
-			DelMesh(booster[current].msh_idh[i]);
-		}
+	switch(type){
 
-		//DelThruster(booster[current].th_booster_h[0]);
-		DelThrusterGroup(booster[current].Thg_boosters_h, false);
+		case TBOOSTER:
+			Spawn(type, current);
 
-		DelPropellantResource(booster[current].tank);
-		currentBooster += 1;
-
-		UpdateMass();
-		UpdatePMI();
-
-		if (currentBooster >= nBoosters) { wBoosters = FALSE; }
-		break;
-
-	case TSTAGE:
-
-		Spawn(type, current);
-
-
-		DelMesh(stage[current].msh_idh);
-		ClearThrusterDefinitions();
-		//DelThrusterGroup(thg_h_main,TRUE);
-		//DelThruster(stage[current].th_main_h[0]);
-		DelPropellantResource(stage[current].tank);
-		currentStage += 1;
-
-		UpdateMass();
-		UpdatePMI();
-		CreateUllageAndBolts();
-		CreateMainThruster();
-		CreateRCS();
-		ShiftCG(_V(0, 0, (stage[current + 1].off.z - stage[current].off.z)));
-
-
-		SetCameraOffset(_V(0, 0, 0));
-
-		break;
-
-	case TPAYLOAD:
-
-		Spawn(type, current);
-
-		if (!payload[current].live) {
-			for (int ss = 0; ss < payload[current].nMeshes; ss++) {
-				//	sprintf(logbuff,"deleting payload[%i] mesh number %i",current,ss);
-					//oapiWriteLog(logbuff);
-				DelMesh(payload[current].msh_idh[ss]);
+			for(int i = 1; i < booster.at(current).N + 1; i++){
+				DelMesh(booster.at(current).msh_idh.at(i));
 			}
-		}
-		currentPayload += 1;
-		UpdateMass();
-		UpdatePMI();
+
+			//DelThruster(booster.at(current).th_booster_h.at(0));
+			DelThrusterGroup(booster.at(current).Thg_boosters_h, true);
+			
+			DelPropellantResource(booster.at(current).tank);
+			currentBooster += 1;
+			
+			UpdateMass();
+			UpdatePMI();
+
+			if(currentBooster >= nBoosters){
+				wBoosters = false;
+			}
 
 		break;
-	case TFAIRING:
-		Spawn(type, current);
-		int pns;
-		for (pns = currentPayload; pns < nPayloads; pns++) {
-			if (!payload[pns].live) {
-				for (int s = 0; s < payload[pns].nMeshes; s++) {
-					SetMeshVisibilityMode(payload[pns].msh_idh[s], MESHVIS_EXTERNAL);
+
+		case TSTAGE:
+			
+			Spawn(type, current);
+			
+			DelMesh(stage.at(current).msh_idh);
+
+			ClearThrusterDefinitions();
+			
+			DelPropellantResource(stage.at(current).tank);
+
+			currentStage += 1;
+			
+			UpdateMass();
+
+			UpdatePMI();
+
+			CreateUllageAndBolts();
+
+			CreateMainThruster();
+
+			CreateRCS();
+
+			ShiftCG(_V(0, 0, (stage[current + 1].off.z - stage.at(current).off.z)));			
+			
+			SetCameraOffset(_V(0, 0, 0));
+
+			break;
+
+		case TPAYLOAD:
+			
+			Spawn(type,current);
+			
+			if(!payload.at(current).live){
+				for(int i = 0; i < payload.at(current).nMeshes; i++){
+					DelMesh(payload.at(current).msh_idh.at(i));
 				}
 			}
-		}
-		int ii;
-		for (ii = 1; ii < fairing.N + 1; ii++) {
-			DelMesh(fairing.msh_idh[ii]);
-		}
 
+			currentPayload += 1;
+			
+			UpdateMass();
+			
+			UpdatePMI();
 
-		wFairing = 0;
-		UpdateMass();
-		UpdatePMI();
-		break;
-	case TLES:
-		Spawn(type, current);
-		DelMesh(Les.msh_idh);
-		wLes = FALSE;
-		UpdateMass();
-		UpdatePMI();
-		break;
+			break;
+
+		case TFAIRING:
+
+			Spawn(type, current);
+
+			for(int i = currentPayload; i < nPayloads; i++){
+				if(!payload.at(i).live){
+					for(int j = 0; j < payload.at(i).nMeshes; j++){
+						SetMeshVisibilityMode(payload.at(i).msh_idh.at(j), MESHVIS_EXTERNAL);
+					}
+				}
+			}
+
+			for(int i = 1; i < fairing.N + 1; i++){
+				DelMesh(fairing.msh_idh.at(i));
+			}
+
+			
+			wFairing = 0;
+
+			UpdateMass();
+
+			UpdatePMI();
+
+			break;
+
+		case TLES:
+
+			Spawn(type, current);
+
+			DelMesh(Les.msh_idh);
+
+			wLes = false;
+
+			UpdateMass();
+
+			UpdatePMI();
+
+			break;
+
 	case TINTERSTAGE:
+		
 		Spawn(type, current);
-		DelMesh(stage[current].interstage.msh_idh);
+
+		DelMesh(stage.at(current).interstage.msh_idh);
 		currentInterstage += 1;
-		stage[current].wInter = FALSE;
+		stage.at(current).wInter = false;
 		UpdateMass();
 		UpdatePMI();
 		break;
 
 	}
+
 	return;
 }
 
 //initialize correctly the delays if flying from a scenario not starting on ground
-void Multistage2015::InitializeDelays() {
+void Multistage2015::InitializeDelays(){
 
 	//initialize booster burn delays, only if stage is 0 and if Met is positive
-	if ((currentStage == 0) && (MET > 0)) {
-		for (int kb = currentBooster; kb < nBoosters; kb++) {
-			if (booster[kb].currDelay > 0) {
-				booster[kb].currDelay -= MET;
+	if((currentStage == 0) && (MET > 0)){
+		for(int i = currentBooster; i < nBoosters; i++){
+			if(booster.at(i).currDelay > 0){
+				booster.at(i).currDelay -= MET;
 			}
 		}
-	}
-
-	//initialize stages using already used by vinka STAGE_IGNITION_TIME even if it should be called "STAGE_JETTISONED_TIME"
-	else if (currentStage > 0) {
+	} else if(currentStage > 0){//initialize stages using already used by vinka STAGE_IGNITION_TIME even if it should be called "STAGE_JETTISONED_TIME"
 		double delta = MET - stage_ignition_time;
-		if (delta < stage[currentStage].currDelay) {
-			stage[currentStage].currDelay -= delta;
+		if(delta < stage.at(currentStage).currDelay){
+			stage.at(currentStage).currDelay -= delta;
 		}
 
 	}
+
 	return;
 }
 
 
-void Multistage2015::AutoJettison() {
-
-	if (currentBooster < nBoosters) {
-
-		if (GetPropellantMass(booster[currentBooster].tank) <= 0.000001) {
+void Multistage2015::AutoJettison(){
+	
+	if(currentBooster < nBoosters){
+		if(GetPropellantMass(booster.at(currentBooster).tank) <= 0.000001){
 			Jettison(TBOOSTER, currentBooster);
-
 		}
 	}
 
-	if (currentStage < nStages - 1) {
-		if ((currentStage == 0) && (currentBooster < nBoosters)) { return; }
-		else if (GetPropellantMass(stage[currentStage].tank) <= 0.1) {
-			Jettison(TSTAGE, currentStage);
-
+	if(currentStage < nStages - 1){
+		if((currentStage == 0) && (currentBooster < nBoosters)){
+			return;
+		} else if(GetPropellantMass(stage.at(currentStage).tank) <= 0.1){
+				Jettison(TSTAGE, currentStage);
 		}
-
 	}
-	if ((stage[currentStage].wInter == TRUE) && (stage[currentStage].interstage.currDelay <= 0)) {
+
+	if((stage.at(currentStage).wInter == true) && (stage.at(currentStage).interstage.currDelay <= 0)){
 		Jettison(TINTERSTAGE, currentStage);
 	}
+
 	return;
 }
-void Multistage2015::Guidance_Debug() {
+
+void Multistage2015::Guidance_Debug(){
 	int step = VinkaGetStep(MET);
 	double DesiredPitch;
-	if (Gnc_step[step].GNC_Comand == CM_ROLL) {
-		DesiredPitch = (Gnc_step[step].val_init + (Gnc_step[step].val_fin - Gnc_step[step].val_init) * (MET - Gnc_step[step].time_init) / ((Gnc_step[VinkaFindFirstPitch()].time - 1) - Gnc_step[step].time_init)) * RAD;//88*RAD;
+	if(Gnc_step.at(step).GNC_Comand==CM_ROLL){
+		DesiredPitch = (Gnc_step.at(step).val_init + (Gnc_step.at(step).val_fin-Gnc_step.at(step).val_init) * (MET - Gnc_step.at(step).time_init) / ((Gnc_step.at(VinkaFindFirstPitch()).time - 1) - Gnc_step.at(step).time_init)) * RAD;
+	
 		double heading;
+		
 		oapiGetHeading(GetHandle(), &heading);
-		sprintf(oapiDebugString(), "MET: %.1f Step: %i P: %.2f (%.2f) H: %.2f (%.2f)", MET, step, GetPitch() * DEG, DesiredPitch * DEG, heading * DEG, VinkaAzimuth * DEG);
-	}
-	else if (Gnc_step[step].GNC_Comand == CM_PITCH) {
-		DesiredPitch = (Gnc_step[step].val_init + (Gnc_step[step].val_fin - Gnc_step[step].val_init) * (MET - Gnc_step[step].time_init) / (Gnc_step[step].time_fin - Gnc_step[step].time_init)) * RAD;
+		
+		sprintf(oapiDebugString(), "MET: %.1f Step: %i P: %.2f (%.2f) H: %.2f (%.2f)", MET, step, GetPitch() * DEG,DesiredPitch * DEG, heading * DEG, VinkaAzimuth * DEG);
+
+	}else if(Gnc_step.at(step).GNC_Comand == CM_PITCH){
+		DesiredPitch = (Gnc_step.at(step).val_init + (Gnc_step.at(step).val_fin - Gnc_step.at(step).val_init) * (MET - 
+		Gnc_step.at(step).time_init) / (Gnc_step.at(step).time_fin - Gnc_step.at(step).time_init)) * RAD;
+
 		sprintf(oapiDebugString(), "MET: %.1f Step: %i P: %.2f (%.2f) Delta: %.1f", MET, step, GetPitch() * DEG, DesiredPitch * DEG, GetPitch() * DEG - DesiredPitch * DEG);
-	}
-	else {
+	}else{
 		sprintf(oapiDebugString(), "MET: %.1f Step: %i", MET, step);
 	}
 
-
-
-
-
-
 	return;
 }
 
-void Multistage2015::ComplexFlight()
-{
+void Multistage2015::ComplexFlight(){
+
 	UpdateComplex += oapiGetSimStep();
-	if (UpdateComplex >= 1)
-	{
-		UpdateComplex = 0;
 
-		for (int i = 0; i < stage[currentStage].nEngines; i++)
-		{
+	if(UpdateComplex >= 1){
+		
+		UpdateComplex=0;
 
-			double newMax = (stage[currentStage].thrust / stage[currentStage].nEngines) * (1 + (stage[currentStage].engine_amp[i] * sin(2 * PI / stage[currentStage].freq[i] * MET + stage[currentStage].engine_phase[i])));
-			SetThrusterMax0(stage[currentStage].th_main_h[i], newMax);
-			/*double test=(1+stage[currentStage].engine_amp[i]*sin(2*PI/60*MET+stage[currentStage].engine_phase[i]));
-			sprintf(logbuff,"MET:%.1f engine:%i TEST:%.6f",MET,i,test);
-			oapiWriteLog(logbuff);*/
+		for(int i=0;i<stage.at(currentStage).nEngines;i++){
+			
+			double newMax = (stage.at(currentStage).thrust / stage.at(currentStage).nEngines) * (1 + (stage.at(currentStage).engine_amp.at(i) * sin( 2 * PI / stage.at(currentStage).freq.at(i) * MET + stage.at(currentStage).engine_phase.at(i))));
+
+			SetThrusterMax0(stage.at(currentStage).th_main_h.at(i),newMax);
 		}
-		if (wBoosters)
+
+		if(wBoosters)
 		{
-			for (int j = 0; j < booster[currentBooster].N; j++)
-			{
-				double newMax = booster[currentBooster].thrust * (1 + (booster[currentBooster].engine_amp[j] * sin(2 * PI / booster[currentBooster].freq[j] * MET + booster[currentBooster].engine_phase[j])));
-				SetThrusterMax0(booster[currentBooster].th_booster_h[j], newMax);
+			for(int i = 0; i < booster.at(currentBooster).N; i++){
+				
+				double newMax = booster.at(currentBooster).thrust * (1 + (booster.at(currentBooster).engine_amp.at(i) * sin(2 * PI / booster.at(currentBooster).freq.at(i) * MET + booster.at(currentBooster).engine_phase.at(i))));
+				
+				SetThrusterMax0(booster.at(currentBooster).th_booster_h.at(i), newMax);
 			}
 		}
 	}
@@ -2737,20 +2292,20 @@ void Multistage2015::ComplexFlight()
 	return;
 }
 
-void Multistage2015::Boiloff()
-{
+void Multistage2015::Boiloff(){
+
 	updtboiloff += oapiGetSimStep();
 
-	if (updtboiloff >= 3600)
-	{
+	if(updtboiloff >= 3600){
 		updtboiloff = 0;
-		for (int i = currentStage; i < nStages; i++)
-		{
-			if (stage[i].wBoiloff)
-			{
-				double propmass = GetPropellantMass(stage[i].tank);
+		for(int i = currentStage; i < nStages; i++){
+			if(stage.at(i).wBoiloff){
+
+				double propmass = GetPropellantMass(stage.at(i).tank);
+
 				propmass -= 1;
-				SetPropellantMass(stage[i].tank, propmass);
+
+				SetPropellantMass(stage.at(i).tank, propmass);
 
 			}
 		}
@@ -2758,432 +2313,460 @@ void Multistage2015::Boiloff()
 	return;
 }
 
-void Multistage2015::FLY(double simtime, double simdtime, double mjdate) {
-	if (APstat) {
-		if (stage[currentStage].currDelay > 0) { stage[currentStage].currDelay -= simdtime; stage[currentStage].StageState = STAGE_WAITING; }
-		if (stage[currentStage].interstage.currDelay > 0) { stage[currentStage].interstage.currDelay -= simdtime; }
+void Multistage2015::FLY(double simtime, double simdtime, double mjdate){
+	
+	if(APstat){
+		if(stage.at(currentStage).currDelay > 0){
+			stage.at(currentStage).currDelay -= simdtime;
+			stage.at(currentStage).StageState = STAGE_WAITING;
+		}
+
+		if(stage.at(currentStage).interstage.currDelay > 0){
+			stage.at(currentStage).interstage.currDelay -= simdtime;
+		}
+
 	}
-	if (wBoosters) {
-		for (int nb = 0; nb < nBoosters; nb++) {
-			if (booster[nb].currDelay > 0) {
-				booster[nb].currDelay -= simdtime;
+
+	if(wBoosters){
+		for(int i = 0; i < nBoosters; i++){
+			if(booster.at(i).currDelay > 0){
+				booster.at(i).currDelay -= simdtime;
 			}
 		}
 	}
-	if (!AJdisabled) { AutoJettison(); }
-	double Level[10];
-	double btime[10];
 
-	if ((!stage[currentStage].Ignited) && (stage[currentStage].currDelay <= 0) && (stage[currentStage].StageState == STAGE_WAITING)) {
-		SetThrusterGroupLevel(THGROUP_MAIN, 1);
-		stage[currentStage].Ignited = TRUE;
-		stage[currentStage].IgnitionTime = MET;
-		stage[currentStage].StageState = STAGE_IGNITED;
-		sprintf(logbuff, "%s Stage n: %i ignited @%.1f", GetName(), currentStage + 1, stage[currentStage].IgnitionTime);
-		oapiWriteLog(logbuff);
+	if(!AJdisabled){
+		AutoJettison();
 	}
-	//MET+=simdtime;
+	
+	std::array<double, 10> Level;
+	std::array<double, 10> btime;
 
+	if((!stage.at(currentStage).Ignited) && (stage.at(currentStage).currDelay <= 0) && (stage.at(currentStage).StageState == STAGE_WAITING)){
+
+		SetThrusterGroupLevel(THGROUP_MAIN, 1);
+
+		stage.at(currentStage).Ignited = true;
+
+		stage.at(currentStage).IgnitionTime = MET;
+
+		stage.at(currentStage).StageState = STAGE_IGNITED;
+
+		logbuff = std::format("{} Stage n: {} ignited @{:.1f}", GetName(), currentStage + 1, stage.at(currentStage).IgnitionTime);
+		
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+	}
 
 	//BOOSTERS SECTION
-	if ((wBoosters) && (GetThrusterGroupLevel(THGROUP_MAIN) > 0.95)) {
+	if((wBoosters) && (GetThrusterGroupLevel(THGROUP_MAIN) > 0.95)){
+	
+		for(int i = currentBooster; i < nBoosters; i++){
 
-		int kb;
-		for (kb = currentBooster; kb < nBoosters; kb++) {
-			if (booster[kb].currDelay <= 0) {
-				if (booster[kb].Ignited == FALSE) {
-					booster[kb].Ignited = TRUE;
-					booster[kb].IgnitionTime = MET;
+			if(booster.at(i).currDelay <= 0){
 
-					sprintf(logbuff, "%s Booster n: %i ignited @%.1f", GetName(), kb + 1, booster[kb].IgnitionTime);
-					oapiWriteLog(logbuff);
-				}
-				else {
+				if(booster.at(i).Ignited == false){
+					booster.at(i).Ignited = false;
+					booster.at(i).IgnitionTime = MET;
+					
+					logbuff = std::format("{} Booster n: {} ignited @{:.1f}", GetName(), i + 1, booster.at(i).IgnitionTime);
 
-					btime[kb] = MET - booster[kb].IgnitionTime;
-					Level[kb] = 1;
+					oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+				}else{
+
+					btime.at(i) = MET-booster.at(i).IgnitionTime;
+
+					Level.at(i) = 1;
+					
 					double m, q;
-					int qq;
-					for (qq = 0; qq < 10; qq++) {
+					
+					for(int j = 0; j < 10; j++){
+							
+						if(btime.at(i) > booster.at(i).curve.at(j).x){
 
-						if (btime[kb] > booster[kb].curve[qq].x) {
-							if (qq < 9) {
+							if(j < 9){
 
-								if (btime[kb] < booster[kb].curve[qq + 1].x) {
+								if(btime.at(i)<booster.at(i).curve.at(j+1).x){
+							
+									m = (booster.at(i).curve.at(j + 1).y - booster.at(i).curve.at(j).y) / (booster.at(i).curve.at(j + 1).x - booster.at(i).curve.at(j).x);
 
-									m = (booster[kb].curve[qq + 1].y - booster[kb].curve[qq].y) / (booster[kb].curve[qq + 1].x - booster[kb].curve[qq].x);
-									q = booster[kb].curve[qq].y - m * booster[kb].curve[qq].x;
-									Level[kb] = (m * btime[kb] + q) / 100;
+									q = booster.at(i).curve.at(j).y - m * booster.at(i).curve.at(j).x;
+									Level.at(i)=(m * btime.at(i) + q) / 100;
 								}
+													
+							} else {
 
-							}
-							else {
-								m = (booster[kb].curve[qq].y - booster[kb].curve[qq].y) / (booster[kb].curve[qq].x - booster[kb].curve[qq].x);
-								q = booster[kb].curve[qq].y - m * booster[kb].curve[qq].x;
-								Level[kb] = (m * btime[kb] + q) / 100;
+								m = (booster.at(i).curve.at(j).y - booster.at(i).curve.at(j).y) / (booster.at(i).curve.at(j).x - booster.at(i).curve.at(j).x);
 
+								q = booster.at(i).curve.at(j).y - m * booster.at(i).curve.at(j).x;
+								
+								Level.at(i) = (m * btime.at(i) + q) / 100;
 							}
-						}
+						}		
 					}
 				}
 
-
-				//SetThrusterLevel(booster[kb].th_booster_h[0],Level[kb]);
-				//SetThrusterGroupLevel(booster[kb].Thg_boosters_h,Level[kb]);
-				SetThrusterGroupLevel(booster[kb].Thg_boosters_h, Level[kb]);
-
-
+				SetThrusterGroupLevel(booster.at(i).Thg_boosters_h, Level.at(i));
 			}
 		}
 	}
-
-
-
-
-	//if((APstat)&&(wVinkasGuidance)){
-	if (APstat) {
-		//MET+=simdtime;
-	/*	VinkaAutoPilot();
-		if(Misc.GNC_Debug==1){Guidance_Debug();}
-			if(MET>VinkaFindEndTime()){
-				killAP();
-				APstat=100;
-				}*/
-
+	
+	if(APstat){
+		
 		VinkaAutoPilot();
-		if (Misc.GNC_Debug == 1) { Guidance_Debug(); }
-		if (MET > VinkaFindEndTime()) {
-			killAP();
-			APstat = FALSE;
+
+		if(Misc.GNC_Debug == 1){
+			Guidance_Debug();
 		}
 
+		if(MET > VinkaFindEndTime()){
+			
+			killAP();
+
+			APstat = false;
+		}
 	}
 
 	//avoid reignition of not reignitable stages by setting thurst to 0
-	if ((!stage[currentStage].reignitable) && (stage[currentStage].Ignited))
-	{
+	if((!stage.at(currentStage).reignitable) && (stage.at(currentStage).Ignited)){
+		
+		if(GetThrusterGroupLevel(THGROUP_MAIN) == 0){
+			
+			stage.at(currentStage).waitforreignition += simdtime;
 
-		if (GetThrusterGroupLevel(THGROUP_MAIN) == 0) {
-			stage[currentStage].waitforreignition += simdtime;
-			if (stage[currentStage].waitforreignition >= 3) {
-				for (int i = 0; i < stage[currentStage].nEngines; i++)
-				{
-					SetThrusterResource(stage[currentStage].th_main_h[i], NULL);
+			if(stage.at(currentStage).waitforreignition >= 3){
+
+				for(int i = 0; i < stage.at(currentStage).nEngines; i++){
+					SetThrusterResource(stage.at(currentStage).th_main_h.at(i), nullptr);
 				}
-				stage[currentStage].DenyIgnition = TRUE;
-
+				
+				stage.at(currentStage).DenyIgnition = true;
+			
 			}
 		}
 	}
-	if (tlmidx < TLMSECS) { Telemetry(); }
 
-	if (stage[currentStage].batteries.wBatts)
-	{
-		stage[currentStage].batteries.CurrentCharge -= oapiGetSimStep();
-		if (stage[currentStage].batteries.CurrentCharge <= 0) {
-			stage[currentStage].batteries.CurrentCharge = 0;
+	if(tlmidx < TLMSECS){
+		Telemetry();
+	}
+
+	if(stage.at(currentStage).batteries.wBatts){
+		stage.at(currentStage).batteries.CurrentCharge -= oapiGetSimStep();
+		if(stage.at(currentStage).batteries.CurrentCharge <= 0){
+			stage.at(currentStage).batteries.CurrentCharge = 0;
 			ClearThrusterDefinitions();
 		}
 	}
 
-	if ((Complex) && (GetDrag() > 1000))
-	{
+	if((Complex) && (GetDrag() > 1000)){
 		ComplexFlight();
+
 		AddForce(_V(0, 2 * GetDrag() * sin(GetAOA()), 0), _V(0, 0, TotalHeight));
-		AddForce(_V(2 * GetDrag() * sin(GetSlipAngle()), 0, 0), _V(0, 0, TotalHeight));
-		if (GetDrag() > 500000) { if ((abs(GetAOA()) > 45 * RAD) || (abs(GetSlipAngle()) > 45 * RAD)) { boom(); } }
 
+		AddForce(_V( 2 * GetDrag() * sin(GetSlipAngle()), 0, 0), _V(0, 0, TotalHeight));
 
-	}
-
-	if (stage[currentStage].ullage.wUllage)
-	{
-		if ((!stage[currentStage].ullage.ignited) && (stage[currentStage].currDelay < stage[currentStage].ullage.anticipation))//&&(MET-stage[currentStage].IgnitionTime<stage[currentStage].ullage.overlap))
-		{
-			SetThrusterLevel(stage[currentStage].ullage.th_ullage, 1);
-			stage[currentStage].ullage.ignited = TRUE;
-		}
-		else if ((stage[currentStage].ullage.ignited) && (stage[currentStage].IgnitionTime != 0) && (MET - stage[currentStage].IgnitionTime > stage[currentStage].ullage.overlap)) {
-
-			SetThrusterLevel(stage[currentStage].ullage.th_ullage, 0);
+		if(GetDrag() > 500000){
+			if((abs(GetAOA()) > 45 * RAD) || (abs(GetSlipAngle()) > 45 * RAD)){
+				boom();
+			}
 		}
 	}
+	
+	if(stage.at(currentStage).ullage.wUllage){
+		if((!stage.at(currentStage).ullage.ignited) && (stage.at(currentStage).currDelay < stage.at(currentStage).ullage.anticipation)){
 
-	if (stage[currentStage].expbolt.wExpbolt)
-	{
-		if (RemBurnTime(currentStage) < stage[currentStage].expbolt.anticipation)
-		{
-			SetThrusterLevel(stage[currentStage].expbolt.threxp_h, 1);
+			SetThrusterLevel(stage.at(currentStage).ullage.th_ullage, 1);
+
+			stage.at(currentStage).ullage.ignited = true;
+
+		} else if((stage.at(currentStage).ullage.ignited) && (stage.at(currentStage).IgnitionTime != 0) && (MET - stage.at(currentStage).IgnitionTime > stage.at(currentStage).ullage.overlap)){
+			SetThrusterLevel(stage.at(currentStage).ullage.th_ullage, 0);
 		}
 	}
 
-
-	if (booster[currentBooster].expbolt.wExpbolt)
-	{
-		if (BoosterRemBurnTime(currentBooster) < booster[currentBooster].expbolt.anticipation)
-		{
-			SetThrusterLevel(booster[currentBooster].expbolt.threxp_h, 1);
+	if(stage.at(currentStage).expbolt.wExpbolt){
+		if(RemBurnTime(currentStage)<stage.at(currentStage).expbolt.anticipation){
+			SetThrusterLevel(stage.at(currentStage).expbolt.threxp_h, 1);
 		}
 	}
 
-	//	Boiloff();
 
-	/*	if((Configuration==0)&&(GetThrusterGroupLevel(THGROUP_MAIN)>0))
-		{
-			SetAngularVel(_V(0,0,0));
+	if(booster.at(currentBooster).expbolt.wExpbolt){
+		if(BoosterRemBurnTime(currentBooster)<booster.at(currentBooster).expbolt.anticipation){
+			SetThrusterLevel(booster.at(currentBooster).expbolt.threxp_h, 1);
 		}
-	*/
+	}
+
 	MET += simdtime;
+
 	return;
+
 }
-double Multistage2015::CalculateFullMass()
-{
-	double FM = 0;
-	for (int i = 0; i < nStages; i++)
-	{
-		FM += stage[i].emptymass;
-		FM += stage[i].fuelmass;
-		if (stage[i].wInter) { FM += stage[i].interstage.emptymass; }
+
+double Multistage2015::CalculateFullMass(){
+
+	double FM=0;
+
+	for(int i=0;i<nStages;i++){
+		FM += stage.at(i).emptymass;
+		FM += stage.at(i).fuelmass;
+		
+		if(stage.at(i).wInter){
+			FM += stage.at(i).interstage.emptymass;
+		}
 	}
-	for (int j = 0; j < nPayloads; j++)
-	{
-		FM += payload[j].mass;
+
+	for(int i = 0; i < nPayloads; i++){
+		FM += payload.at(i).mass;
 	}
-	for (int q = 0; q < nBoosters; q++)
-	{
-		FM += booster[q].fuelmass * booster[q].N;
-		FM += booster[q].emptymass * booster[q].N;
+
+	for(int i = 0; i < nBoosters; i++){
+		FM += booster.at(i).fuelmass * booster.at(i).N;
+		FM += booster.at(i).emptymass * booster.at(i).N;
 	}
-	if (hasFairing)
-	{
+
+	
+	if(hasFairing){
 		FM += fairing.emptymass;
 	}
-	if (wAdapter)
-	{
+
+	if(wAdapter){
 		FM += Adapter.emptymass;
 	}
-	if (wLes)
-	{
+
+	if(wLes){
 		FM += Les.emptymass;
 	}
-
+	
 	return FM;
 }
 
 //returns hours mins and secs of a time (positive and negative)
-VECTOR3 Multistage2015::hms(double time) {
+VECTOR3 Multistage2015::hms(double time){
+
 	VECTOR3 met;
-	if (time == 0) { met = _V(0, 0, 0); }
-	else {
+
+	if(time == 0){
+		met=_V(0,0,0);
+	} else {
+
 		time = abs(time + 0.5 * (time / abs(time) - 1));
+
 		met.x = floor(time / 3600) - 0.5 * (time / abs(time) - 1);
-		met.y = floor((time - met.x * 3600 * (time / abs(time))) / 60) - 0.5 * (time / abs(time) - 1);
+
+		met.y = floor((time - met.x * 3600 * (time / abs(time))) / 60) -0.5 * (time / abs(time) - 1);
+
 		met.z = floor(time - met.x * 3600 * (time / abs(time)) - met.y * 60 * (time / abs(time)));
 	}
+
 	return met;
 }
 
-double Multistage2015::GetProperNforCGTE(double time) {
+double Multistage2015::GetProperNforCGTE(double time){
 	double n;
-	double Thrust = stage[0].thrust;
-	double BoosterFlow = 0;
-	double BoosterFuelMassBurnt = 0;
-	for (int i = 0; i < nBoosters; i++) {
-		if ((booster[i].burndelay < time) && (time < (booster[i].burndelay + booster[i].burntime))) {
-			Thrust += booster[i].thrust * booster[i].N;
-			BoosterFlow = ((booster[i].fuelmass * booster[i].N) / booster[i].burntime);
-			BoosterFuelMassBurnt = BoosterFlow * (time - booster[i].burndelay);
-		}
-	}
-	double mass = CalculateFullMass();
-	double FirstStageFlow = stage[0].fuelmass / stage[0].burntime;
+	double Thrust=stage.at(0).thrust;
+	double BoosterFlow=0;
+	double BoosterFuelMassBurnt=0;
+	for(int i=0;i<nBoosters;i++){
+		if((booster.at(i).burndelay<time)&&(time<(booster.at(i).burndelay+booster.at(i).burntime))){
+		Thrust+=booster.at(i).thrust*booster.at(i).N;
+	BoosterFlow=((booster.at(i).fuelmass*booster.at(i).N)/booster.at(i).burntime);
+	BoosterFuelMassBurnt=BoosterFlow*(time-booster.at(i).burndelay);
+		}}
+	double mass=CalculateFullMass();
+	double FirstStageFlow=stage.at(0).fuelmass/stage.at(0).burntime;
 
-	//	Thrust*=0.99; //account for Drag
+//	Thrust*=0.99; //account for Drag
 
-	double substr = time * (FirstStageFlow)+BoosterFuelMassBurnt; //Grande approssimazione
-	mass -= substr;
-	n = Thrust / (mass * g0);
-
+	double substr=time*(FirstStageFlow)+BoosterFuelMassBurnt; //Grande approssimazione
+	mass-=substr;
+	n=Thrust/(mass*g0);
+	
 	//sprintf(logbuff,"Thrust %.3f fsflow %.3f boostersflow %.3f mass %.3f n %.3f",Thrust,FirstStageFlow,BoostersFlow,mass,n);
 	//oapiWriteLog(logbuff);
 	return n;
 }
-bool Multistage2015::CGTE(double psi0) {
-	double t0, v0, x0, y0;
-	double deltaPsi0, z0, C, psi, z, v, deltaT, deltax, deltay, x, y;
-	//t0=3;
 
-	double Thrust = stage[0].thrust;
+bool Multistage2015::CGTE(double psi0){
+
+	double t0, v0, x0, y0;
+
+	double deltaPsi0, z0, C, psi, z, v, deltaT, deltax, deltay, x, y;
+	
+	double Thrust = stage.at(0).thrust;
+
 	double BoostersFlow = 0;
-	for (int i = 0; i < nBoosters; i++) {
-		if (booster[i].burndelay == 0) {  //accounting for boosters not immediatly ignited
-			Thrust += booster[i].thrust * booster[i].N;
+
+	for(int i=0;i<nBoosters;i++){
+		if(booster.at(i).burndelay == 0){  //accounting for boosters not immediatly ignited
+			Thrust+=booster.at(i).thrust*booster.at(i).N;
 		}
 	}
-	double mass = CalculateFullMass();//GetMassAtStage(0,FALSE);
 
+	double mass = CalculateFullMass();
+	 
 	x0 = 0;
 
-
-
-	/* y0=altsteps[1];
-	 t0=sqrt((2*altsteps[1])/((Thrust/mass)-g0));
-	 v0=t0*((Thrust/mass)-g0);*/
 	y0 = Misc.COG;
+	
 	t0 = 0;
+	
 	v0 = 0;
+	
 	double dtt = 0.1;
-	while ((y0 < altsteps[1]) && (y0 > 0))
-	{
+
+	while((y0 < altsteps.at(1)) && (y0 > 0)){
+
 		double acceleration = GetProperNforCGTE(t0) * g0;
+		
 		y0 += 0.5 * (acceleration - g0) * dtt * dtt + v0 * dtt;
+		
 		t0 += dtt;
+
 		v0 += (acceleration - g0) * dtt;
 
 	}
 
-
-	//	 gt_pitch_table[gt_step].Gtpitch=psi0;
-
+	
 	double hvel, vvel, vel, absacc, hacc, vacc, modspost, normx, normy;
 	hvel = 0;
 	vvel = v0;
 	vel = v0;
 	deltaT = 1;
 
+	while((t0 < 500) && (psi0 < 80 * RAD)){ 
 
+		 /// OFFICIAL METHOD
 
-
-
-	while ((t0 < 500) && (psi0 < 80 * RAD)) {
-
-		/// OFFICIAL METHOD
-   /*	 deltaPsi0=psi0/1000;
-		double n=GetProperNforCGTE(t0);
-		z0=tan(0.5*psi0);
-		C=v0/((pow(z0,n-1))*(1+z0*z0));
-		psi=(psi0+deltaPsi0);
-		z=tan(0.5*psi);
-		v=C*(pow(z,n-1))*(1+z*z);
-		deltaT=C/g0*((pow(z,n-1))*(1/(n-1)+(z*z)/(n+1))-(pow(z0,n-1))*(1/(n-1)+(z0*z0)/(n+1)));
-		deltax=0.5*deltaT*(v0*sin(psi0)+v*sin(psi));
-		deltay=0.5*deltaT*(v0*cos(psi0)+v*cos(psi));
-		x=x0+deltax;
-		y=y0+deltay;
-		x0=x;
-		y0=y;
-		v0=v;
-		psi0=psi;
-		t0+=deltaT;*/
 		/// OFFICIAL METHOD FINISHES HERE!!
-
+		
 		 //// MY METHOD
-
+		 
 		double grel = mu / ((rt + y0) * (rt + y0)) - (vel * vel / (rt + y0));
+		
 		double n = GetProperNforCGTE(t0);
-		absacc = n * g0;
-		hacc = absacc * sin(psi0);
-		vacc = absacc * cos(psi0) - grel;
-		x = x0 + hvel * deltaT + 0.5 * hacc * deltaT * deltaT;
-		y = y0 + vvel * deltaT + 0.5 * vacc * deltaT * deltaT;
-		hvel += hacc * deltaT;
-		vvel += vacc * deltaT;
-		//v=v0+absacc*deltaT;
-		vel = sqrt(hvel * hvel + vvel * vvel);
-		t0 += deltaT;
-		deltax = x - x0;
-		deltay = y - y0;
-		x0 = x;
-		y0 = y;
 
+		absacc = n * g0;
+
+		hacc = absacc * sin(psi0);
+
+		vacc = absacc * cos(psi0) - grel;
+
+		x = x0 + hvel * deltaT + 0.5 * hacc * deltaT * deltaT;
+
+		y = y0 + vvel * deltaT + 0.5 * vacc * deltaT * deltaT;
+
+		hvel += hacc * deltaT;
+
+		vvel += vacc * deltaT;
+
+		vel = sqrt(hvel * hvel + vvel * vvel);
+
+		t0 += deltaT;
+
+		deltax = x - x0;
+
+		deltay = y - y0;
+
+		x0 = x;
+
+		y0 = y;
+			
 		v0 = vel;
-		modspost = sqrt(deltax * deltax + deltay * deltay);
+
+        modspost = sqrt(deltax * deltax + deltay * deltay);
+
 		normx = deltax / modspost;
+
 		normy = deltay / modspost;
+
 		psi = 0.5 * PI - atan2(normy, normx);
-		if (psi > psi0) {
+
+		if(psi > psi0){ 
 			psi0 = psi;
 		}
-
-
-		//sprintf(logbuff,"x:%.0f,y:%.0f,v:%.0f,t:%.0f,psi:%.0f",x,y,v,t0,psi0*DEG);
-	//	sprintf(logbuff,"%.3f",vel);
-		//oapiWriteLog(logbuff);
 		 ///// MY METHOD FINISHES HERE!!
 
-			/*
-		 gt_pitch_table[gt_step].Pitch=psi0;
-		 gt_pitch_table[gt_step].Altitude=y0;
-		 gt_pitch_table[gt_step].Downrange=x0;
-		 gt_pitch_table[gt_step].Speed=v0;
-		 gt_pitch_table[gt_step].Time=t0;
-		 */
+		if(y0 > altsteps.at(3)){
+			return true;
+		}
 
-		 /* sprintf(logbuff,"t0 %.3f psi0 %.3f v %.3f x %.3f y %.3f deltaT %.3f",t0,psi0*DEG,v,x,y,deltaT);
-		  oapiWriteLog(logbuff);*/
-		if (y0 > altsteps[3]) { return true; }
 	}
-
-
+	
 	return false;
 }
 
-void Multistage2015::CheckForAdditionalThrust(int pns) {
-	if (GetAttachmentStatus(live_a[pns])) {
-		OBJHANDLE live = GetAttachmentStatus(live_a[pns]);
-		VESSEL4* v;
-		v = static_cast<VESSEL4*>(oapiGetVesselInterface(live));
-		VECTOR3 TotalThrustVecPL;;
-		v->GetThrustVector(TotalThrustVecPL);
-		TotalThrustVecPL = mul(RotationMatrix(payload[pns].Rotation), TotalThrustVecPL);
-		AddForce(TotalThrustVecPL, payload[pns].off[0]);
+void Multistage2015::CheckForAdditionalThrust(int pns){
+
+	if(GetAttachmentStatus(live_a.at(pns))){
+
+		OBJHANDLE live = GetAttachmentStatus(live_a.at(pns));
+
+		VESSEL3 *v;
+
+		v = (VESSEL3*)oapiGetVesselInterface(live);
+
+		VECTOR3 TotalThrustVecPL;
+
+		v -> GetThrustVector(TotalThrustVecPL);
+
+		TotalThrustVecPL = mul(RotationMatrix(payload.at(pns).Rotation), TotalThrustVecPL);
+
+		AddForce(TotalThrustVecPL,payload.at(pns).off.at(0));
+
 	}
+
 }
 
-void Multistage2015::CheckForFX(int fxtype, double param)
-{
+void Multistage2015::CheckForFX(int fxtype,double param){
+	
+	switch(fxtype){
 
-	switch (fxtype) {
-	case FXMACH:
-		if ((param > FX_Mach.mach_min) && (param < FX_Mach.mach_max))
-		{
-			PARTICLE ps = GetProperPS(FX_Mach.pstream);
-			if (!FX_Mach.added)
-			{
-				FX_Mach.added = TRUE;
-				for (int nmach = 0; nmach < FX_Mach.nmach; nmach++)
-					FX_Mach.ps_h[nmach] = AddParticleStream(&ps.Pss, FX_Mach.off[nmach], FX_Mach.dir, &lvl);
-			}
-		}
-		else {
-			if (FX_Mach.added == TRUE) {
-				for (int nmach = 0; nmach < FX_Mach.nmach; nmach++)
-				{
-					DelExhaustStream(FX_Mach.ps_h[nmach]);
+		case FXMACH:
+
+			if((param > FX_Mach.mach_min) && (param < FX_Mach.mach_max)){
+
+				if(!FX_Mach.added){
+					FX_Mach.added = true;
+
+				for(int i = 0; i < FX_Mach.nmach; i++){
+					PARTICLE ps = GetProperPS(FX_Mach.pstream);
+					FX_Mach.ps_h.at(i) = AddParticleStream(&ps.Pss, FX_Mach.off.at(i), FX_Mach.dir, &lvl);
 				}
-				FX_Mach.added = FALSE;
+			}
+
+		} else {
+
+			if(FX_Mach.added == true){
+				for(int i = 0; i < FX_Mach.nmach; i++){
+					DelExhaustStream(FX_Mach.ps_h.at(i));
+				}
+				FX_Mach.added = false;
 			}
 		}
 		break;
+
 	case FXVENT:
-		for (int fv = 1; fv <= FX_Vent.nVent; fv++)
-		{
-			if (param < FX_Vent.time_fin[fv])
-			{
-				if (!FX_Vent.added[fv])
-				{
+		for(int i = 1; i <= FX_Vent.nVent; i++){
+			if(param < FX_Vent.time_fin.at(i)){				
+				if(!FX_Vent.added.at(i)){		
 					PARTICLE ps = GetProperPS(FX_Vent.pstream);
-					FX_Vent.ps_h[fv] = AddParticleStream(&ps.Pss, FX_Vent.off[fv], FX_Vent.dir[fv], &lvl);
-					FX_Vent.added[fv] = TRUE;
-					sprintf(logbuff, "Venting Effect Added @: %.3f,%.3f,%.3f dir: %.3f,%.3f,%.3f", FX_Vent.off[fv].x, FX_Vent.off[fv].y, FX_Vent.off[fv].z, FX_Vent.dir[fv].x, FX_Vent.dir[fv].y, FX_Vent.dir[fv].z);
-					oapiWriteLog(logbuff);
+					FX_Vent.ps_h.at(i) = AddParticleStream(&ps.Pss, FX_Vent.off.at(i), FX_Vent.dir.at(i), &lvl);
+
+					FX_Vent.added.at(i) = true;
+
+					logbuff = std::format("Venting Effect Added @: {:.3f}, {:.3f}, {:.3f} dir: {:.3f}, {:.3f}, {:.3f}",FX_Vent.off.at(i).x, FX_Vent.off.at(i).y, FX_Vent.off.at(i).z, FX_Vent.dir.at(i).x, FX_Vent.dir.at(i).y, FX_Vent.dir.at(i).z);
+					
+					oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 				}
-			}
-			else {
-				if (FX_Vent.added[fv] == TRUE)
-				{
-					DelExhaustStream(FX_Vent.ps_h[fv]);
-					FX_Vent.added[fv] = FALSE;
+
+			} else {
+
+				if(FX_Vent.added.at(i) == true){
+					
+					DelExhaustStream(FX_Vent.ps_h.at(i));
+
+					FX_Vent.added.at(i) = false;
 				}
 			}
 		}
@@ -3191,590 +2774,641 @@ void Multistage2015::CheckForFX(int fxtype, double param)
 	}
 }
 
-void Multistage2015::EvaluateComplexFlight()
-{
-	srand((unsigned)time(NULL));
+void Multistage2015::EvaluateComplexFlight(){
+	
+	srand((unsigned)time(nullptr));
+	
+	for(int i = 0; i < nStages; i++){
 
-	for (int i = 0; i < nStages; i++)
-	{
-		for (int q = 0; q < stage[i].nEngines; q++)
-		{
+		for(int j = 0; j < stage.at(i).nEngines; j++){
+
 			int amplitude = rand() % 1500;
-			stage[i].engine_amp[q] = (double)amplitude / 100000;
+
+			stage.at(i).engine_amp.at(i) = (double)amplitude / 100000;
+
 			int transval = rand() % 180;
-			stage[i].engine_phase[q] = (double)transval * RAD;
+
+			stage.at(i).engine_phase.at(i) = (double)transval * RAD;
+
 			int frequency = rand() % 60;
-			stage[i].freq[q] = 30 + (double)frequency;
-			sprintf(logbuff, "%s Complex Flight-> Stage %i Engine %i Amplitude %.3f phase %.3f frequency %.3f", GetName(), i + 1, q + 1, stage[i].engine_amp[q], stage[i].engine_phase[q], stage[i].freq[q]);
-			oapiWriteLog(logbuff);
+
+			stage.at(i).freq.at(i) = 30 + (double)frequency;
+
+			logbuff = std::format("{} Complex Flight-> Stage {} Engine {} Amplitude {:.3f} phase {:.3f} frequency {:.3f}", GetName(), i + 1, j + 1, stage.at(i).engine_amp.at(i), stage.at(i).engine_phase.at(i), stage.at(i).freq.at(i));
+			
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 	}
 
-	for (int j = 0; j < nBoosters; j++)
-	{
-		for (int z = 0; z < booster[j].N; z++)
-		{
+	for(int i = 0; i < nBoosters; i++){
+
+		for(int j = 0; j < booster.at(i).N; j++){
+			
 			int amplitude = rand() % 1500;
-			booster[j].engine_amp[z] = (double)amplitude / 100000;
+
+			booster.at(i).engine_amp.at(j) = (double)amplitude / 100000;
+
 			int transval = rand() % 180;
-			booster[j].engine_phase[z] = (double)transval * RAD;
+
+			booster.at(i).engine_phase.at(j) = (double)transval * RAD;
+
 			int frequency = rand() % 60;
-			booster[j].freq[z] = 30 + (double)frequency;
-			sprintf(logbuff, "%s Complex Flight-> Booster %i Engine %i Amplitude %.3f phase %.3f frequency %.3f", GetName(), j + 1, z + 1, booster[j].engine_amp[z], booster[j].engine_phase[z], booster[j].freq[z]);
-			oapiWriteLog(logbuff);
+
+			booster.at(i).freq.at(j) = 30 + (double)frequency;
+
+			logbuff = std::format("{} Complex Flight-> Booster {} Engine {} Amplitude {:.3f} phase {:.3f} frequency {:.3f}", GetName(), i + 1, j + 1, booster.at(i).engine_amp.at(j), booster.at(i).engine_phase.at(j), booster.at(i).freq.at(j));
+			
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 		}
 	}
-
 
 	return;
 }
 
-void Multistage2015::FailuresEvaluation()
-{
-	srand((unsigned)time(NULL));
+void Multistage2015::FailuresEvaluation(){
+
+	srand((unsigned)time(nullptr));
+
 	int check = rand() % 1000;
-	if (check < 10 * failureProbability)
-	{
+
+	if(check < 10 * failureProbability){
 		timeOfFailure = rand() % 300;
 	}
 
-	sprintf(logbuff, "%s: Failures->Probabilty: %i Number Extracted: %i Time Of Failure: %i", GetName(), failureProbability, check / 10, timeOfFailure);
-	oapiWriteLog(logbuff);
+	logbuff = std::format("{}: Failures->Probabilty: {} Number Extracted: {} Time Of Failure: {}", GetName(), failureProbability, check / 10, timeOfFailure);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 }
-/*
-void Multistage2015::Decompose()
-{
-	for(int i=currentBooster;i<nBoosters;i++)
-	{
-		Spawn(TBOOSTER,i);
-	}
-	for(int j=currentStage;j<nStages;j++)
-	{
-		Spawn(TSTAGE,j);
-	}
-	for(int k=currentPayload;k<nPayloads;k++)
-	{
-		Spawn(TPAYLOAD,k);
-	}
-	if(wFairing)
-	{
-		Spawn(TFAIRING,0);
-	}
-	if(wLes)
-	{
-		Spawn(TLES,0);
-	}
-	oapiDeleteVessel(GetHandle());
 
-	return;
-}
-*/
-
-void Multistage2015::boom()
-{
-	if ((wRamp) || (HangarMode))
-	{
+void Multistage2015::boom(){
+	
+	if((wRamp)||(HangarMode)){
 		DelAttachment(AttToRamp);
 	}
+
 	VESSELSTATUS2 vs;
-	memset(&vs, 0, sizeof(vs));
-	vs.version = 2;
+
+	memset(&vs,0,sizeof(vs));
+
+	vs.version=2;
+
 	GetStatusEx(&vs);
 
+
+
 	VECTOR3 ofs = _V(0, 0, 0);
-	VECTOR3 rofs, rvel = { vs.rvel.x, vs.rvel.y, vs.rvel.z };
-	VECTOR3 vel = { 0,0,0 };
-	Local2Rel(ofs, vs.rpos);
-	GlobalRot(vel, rofs);
+
+	VECTOR3 rofs, rvel = {vs.rvel.x, vs.rvel.y, vs.rvel.z};
+
+	VECTOR3 vel = {0, 0, 0};
+
+	Local2Rel (ofs, vs.rpos);
+
+	GlobalRot(vel,rofs);
+
 	vs.rvel.x = rvel.x + rofs.x;
 	vs.rvel.y = rvel.y + rofs.y;
 	vs.rvel.z = rvel.z + rofs.z;
 
 	OBJHANDLE hwreck;
+
 	hwreck = oapiCreateVesselEx("wreck", "boom", &vs);
+
 	oapiSetFocusObject(hwreck);
+
 	oapiCameraScaleDist(20);
-	if (wRamp)
-	{
+
+	if(wRamp){
 		oapiDeleteVessel(hramp);
 	}
+
 	oapiDeleteVessel(GetHandle());
+
 	return;
 }
+
 void Multistage2015::Failure()
 {
-	srand((unsigned)time(NULL));
+	srand((unsigned)time(nullptr));
+
 	int check = rand() % 1000;
-	if ((currentStage == 0) && (check < 250))
-		//if((currentStage==0)&&(check>0))
-	{
+
+	if((currentStage == 0) && (check < 250)){
 		boom();
+	} else {
+		
+		int engineout=rand()%stage.at(currentStage).nEngines;	
+
+		SetThrusterResource(stage.at(currentStage).th_main_h.at(engineout), nullptr);
 	}
-	else {
-		//double newlevel=stage[currentStage].thrust*(1-(1/(double)stage[currentStage].nEngines));
 
-		int engineout = rand() % stage[currentStage].nEngines;
-		//SetThrusterMax0(stage[currentStage].th_main_h[engineout],newlevel);
-
-		//SetThrusterLevel(stage[currentStage].th_main_h[engineout],0);
-
-
-		SetThrusterResource(stage[currentStage].th_main_h[engineout], NULL);
-
-		//	DelExhaust(exhaustN[currentStage][engineout]);
-		//sprintf(logbuff,"engineout:%i exhaustN:%i oldlevel %.1f newlevel %.1f",engineout,exhaustN[currentStage][engineout],stage[currentStage].thrust,newlevel);
-		//oapiWriteLog(logbuff);
-	}
 }
-bool Multistage2015::CheckForFailure(double met)
-{
 
-	if ((floor(met) == timeOfFailure) && (!failed))
-	{
-		sprintf(logbuff, "%s: FAILURE FAILURE FAILURE @%.0f", GetName(), met);
-		oapiWriteLog(logbuff);
-		failed = TRUE;
-		return TRUE;
+bool Multistage2015::CheckForFailure(double met){
+	
+	if((floor(met) == timeOfFailure) && (!failed)){
+
+		logbuff = std::format("{}: FAILURE FAILURE FAILURE @{:.0f}", GetName(), met);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+		failed = true;
+		
+		return true;
+
+	} else {
+
+		return false;
+
 	}
-	else {
-		return FALSE;
-	}
+
 }
-int Multistage2015::WriteTelemetryFile(int initline) {
+
+int Multistage2015::WriteTelemetryFile(int initline){
+
 	FILEHANDLE TlmFile;
-	char filenmbuff[MAXLEN];
-	sprintf(filenmbuff, "Multistage2015\\Telemetry\\%s_%.2f_TLM.txt", GetName(), oapiGetSysMJD());
-	char buffer[MAXLEN];
-	if (initline == 0) {
-		TlmFile = oapiOpenFile(filenmbuff, FILE_OUT, CONFIG);
-		sprintf(buffer, "<--!Multistage 2015 Automatically Generated Telemetry File!-->");
-		oapiWriteLine(TlmFile, buffer);
-		sprintf(buffer, "MET,Altitude,Speed,Pitch,Thrust,Mass,V-Speed,Acceleration");
-		oapiWriteLine(TlmFile, buffer);
+	std::string filenmbuff;
+
+	filenmbuff = std::format("Multistage2015\\Telemetry\\{}_{:.2f}_TLM.txt", GetName(), oapiGetSysMJD());
+
+	std::string buffer;
+
+	if(initline == 0){
+
+		TlmFile = oapiOpenFile(filenmbuff.c_str(), FILE_OUT, CONFIG);
+
+		buffer = std::format("<--!Multistage 2015 Automatically Generated Telemetry File!-->");
+		
+		oapiWriteLine(TlmFile, const_cast<char *>(buffer.c_str()));
+
+		buffer = std::format("MET,Altitude,Speed,Pitch,Thrust,Mass,V-Speed,Acceleration");
+
+		oapiWriteLine(TlmFile, const_cast<char *>(buffer.c_str()));
+
+	} else {
+
+		TlmFile = oapiOpenFile(filenmbuff.c_str(), FILE_APP, ROOT);
 
 	}
-	else {
-		TlmFile = oapiOpenFile(filenmbuff, FILE_APP, ROOT);
-	}
 
 
-	for (int i = initline; i < tlmidx; i++)
-	{
-		sprintf(buffer, "%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", tlmAlt[i].x, tlmAlt[i].y, tlmSpeed[i].y, tlmPitch[i].y, tlmThrust[i].y, tlmMass[i].y, tlmVv[i].y, tlmAcc[i].y);
-		oapiWriteLine(TlmFile, buffer);
+	for(int i = initline; i < tlmidx; i++){
+
+		buffer = std::format("{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}",tlmAlt.at(i).x,tlmAlt.at(i).y,tlmSpeed.at(i).y,tlmPitch.at(i).y,tlmThrust.at(i).y,tlmMass.at(i).y,tlmVv.at(i).y,tlmAcc.at(i).y);
+
+		oapiWriteLine(TlmFile, const_cast<char *>(buffer.c_str()));
 	}
-	if (initline == 0) { oapiCloseFile(TlmFile, FILE_OUT); }
-	else { oapiCloseFile(TlmFile, FILE_APP); }
+
+	if(initline == 0){
+		oapiCloseFile(TlmFile, FILE_OUT);
+	} else {
+		oapiCloseFile(TlmFile, FILE_APP);
+	}
+
 	return tlmidx - 1;
 }
-void Multistage2015::Telemetry()
-{
-	if ((updtlm >= 1) && (MET < TLMSECS - 1))
-	{
+
+void Multistage2015::Telemetry(){
+
+	if((updtlm >= 1) && (MET < TLMSECS - 1)){
+		
 		VECTOR3 ThrustVec;
 		GetThrustVector(ThrustVec);
 
-		tlmAlt[tlmidx].x = MET;
-		tlmSpeed[tlmidx].x = MET;
-		tlmPitch[tlmidx].x = MET;
-		tlmThrust[tlmidx].x = MET;
-		tlmMass[tlmidx].x = MET;
-		tlmVv[tlmidx].x = MET;
-		tlmAcc[tlmidx].x = MET;
-
-		tlmAlt[tlmidx].y = GetAltitude();
-		tlmSpeed[tlmidx].y = GetOS();
-		tlmPitch[tlmidx].y = GetPitch() * DEG;
-		tlmThrust[tlmidx].y = length(ThrustVec);
-		tlmMass[tlmidx].y = GetMass();
-		tlmVv[tlmidx].y = GetVPerp();
-		tlmAcc[tlmidx].y = getabsacc();
+		tlmAlt.at(tlmidx).x = MET;
+		tlmSpeed.at(tlmidx).x = MET;
+		tlmPitch.at(tlmidx).x = MET;
+		tlmThrust.at(tlmidx).x = MET;
+		tlmMass.at(tlmidx).x = MET;
+		tlmVv.at(tlmidx).x = MET;
+		tlmAcc.at(tlmidx).x = MET;
+		
+		tlmAlt.at(tlmidx).y = GetAltitude();
+		tlmSpeed.at(tlmidx).y = GetOS();
+		tlmPitch.at(tlmidx).y = GetPitch()*DEG;
+		tlmThrust.at(tlmidx).y = length(ThrustVec);
+		tlmMass.at(tlmidx).y = GetMass();
+		tlmVv.at(tlmidx).y = GetVPerp();
+		tlmAcc.at(tlmidx).y = getabsacc();	
 
 		tlmidx++;
 		updtlm = 0;
 	}
+
 	updtlm += oapiGetSimStep();
 
-	if (Misc.telemetry) {
+	if(Misc.telemetry){	
 		writetlmTimer += oapiGetSimStep();
-		if (writetlmTimer >= 60)
-		{
+		if(writetlmTimer >= 60){
 			writetlmTimer = 0;
 			tlmnlines = WriteTelemetryFile(tlmnlines);
 		}
 	}
+
 	return;
 }
 
-void Multistage2015::CalculateAltSteps(double planetmass)
-{
-	double altref[4] = { 100,350,1400,35000 };
+void Multistage2015::CalculateAltSteps(double planetmass){
+
+	std::array<double, 4> altref{100, 350, 1400, 35000};
+
 	double earthmass = 5.973698968 * pow(10.0, 24);//1000000000000
-	for (int i = 0; i < 4; i++)
-	{
-		altsteps[i] = altref[i] * planetmass / earthmass;
-		//sprintf(logbuff,"altstep[%i]=%.1f",i,altsteps[i]);
-		//oapiWriteLog(logbuff);
+
+	for(int i = 0; i < 4; i++){
+		altsteps.at(i)=altref.at(i)*planetmass/earthmass;
 	}
+
 	return;
 }
 
-void Multistage2015::SetNewAltSteps(double newstep1, double newstep2, double newstep3, double newstep4)
-{
-	altsteps[0] = newstep1;
-	altsteps[1] = newstep2;
-	altsteps[2] = newstep3;
-	altsteps[3] = newstep4;
+void Multistage2015::SetNewAltSteps(double newstep1, double newstep2, double newstep3, double newstep4){
+
+	altsteps.at(0) = newstep1;
+
+	altsteps.at(1) = newstep2;
+
+	altsteps.at(2) = newstep3;
+
+	altsteps.at(2) = newstep4;
+
 	return;
 }
-void Multistage2015::ToggleComplexFlight()
-{
-	if (Complex) {
-		Complex = FALSE;
-	}
-	else {
-		Complex = TRUE;
+
+void Multistage2015::ToggleComplexFlight(){
+
+	if(Complex){
+		Complex = false;
+	} else {
+		Complex = true;
 		EvaluateComplexFlight();
 	}
+
 	return;
 }
-//****************************CALLBACKS******************************************************************************
-void Multistage2015::clbkSetClassCaps(FILEHANDLE cfg)
-{
 
+//****************************CALLBACKS******************************************************************************
+
+void Multistage2015::clbkSetClassCaps(FILEHANDLE cfg){
+	 
 	initGlobalVars();			// First of all let's initialize everything!
 
-
-
-
-	SetSurfaceFrictionCoeff(0.7, 0.7);  // to avoid bad vibrations while throttling up at launch
+  	SetSurfaceFrictionCoeff(0.7, 0.7);  // to avoid bad vibrations while throttling up at launch
+ 	
 	SetCW(0.2, 0.5, 1.5, 1.5);		// gotten from Vinka
+ 
 	EnableTransponder(true);
+ 
 	InitNavRadios(4);
+
 	SetCameraOffset(_V(0, 0, 100));	//Empirical
 
 	SetVisibilityLimit(0, 0.002);
-	SetAlbedoRGB(_V((float)255 / 255, (float)255 / 255, (float)255 / 255));
-	SetGravityGradientDamping(0);
 
-	SetMaxWheelbrakeForce(200000);
+ 	SetAlbedoRGB(_V((float)255 / 255, (float)255 / 255, (float)255 / 255));
+
+ 	SetGravityGradientDamping(0);
+	
+ 	SetMaxWheelbrakeForce(200000);
 
 
-	//Default ParticleStreams Definitions:
+ 	//Default ParticleStreams Definitions:
 
-	// DEF CONTRAIL
-	char transfer[MAXLEN];
-	sprintf(transfer, "Contrail");
-	for (int k = 0; k < MAXLEN; k++) {
-		Particle[13].ParticleName[k] = transfer[k];
-	}
-	Particle[13].Pss.flags = 0;
-	Particle[13].Pss.srcsize = 8;
-	Particle[13].Pss.srcrate = 5;
-	Particle[13].Pss.v0 = 150;
-	Particle[13].Pss.srcspread = 0.3;
-	Particle[13].Pss.lifetime = 8;
-	Particle[13].Pss.growthrate = 4;
-	Particle[13].Pss.atmslowdown = 3;
-	Particle[13].Pss.ltype = PARTICLESTREAMSPEC::EMISSIVE;
-	Particle[13].Pss.levelmap = PARTICLESTREAMSPEC::LVL_PSQRT;
-	Particle[13].Pss.lmin = 0;
-	Particle[13].Pss.lmax = 0.5;
-	Particle[13].Pss.atmsmap = PARTICLESTREAMSPEC::ATM_PLOG;
-	Particle[13].Pss.amin = 1e-6;
-	Particle[13].Pss.amax = 0.1;
-	Particle[13].Pss.tex = oapiRegisterParticleTexture(const_cast<char*>("Contrail1"));
+ 	// DEF CONTRAIL
+ 	std::string transfer;
+ 	transfer = "Contrail";
+	Particle.at(13).ParticleName = transfer;
+	Particle.at(13).Pss.flags = 0;
+	Particle.at(13).Pss.srcsize = 8;
+	Particle.at(13).Pss.srcrate = 5;
+	Particle.at(13).Pss.v0 = 150;
+	Particle.at(13).Pss.srcspread = 0.3;
+	Particle.at(13).Pss.lifetime = 8;
+	Particle.at(13).Pss.growthrate = 4;
+	Particle.at(13).Pss.atmslowdown = 3;
+	Particle.at(13).Pss.ltype = PARTICLESTREAMSPEC::EMISSIVE;
+	Particle.at(13).Pss.levelmap = PARTICLESTREAMSPEC::LVL_PSQRT;
+	Particle.at(13).Pss.lmin = 0;
+	Particle.at(13).Pss.lmax = 0.5;
+	Particle.at(13).Pss.atmsmap = PARTICLESTREAMSPEC::ATM_PLOG;
+	Particle.at(13).Pss.amin = 1e-6;
+	Particle.at(13).Pss.amax = 0.1;
+	Particle.at(13).Pss.tex = oapiRegisterParticleTexture(const_cast<char *>("Contrail1"));
+	
+  	//DEF EXHAUST
+   	transfer = "Exhaust";
+
+	Particle.at(14).ParticleName = transfer;
+	Particle.at(14).Pss.flags = 0;
+	Particle.at(14).Pss.srcsize = 4;
+	Particle.at(14).Pss.srcrate = 20;
+	Particle.at(14).Pss.v0 = 150; //250
+	Particle.at(14).Pss.srcspread = 0.1;
+	Particle.at(14).Pss.lifetime = 0.3; //0.6
+	Particle.at(14).Pss.growthrate = 12; //20
+	Particle.at(14).Pss.atmslowdown = 2;
+	Particle.at(14).Pss.ltype = PARTICLESTREAMSPEC::EMISSIVE;
+	Particle.at(14).Pss.levelmap = PARTICLESTREAMSPEC::LVL_PSQRT;
+	Particle.at(14).Pss.lmin = 0;
+	Particle.at(14).Pss.lmax = 0.5;
+	Particle.at(14).Pss.atmsmap = PARTICLESTREAMSPEC::ATM_PLOG;
+	Particle.at(14).Pss.amin = 1e-6;
+	Particle.at(14).Pss.amax = 0.1;
+	Particle.at(14).Pss.tex = oapiRegisterParticleTexture (const_cast<char *>("Contrail3"));
 
 	//DEF EXHAUST
-	sprintf(transfer, "Exhaust");
-	for (int q = 0; q < MAXLEN; q++) {
-		Particle[14].ParticleName[q] = transfer[q];
-	}
-	Particle[14].Pss.flags = 0;
-	Particle[14].Pss.srcsize = 4;
-	Particle[14].Pss.srcrate = 20;
-	Particle[14].Pss.v0 = 150; //250
-	Particle[14].Pss.srcspread = 0.1;
-	Particle[14].Pss.lifetime = 0.3; //0.6
-	Particle[14].Pss.growthrate = 12; //20
-	Particle[14].Pss.atmslowdown = 2;
-	Particle[14].Pss.ltype = PARTICLESTREAMSPEC::EMISSIVE;
-	Particle[14].Pss.levelmap = PARTICLESTREAMSPEC::LVL_PSQRT;
-	Particle[14].Pss.lmin = 0;
-	Particle[14].Pss.lmax = 0.5;
-	Particle[14].Pss.atmsmap = PARTICLESTREAMSPEC::ATM_PLOG;
-	Particle[14].Pss.amin = 1e-6;
-	Particle[14].Pss.amax = 0.1;
-	Particle[14].Pss.tex = oapiRegisterParticleTexture(const_cast<char*>("Contrail3"));
-
-	//DEF EXHAUST
-	sprintf(transfer, "Clear");
-	for (int z = 0; z < MAXLEN; z++) {
-		Particle[15].ParticleName[z] = transfer[z];
-	}
-	Particle[15].Pss.flags = 0;
-	Particle[15].Pss.srcsize = 0;
-	Particle[15].Pss.srcrate = 0;
-	Particle[15].Pss.v0 = 0; //250
-	Particle[15].Pss.srcspread = 0;
-	Particle[15].Pss.lifetime = 0; //0.6
-	Particle[15].Pss.growthrate = 0; //20
-	Particle[15].Pss.atmslowdown = 0;
-	Particle[15].Pss.ltype = PARTICLESTREAMSPEC::DIFFUSE;
-	Particle[15].Pss.levelmap = PARTICLESTREAMSPEC::LVL_FLAT;
-	Particle[15].Pss.lmin = 0;
-	Particle[15].Pss.lmax = 0;
-	Particle[15].Pss.atmsmap = PARTICLESTREAMSPEC::ATM_FLAT;
-	Particle[15].Pss.amin = 0;
-	Particle[15].Pss.amax = 0;
-
-	// AttToRamp=CreateAttachment(TRUE,_V(0,0,0),_V(0,0,-1),_V(0,1,0),"pad",FALSE);
-
-
+	transfer = "Clear";
+	Particle.at(15).ParticleName = transfer;
+	Particle.at(15).Pss.flags = 0;
+	Particle.at(15).Pss.srcsize = 0;
+	Particle.at(15).Pss.srcrate = 0;
+	Particle.at(15).Pss.v0 = 0; //250
+	Particle.at(15).Pss.srcspread = 0;
+	Particle.at(15).Pss.lifetime = 0; //0.6
+	Particle.at(15).Pss.growthrate = 0; //20
+	Particle.at(15).Pss.atmslowdown = 0;
+	Particle.at(15).Pss.ltype = PARTICLESTREAMSPEC::DIFFUSE;
+	Particle.at(15).Pss.levelmap = PARTICLESTREAMSPEC::LVL_FLAT;
+	Particle.at(15).Pss.lmin = 0;
+	Particle.at(15).Pss.lmax = 0;
+	Particle.at(15).Pss.atmsmap = PARTICLESTREAMSPEC::ATM_FLAT;
+	Particle.at(15).Pss.amin = 0;
+	Particle.at(15).Pss.amax = 0;
+ 
 }
-void Multistage2015::clbkLoadStateEx(FILEHANDLE scn, void* vs)
-{
-	sprintf(logbuff, "Multistage Version: %i", GetMSVersion());
-	oapiWriteLog(logbuff);
 
-	oapiWriteLog(const_cast<char*>("Load State Started"));
-	char* line;
-	double batt_trans = 0;
-	bool loadedbatts = FALSE;
-	stepsloaded = FALSE;
-	// wVinkasGuidance=FALSE;
+void Multistage2015::clbkLoadStateEx(FILEHANDLE scn,void *vs){
 
+	logbuff = std::format("Multistage Version: {}", GetMSVersion());
 
+	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 
+	oapiWriteLog(const_cast<char *>("Load State Started"));
 
+ 	char *line;
+ 	double batt_trans=0;
+ 	bool loadedbatts=false;
+	stepsloaded=false;
+	
+	while (oapiReadScenario_nextline(scn, line)){
+		std::string line_str(line);
 
+		if(line_str.starts_with("CONFIG_FILE")){
+			std::string value = line_str.substr(11 + 1);
+			fileini = value;
+		} else if (line_str.starts_with("MET")){
+			std::string value = line_str.substr(3 + 1);
+			MET = std::stod(value);
+		} else if (line_str.starts_with("GNC_RUN")){
+			std::string value = line_str.substr(7 + 1);
+			Gnc_running = std::stoi(value);
+			if(Gnc_running == 1){
+				APstat = true;
+			}
+		} else if (line_str.starts_with("BATTERY")){
+			
+			std::string value = line_str.substr(7 + 1);
+			batt_trans = std::stod(value);
 
-	while (oapiReadScenario_nextline(scn, line)) {
-		if (!_strnicmp(line, "CONFIG_FILE", 11)) {
-			sscanf_s(line + 11, "%s", fileini, (unsigned)sizeof(fileini));
-
-		}
-		else if (!_strnicmp(line, "MET", 3)) {
-			sscanf_s(line + 3, "%lf", &MET);
-			/* if((MET<0)||(MET>1000000)){
-				 MET=0;
-				}*/
-
-		}
-		else if (!_strnicmp(line, "GNC_RUN", 7)) {
-			sscanf_s(line + 7, "%i", &Gnc_running);
-			if (Gnc_running == 1) { APstat = TRUE; }
-
-		}
-		else if (!_strnicmp(line, "BATTERY", 7)) {
-			sscanf_s(line + 7, "%lf", &batt_trans);
 			loadedbatts = TRUE;
 
-		}
-		else if (!_strnicmp(line, "STAGE_IGNITION_TIME", 19)) {
-			sscanf_s(line + 19, "%lf", &stage_ignition_time);
+		} else if (line_str.starts_with("STAGE_IGNITION_TIME")){
+			std::string value = line_str.substr(19 + 1);
+			stage_ignition_time = std::stod(value);
+		} else if (line_str.starts_with("FAILURE_PROB")){
+			
+			std::string value = line_str.substr(12 + 1);
 
-		}
-		else if (!_strnicmp(line, "FAILURE_PROB", 12)) {
-			sscanf_s(line + 12, "%i", &failureProbability);
+			failureProbability = std::stod(value);
+		} else if (line_str.starts_with("GNC_AUTO_JETTISON")){
+			
+			std::string value = line_str.substr(17 + 1);
 
-		}
-		else if (!_strnicmp(line, "GNC_AUTO_JETTISON", 17)) {
-			int AJVal;
-			sscanf_s(line + 17, "%i", &AJVal);
-			if (AJVal == 0) { AJdisabled = TRUE; }
+			int AJVal = 0;
 
-		}
-		else if (!_strnicmp(line, "GUIDANCE_FILE", 13)) {
-			sscanf_s(line + 13, "%s", guidancefile, MAXLEN);
+			AJVal = std::stoi(value);
+
+			if (AJVal == 0) {
+				AJdisabled = true;
+			}
+
+		} else if (line_str.starts_with("GUIDANCE_FILE")){
+
+			std::string value = line_str.substr(13 + 1);
+
+			std::istringstream iss(value);
+			iss >> guidancefile;
+
+			//sscanf_s(line + 13, "%s", guidancefile.c_str());
 			// wVinkasGuidance=TRUE;
+
 			parseGuidanceFile(guidancefile);
+
 			if (Gnc_running != 1) {
 				VinkaCheckInitialMet();
 			}
 
-		}
-		else if (!_strnicmp(line, "TELEMETRY_FILE", 14)) {
-			sscanf_s(line + 14, "%s", tlmfile, MAXLEN);
-			parseTelemetryFile(tlmfile);
-			wReftlm = TRUE;
+		} else if (line_str.starts_with("TELEMETRY_FILE")){
 
-		}
-		else if (!_strnicmp(line, "CURRENT_BOOSTER", 15)) {
-			sscanf_s(line + 15, "%i", &currentBooster);
+			std::string value = line_str.substr(14 + 1);
+
+			std::istringstream iss(value);
+
+			iss >> tlmfile;
+
+			//sscanf_s(line + 14, "%s", tlmfile.c_str());
+
+			parseTelemetryFile(tlmfile);
+
+			wReftlm = true;
+
+		} else if (line_str.starts_with("CURRENT_BOOSTER")){
+
+			std::string value = line_str.substr(15 + 1);
+
+			currentBooster = std::stoi(value);
+
 			currentBooster -= 1;
 
-		}
-		else if (!_strnicmp(line, "CURRENT_INTERSTAGE", 18)) {
-			sscanf_s(line + 18, "%i", &currentInterstage);
-			//sprintf(logbuff,"current interstage:%i",currentInterstage);
-			//oapiWriteLog(logbuff);
+		} else if (line_str.starts_with("CURRENT_INTERSTAGE")){
+			
+			std::string value = line_str.substr(18 + 1);
+
+			currentInterstage = std::stoi(value);
+			
 			currentInterstage -= 1;
 
+		} else if (line_str.starts_with("CURRENT_STAGE")){
 
-		}
-		else if (!strnicmp(line, "CURRENT_STAGE", 13)) {
-			sscanf(line + 13, "%i", &currentStage);
-			currentStage -= 1;
-			if (currentStage > 0) { currentBooster = 11; }
-			// sprintf(logbuff,"interstage:%i stage:%i",currentInterstage,currentStage);
-			 //oapiWriteLog(logbuff);
+			std::string value = line_str.substr(13 + 1);
 
-		}
-		else if (!strnicmp(line, "STAGE_STATE", 11)) {
-			sscanf(line + 11, "%i", &stage[currentStage].StageState);
-			if (stage[currentStage].StageState == STAGE_IGNITED) { stage[currentStage].Ignited = TRUE; }
+			currentStage = std::stoi(value);
 
-		}
-		else if (!strnicmp(line, "CURRENT_PAYLOAD", 15)) {
-			sscanf(line + 15, "%i", &currentPayload);
+			//currentStage -= 1;
+
+			if(currentStage > 0){
+				currentBooster = 11;
+			}
+
+		} else if (line_str.starts_with("STAGE_STATE")){
+
+			std::string value = line_str.substr(11 + 1);
+
+			stage[currentStage].StageState = std::stoi(value);
+
+			if(stage[currentStage].StageState == STAGE_IGNITED){
+				stage[currentStage].Ignited = true;
+			}
+
+		} else if (line_str.starts_with("CURRENT_PAYLOAD")){
+
+			std::string value = line_str.substr(15 + 1);
+
+			currentPayload = std::stoi(value);
+
 			currentPayload -= 1;
 
+		} else if (line_str.starts_with("FAIRING")){
 
-		}
-		else if (!strnicmp(line, "FAIRING", 7)) {
-			sscanf(line + 7, "%i", &wFairing);
-			if ((wFairing < 0) || (wFairing > 1)) { wFairing = 0; }
+			std::string value = line_str.substr(7 + 1);
 
-		}
-		else if (!strnicmp(line, "CONFIGURATION", 13)) {
-			sscanf(line + 13, "%i", &Configuration);
-			if ((Configuration < 0) || (Configuration > 1)) { Configuration = 0; }
+			wFairing = std::stoi(value);
 
-		}
-		else if (!strnicmp(line, "COMPLEX", 7)) {
-			Complex = TRUE;
+			if((wFairing < 0) || (wFairing > 1)){
+				wFairing = 0;
+			}
 
-		}
-		else if (!strnicmp(line, "HANGAR", 6)) {
-			HangarMode = TRUE;
+		} else if (line_str.starts_with("CONFIGURATION")){
 
-		}
-		else if (!strnicmp(line, "CRAWLER", 7)) {
-			wCrawler = TRUE;
+			std::string value = line_str.substr(13 + 1);
 
-		}
-		else if (!strnicmp(line, "CAMERA", 6)) {
-			sscanf(line + 6, "%lf %lf", &CamDLat, &CamDLng);
-			if ((CamDLat == 0) && (CamDLng == 0)) { CamDLat = 0.01; CamDLng = 0.03; }
-			wCamera = TRUE;
+			Configuration = std::stoi(value);
 
-			//  }else if(!strnicmp(line,"GENERATE_PITCH_TABLE",20)){
-				//  GeneratePT=TRUE;
+			if((Configuration < 0) || (Configuration > 1)){
+				Configuration = 0;
+			}
 
-		}
-		else if (!strnicmp(line, "GROWING_PARTICLES", 17)) {
-			GrowingParticles = TRUE;
+		} else if (line_str.starts_with("COMPLEX")){
 
-		}
-		else if (!strnicmp(line, "DENY_IGNITION", 13)) {
-			stage[currentStage].DenyIgnition = TRUE;
+			Complex = true;
 
-		}
-		else if (!strnicmp(line, "ALT_STEPS", 9)) {
-			sscanf(line + 9, "%lf,%lf,%lf,%lf", &altsteps[0], &altsteps[1], &altsteps[2], &altsteps[3]);
-			stepsloaded = TRUE;
+		} else if (line_str.starts_with("HANGAR")){
 
-		}
-		else if (!strnicmp(line, "PEG_PITCH_LIMIT", 15)) {
-			sscanf(line + 15, "%lf", &PegPitchLimit);
+			HangarMode = true;
+
+		} else if (line_str.starts_with("CRAWLER")){
+
+			wCrawler = true;
+
+		} else if (line_str.starts_with("CAMERA")){
+
+			std::istringstream iss(line_str.substr(6));
+
+			iss >> CamDLat >> CamDLng;
+
+			if ((CamDLat == 0) && (CamDLng == 0)) {
+				CamDLat = 0.01; CamDLng = 0.03;
+			}
+
+			wCamera = true;
+
+
+		} else if (line_str.starts_with("GROWING_PARTICLES")){
+
+			GrowingParticles = true;
+
+		} else if (line_str.starts_with("DENY_IGNITION")){
+
+			stage[currentStage].DenyIgnition = true;
+
+		} else if (line_str.starts_with("ALT_STEPS")){
+			
+			std::istringstream iss(line + 9 + 1);
+
+			iss >> altsteps[0] >> altsteps[1] >> altsteps[2] >> altsteps[3];
+
+			stepsloaded = true;
+
+		} else if (line_str.starts_with("PEG_PITCH_LIMIT")){
+
+			std::string value = line_str.substr(15 + 1);
+
+			PegPitchLimit = std::stod(value);
+
 			PegPitchLimit *= RAD;
 
-		}
-		else if (!strnicmp(line, "PEG_MC_INTERVAL", 15)) {
-			sscanf(line + 15, "%lf", &PegMajorCycleInterval);
+		} else if (line_str.starts_with("PEG_MC_INTERVAL")){
 
-		}
-		else if (!strnicmp(line, "RAMP", 4)) {
-			wRamp = TRUE;
-		}
-		else if (!strnicmp(line, "ATTMSPAD", 8)) {
-			sscanf(line + 8, "%lf", &MsPadZ.z);
-			AttToMSPad = TRUE;
+			std::string value = line_str.substr(15 + 1);
 
-		}
-		else {
+			PegMajorCycleInterval = std::stod(value);
 
+		} else if (line_str.starts_with("RAMP")){
 
+			wRamp = true;
+
+		} else if (line_str.starts_with("ATTMSPAD")){
+
+			std::string value = line_str.substr(8 + 1);
+
+			MsPadZ.z = std::stod(value);
+
+			AttToMSPad = true;
+
+		} else {
 
 			ParseScenarioLineEx(line, vs);
 
 		}
 
 	}
+ 
+ 	std::filesystem::path tempFile;
+ 	tempFile = OrbiterRoot / fileini;
 
+ 	logbuff = std::format("{}: Config File: {}", GetName(), tempFile.string());
 
+ 	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
 
+ 	parseinifile(tempFile);
 
-	char tempFile[MAXLEN];
-	strcpy_s(tempFile, OrbiterRoot);
-	strcat_s(tempFile, "\\");
-	strcat_s(tempFile, fileini);
-	sprintf(logbuff, "%s: Config File: %s", GetName(), tempFile);
-	oapiWriteLog(logbuff);
-	parseinifile(tempFile);
-
-	//sprintf(logbuff,"currentInterstage:%i currentStage:%i csIncremental:%i nInterstages:%i",currentInterstage,currentStage,stage[currentStage].IntIncremental,nInterstages);
-	//oapiWriteLog(logbuff);
-	if ((currentInterstage > currentStage) || (currentInterstage > nInterstages) || (currentInterstage >= stage[currentStage].IntIncremental)) { stage[currentStage].wInter = FALSE; }
-
-	if ((wFairing == 1) && (hasFairing == FALSE)) { wFairing = 0; }
-	if (Configuration == 0) {			//if only configuration is defined, reset everything
-		if (hasFairing == TRUE) {
-			wFairing = 1;
+ 	if((currentInterstage > currentStage) || (currentInterstage > nInterstages) || (currentInterstage >= stage.at(currentStage).IntIncremental)){
+		stage.at(currentStage).wInter = false; 
+	}
+ 
+ 	if((wFairing == 1) && (hasFairing == false)){
+		wFairing = 0;
+	}
+ 	
+	if(Configuration == 0){			//if only configuration is defined, reset everything
+	 	if(hasFairing== true){
+		  wFairing=1;
 		}
+	 
 		currentStage = 0;
+	 
 		currentPayload = 0;
+	 
 		currentBooster = 0;
+	 
 		currentInterstage = 0;
+ 	}
+
+ 
+ 	UpdateOffsets();
+ 
+ 	VehicleSetup();
+ 
+ 	LoadMeshes();
+ 
+	if(Gnc_running == 1){
+ 		InitializeDelays();
 	}
 
 
-	UpdateOffsets();
-
-	VehicleSetup();
-
-	LoadMeshes();
-
-	if (Gnc_running == 1) {
-		InitializeDelays();
+	if(loadedbatts){
+		stage.at(currentStage).batteries.CurrentCharge = batt_trans;
 	}
-
-	if (loadedbatts)
-	{
-		stage[currentStage].batteries.CurrentCharge = batt_trans;
-	}
-
-
-
+ 
 	loadedCurrentBooster = currentBooster;
 	loadedCurrentInterstage = currentInterstage;
 	loadedCurrentStage = currentStage;
@@ -3783,986 +3417,878 @@ void Multistage2015::clbkLoadStateEx(FILEHANDLE scn, void* vs)
 	loadedConfiguration = Configuration;
 	loadedMET = MET;
 	loadedGrowing = GrowingParticles;
+	
+	oapiWriteLog(const_cast<char *>("Load State Terminated")); 
 
-
-
-	oapiWriteLog(const_cast<char*>("Load State Terminated"));
 }
 
 
+int Multistage2015::clbkConsumeBufferedKey(DWORD key,bool down,char *kstate){
 
-int Multistage2015::clbkConsumeBufferedKey(DWORD key, bool down, char* kstate) {
+	if(!down) return 0;
 
-	if (!down) return 0;
-
-	if (KEYDOWN(kstate, OAPI_KEY_J) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))) {
-
-		if (currentBooster < nBoosters) {
+	if(KEYDOWN(kstate, OAPI_KEY_J) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))){
+	
+		if(currentBooster < nBoosters){
 			Jettison(TBOOSTER, currentBooster);
-		}
-		else {
-			if (currentStage < nStages - 1) {
-				if (stage[currentStage].wInter == TRUE) {
+		} else {
+			if(currentStage < nStages - 1){
+				if(stage.at(currentStage).wInter == true){
 					Jettison(TINTERSTAGE, currentStage);
+				} else {
+					Jettison(TSTAGE, currentStage);
 				}
-				else { Jettison(TSTAGE, currentStage); }
 
-			}
-			else if ((currentStage == nStages - 1) && (stage[currentStage].wInter)) {
+			} else if((currentStage == nStages - 1) && (stage.at(currentStage).wInter)){
 				Jettison(TINTERSTAGE, currentStage);
-			}
-			else {
-
-				if ((currentPayload < nPayloads) && (wFairing == 0)) {
+			} else {
+				if((currentPayload < nPayloads) && (wFairing == 0)){
 					Jettison(TPAYLOAD, currentPayload);
+				} else {
+					return 0;
 				}
-				else { return 0; }
 			}
 		}
-
+		
 		return 1;
 	}
-	if (KEYDOWN(kstate, OAPI_KEY_F) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))) {
-		if (wLes) {
+
+	if(KEYDOWN(kstate, OAPI_KEY_F) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))){
+		if(wLes){
 			Jettison(TLES, 0);
+		}else{
+			if(wFairing == 1){
+				Jettison(TFAIRING, 0);
+			} else {
+				return 0;
+			}
 		}
-		else {
-			if (wFairing == 1) { Jettison(TFAIRING, 0); }
-			else { return 0; }
-		}
-		return 1;
+		
+		return 1;	
 	}
 
-	if (KEYDOWN(kstate, OAPI_KEY_P) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))) {
-		if (!APstat) { APstat = TRUE; return 0; }
-		else if (APstat) { APstat = FALSE; return 0; }
-		else {
 
+	if(KEYDOWN(kstate, OAPI_KEY_P) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))){
+		if(!APstat){
+			APstat = true;
+			return 0;
+		} else if(APstat){
+			APstat = false;
+			return 0;
+		} else {	
 			return 0;
 		}
+		
 		return 1;
 	}
 
-	if (KEYDOWN(kstate, OAPI_KEY_SPACE) && (KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate))) {
-		if ((!DeveloperMode) && (!killDMD))
-		{
-			DeveloperMode = TRUE;
-			note = oapiCreateAnnotation(TRUE, 1, _V(1, 0, 0));
+	if(KEYDOWN(kstate, OAPI_KEY_SPACE) && (KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate))){
+		if((!DeveloperMode) && (!killDMD)){
+
+			DeveloperMode = true;
+
+			note = oapiCreateAnnotation(true, 1, _V(1, 0, 0));
+
 			oapiAnnotationSetPos(note, 0.65, 0.25, 0.975, 0.75);
+
 			oapiAnnotationSetSize(note, 0.75);
-			char TXT[MAXLEN];
-			sprintf(TXT, "%s: \nDEVELOPER MODE ON \n\n[SPACEBAR] to reload .ini file \n\n[CTRL]+[SPACEBAR] to close Developer Mode", GetName());
-			oapiAnnotationSetText(note, TXT);
 
-			//oapiOpenDialogEx(g_Param.hDLL, IDD_DIALOG1, DlgProc,0,this);
+			std::string TXT;
+			TXT = std::format("{}: \nDEVELOPER MODE ON \n\n[SPACEBAR] to reload .ini file \n\n[CTRL]+[SPACEBAR] to close Developer Mode", GetName());
+			
+			oapiAnnotationSetText(note, const_cast<char *>(TXT.c_str()));
+
 			CreateDMD();
-		}
-		else {
 
-			killDMD = TRUE;
-			DeveloperMode = FALSE;
-			if (note) { oapiDelAnnotation(note); }
+		} else {
 
+			killDMD = true;
+			DeveloperMode = false;
+			if(note){
+				oapiDelAnnotation(note);
+			}
+			
 		}
+		
 		return 1;
 	}
 
-	if (KEYDOWN(kstate, OAPI_KEY_SPACE) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate))) {
-		if (DeveloperMode)
-		{
+	if(KEYDOWN(kstate, OAPI_KEY_SPACE) && (!KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate))){
+		if(DeveloperMode){
 			ResetVehicle(hangaranims, wRamp);
 		}
+		
 		return 1;
 	}
-
-
-	if (KEYDOWN(kstate, OAPI_KEY_L) && (KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate) && (!KEYMOD_SHIFT(kstate))))
-	{
-		if (HangarMode)
-		{
-			char kstate[256];
-			for (int i = 0; i < 256; i++) kstate[i] = 0x00;
-			kstate[OAPI_KEY_L] = 0x80;
-			kstate[OAPI_KEY_LCONTROL] = 0x80;
-			vhangar->SendBufferedKey(OAPI_KEY_L, TRUE, kstate);
-			return 1;
-		}
-	}
-	if (KEYDOWN(kstate, OAPI_KEY_D) && (KEYMOD_CONTROL(kstate)) && (!KEYMOD_ALT(kstate) && (!KEYMOD_SHIFT(kstate))))
-	{
-		if (HangarMode)
-		{
-			char kstate[256];
-			for (int i = 0; i < 256; i++) kstate[i] = 0x00;
-			kstate[OAPI_KEY_D] = 0x80;
-			kstate[OAPI_KEY_LCONTROL] = 0x80;
-			vhangar->SendBufferedKey(OAPI_KEY_D, TRUE, kstate);
-
-			if (!AttToMSPad) {
-				OBJHANDLE hPad = oapiGetObjectByName(const_cast<char*>("MS_Pad"));
-				if (oapiIsVessel(hPad))
-				{
-					AttachToMSPad(hPad);
-					AttToMSPad = TRUE;
+	
+	
+	if(KEYDOWN(kstate,OAPI_KEY_L)&&(KEYMOD_CONTROL(kstate))&&(!KEYMOD_ALT(kstate)&&(!KEYMOD_SHIFT(kstate)))){
+		if(HangarMode){
+				char kstate[256];
+				for(int i = 0; i < 256; i++){
+					kstate[i]=0x00;
 				}
-			}
-			return 1;
+				kstate[OAPI_KEY_L] = 0x80;
+				kstate[OAPI_KEY_LCONTROL] = 0x80;
+				vhangar->SendBufferedKey(OAPI_KEY_L, true, kstate);
+				
+				return 1;
 		}
+
 	}
 
+	if(KEYDOWN(kstate,OAPI_KEY_D)&&(KEYMOD_CONTROL(kstate))&&(!KEYMOD_ALT(kstate)&&(!KEYMOD_SHIFT(kstate)))){
+		if(HangarMode){
+				char kstate[256];
+				for(int i = 0; i < 256; i++){
+					kstate[i]=0x00;
+				}
+				kstate[OAPI_KEY_D] = 0x80;
+				kstate[OAPI_KEY_LCONTROL] = 0x80;
+				vhangar->SendBufferedKey(OAPI_KEY_D, true, kstate);
+				
+				if(!AttToMSPad){
+					OBJHANDLE hPad=oapiGetObjectByName(const_cast<char *>("MS_Pad"));
+					if(oapiIsVessel(hPad)){
+						AttachToMSPad(hPad);
+						AttToMSPad = true;
+					}
+				}
+				
+				return 1;
+		}
+	}
+	
 	return 0;
 }
 
-void Multistage2015::AttachToMSPad(OBJHANDLE hPad)
-{
-	VESSEL4* vPad;
-	vPad = static_cast<VESSEL4*>(oapiGetVesselInterface(hPad));
-	padramp = vPad->CreateAttachment(FALSE, _V(0, 0, 0), _V(0, 1, 0), _V(0, 0, 1), "Pad", FALSE);
-	//AttToRamp=CreateAttachment(TRUE,_V(0,0,-stage[0].height*0.5-MSPadZ0),_V(0,0,-1),_V(0,1,0),"Pad",FALSE);
-	AttToRamp = CreateAttachment(TRUE, MsPadZ, _V(0, 0, -1), _V(0, 1, 0), "Pad", FALSE);
+void Multistage2015::AttachToMSPad(OBJHANDLE hPad){
 
+	VESSEL4 *vPad;
+
+	vPad = (VESSEL4*)oapiGetVesselInterface(hPad);
+
+	padramp = vPad->CreateAttachment(false, _V(0, 0, 0), _V(0, 1, 0), _V(0, 0, 1), "Pad", false);
+	
+	AttToRamp = CreateAttachment(true, MsPadZ, _V(0, 0, -1), _V(0, 1, 0), "Pad", false);
+	
 	vPad->AttachChild(GetHandle(), padramp, AttToRamp);
 }
 
-int Multistage2015::clbkConsumeDirectKey(char* kstate)
-{
-	if (HangarMode)
-	{
+int Multistage2015::clbkConsumeDirectKey(char *kstate){
+
+	if(HangarMode){
 		vhangar->clbkConsumeDirectKey(kstate);
-		if (AttToMSPad) {
+
+		if(AttToMSPad){
 			VECTOR3 pos, dir, rot;
 			GetAttachmentParams(AttToRamp, pos, dir, rot);
+
 			const double delta = 0.1;
-			if (KEYDOWN(kstate, OAPI_KEY_UP) && (!KEYMOD_CONTROL(kstate)) && (KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))) {
+
+			if(KEYDOWN(kstate, OAPI_KEY_UP) && (!KEYMOD_CONTROL(kstate)) && (KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))){
 				pos.z -= delta;
+
 				SetAttachmentParams(AttToRamp, pos, dir, rot);
 			}
-			if (KEYDOWN(kstate, OAPI_KEY_DOWN) && (!KEYMOD_CONTROL(kstate)) && (KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))) {
+
+			if(KEYDOWN(kstate, OAPI_KEY_DOWN) && (!KEYMOD_CONTROL(kstate)) && (KEYMOD_SHIFT(kstate) && (!KEYMOD_ALT(kstate)))){
 				pos.z += delta;
 				SetAttachmentParams(AttToRamp, pos, dir, rot);
 			}
 		}
 	}
+
 	return 0;
 }
 
 void Multistage2015::clbkSaveState(FILEHANDLE scn)
 {
-	char savebuff[256], savevalbuff[256];
-	if (HangarMode)
-	{
-		Configuration = 0;
-	}
-	SaveDefaultState(scn);
-
-	sprintf(savebuff, "CONFIG_FILE");
-	sprintf(savevalbuff, "%s", fileini);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
-
-	if (guidancefile[0] != '\0') {
-		sprintf(savebuff, "GUIDANCE_FILE");
-		sprintf(savevalbuff, "%s", guidancefile);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
-	}
-
-	sprintf(savebuff, "CONFIGURATION");
-	sprintf(savevalbuff, "%i", Configuration);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
-
-
-
-
-
-
-	if (Complex) {
-		sprintf(savebuff, "COMPLEX");
-		sprintf(savevalbuff, "0");
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
-	}
-
+	std::string savebuff, savevalbuff;
 
 	if (HangarMode) {
-		sprintf(savebuff, "HANGAR");
-		sprintf(savevalbuff, "0");
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		Configuration = 0;
 	}
 
-	sprintf(savebuff, "CURRENT_BOOSTER");
-	sprintf(savevalbuff, "%i", currentBooster + 1);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	SaveDefaultState(scn);
 
-	sprintf(savebuff, "CURRENT_STAGE");
-	sprintf(savevalbuff, "%i", currentStage + 1);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "CONFIG_FILE";
+	savevalbuff += fileini.string();
 
-	sprintf(savebuff, "CURRENT_INTERSTAGE");
-	sprintf(savevalbuff, "%i", currentInterstage + 1);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	sprintf(savebuff, "CURRENT_PAYLOAD");
-	sprintf(savevalbuff, "%i", currentPayload + 1);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	if (!guidancefile.empty()) {
+		savebuff += "GUIDANCE_FILE";
+		savevalbuff += guidancefile.string();
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+	}
 
-	sprintf(savebuff, "FAIRING");
-	sprintf(savevalbuff, "%i", wFairing);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "CONFIGURATION";
+	savevalbuff = Configuration;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	sprintf(savebuff, "MET");
-	sprintf(savevalbuff, "%.3f", MET);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	if (Complex) {
+		savebuff = "COMPLEX";
+		savevalbuff = "0";
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+	}
+
+	if (HangarMode) {
+		savebuff = "HANGAR";
+		savevalbuff = "0";
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+	}
+
+	savebuff = "CURRENT_BOOSTER";
+	savevalbuff = currentBooster + 1;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+
+	savebuff = "CURRENT_STAGE";
+	savevalbuff = currentStage + 1;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+
+	savebuff = "CURRENT_INTERSTAGE";
+	savevalbuff = currentInterstage + 1;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+
+	savebuff = "CURRENT_PAYLOAD";
+	savevalbuff = currentPayload + 1;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+
+	savebuff = "FAIRING";
+	savevalbuff = wFairing;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
+
+	savebuff = "MET";
+	savevalbuff = MET;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
 	if (APstat) {
 		Gnc_running = 1;
-		sprintf(savebuff, "GNC_RUN");
-		sprintf(savevalbuff, "%i", Gnc_running);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		savebuff = "GNC_RUN";
+		savevalbuff = Gnc_running;
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
 
-	if (stage[currentStage].batteries.wBatts)
-	{
-		sprintf(savebuff, "BATTERY");
-		sprintf(savevalbuff, "%lf", stage[currentStage].batteries.CurrentCharge);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	if (stage[currentStage].batteries.wBatts) {
+		savebuff = "BATTERY";
+		savevalbuff = stage[currentStage].batteries.CurrentCharge;
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
 
-	if (stage[currentStage].DenyIgnition)
-	{
-		sprintf(savebuff, "DENY_IGNITION");
-		sprintf(savevalbuff, "0");
+	if (stage[currentStage].DenyIgnition) {
+		savebuff = "DENY_IGNITION";
+		savevalbuff = "0";
 
-
-
-
-
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
+
 	if (GrowingParticles) {
-		sprintf(savebuff, "GROWING_PARTICLES");
-		sprintf(savevalbuff, "0");
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		savebuff = "GROWING_PARTICLES";
+		savevalbuff = "0";
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
+
 	if (AJdisabled) {
 		int val = 1;
-		sprintf(savebuff, "GNC_AUTO_JETTISON");
-		sprintf(savevalbuff, "%i", val);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		savebuff = "GNC_AUTO_JETTISON";
+		savevalbuff = val;
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
 
-	sprintf(savebuff, "STAGE_IGNITION_TIME");
-	sprintf(savevalbuff, "%.6f", stage_ignition_time);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "STAGE_IGNITION_TIME";
+	savevalbuff = stage_ignition_time;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	sprintf(savebuff, "STAGE_STATE");
-	sprintf(savevalbuff, "%i", stage[currentStage].StageState);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "STAGE_STATE";
+	savevalbuff = stage[currentStage].StageState;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	if (tlmfile[0] != '\0')
-	{
-		sprintf(savebuff, "TELEMETRY_FILE");
-		sprintf(savevalbuff, "%s", tlmfile);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	if (tlmfile[0] != '\0') {
+		savebuff = "TELEMETRY_FILE";
+		savevalbuff = tlmfile;
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
 
-	sprintf(savebuff, "ALT_STEPS");
-	sprintf(savevalbuff, "%.1f,%.1f,%.1f,%.1f", altsteps[0], altsteps[1], altsteps[2], altsteps[3]);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "ALT_STEPS";
+	savevalbuff = std::format("{:.1f}, {:.1f}, {:.1f}, {:.1f}", altsteps[0], altsteps[1], altsteps[2], altsteps[3]);
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	sprintf(savebuff, "PEG_PITCH_LIMIT");
-	sprintf(savevalbuff, "%.3f", PegPitchLimit * DEG);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "PEG_PITCH_LIMIT";
+	savevalbuff = PegPitchLimit * DEG;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	sprintf(savebuff, "PEG_MC_INTERVAL");
-	sprintf(savevalbuff, "%.3f", PegMajorCycleInterval);
-	oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	savebuff = "PEG_MC_INTERVAL";
+	savevalbuff = PegMajorCycleInterval;
+	oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 
-	if (wRamp)
-	{
-		sprintf(savebuff, "RAMP");
-		sprintf(savevalbuff, "0");
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+	if (wRamp) {
+		savebuff = "RAMP";
+		savevalbuff = "0";
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
-	if ((HangarMode) && (AttToMSPad))
-	{
-		VECTOR3 pos, dir, rot;
+
+	if ((HangarMode) && (AttToMSPad)) {
+		VECTOR3 pos = _V(0, 0, 0), dir = _V(0, 0, 0), rot = _V(0, 0, 0);
 		GetAttachmentParams(AttToRamp, pos, dir, rot);
 
-		sprintf(savebuff, "ATTMSPAD");
-		sprintf(savevalbuff, "%.3f", pos.z);
-		oapiWriteScenario_string(scn, savebuff, savevalbuff);
+		savebuff = "ATTMSPAD";
+		savevalbuff = pos.z;
+		oapiWriteScenario_string(scn, const_cast<char*>(savebuff.c_str()), const_cast<char*>(savevalbuff.c_str()));
 	}
 
 }
 
-bool Multistage2015::CheckForDetach()
-{
+bool Multistage2015::CheckForDetach(){
+		
 	VECTOR3 Thrust, horThrust;
 	GetThrustVector(Thrust);
 	double Mass = GetMass();
 	HorizonRot(Thrust, horThrust);
-
-	if (horThrust.y > Mass * 9.81)
-	{
-		return TRUE;
+		
+	if(horThrust.y>Mass*9.81){
+		return true;
+	} else {
+		return false;
 	}
-	else { return FALSE; }
 
 }
-void Multistage2015::clbkPreStep(double simt, double simdt, double mjd) {
+void Multistage2015::clbkPreStep(double simt, double simdt, double mjd){
 
-	if ((APstat) && (Configuration == 0)) {
+	if((APstat)&&(Configuration==0)){
 		VinkaAutoPilot();
 		MET += simdt;
-		stage[0].currDelay = -MET;
-		if (Misc.GNC_Debug == 1) { Guidance_Debug(); }
+		stage.at(0).currDelay = -MET;
+		if(Misc.GNC_Debug==1){
+			Guidance_Debug();
+		}				
 	}
-
-
-
-	if ((wRamp) && (!HangarMode))
-	{
-
-		if (CheckForDetach()) {
-			if (GetAttachmentStatus(AttToRamp) != NULL) {
-				vramp->DetachChild(padramp, 0);
-				DelAttachment(AttToRamp);
-				//AttachedToRamp=FALSE;
-				oapiWriteLog(const_cast<char*>("Detached from Launchpad"));
+	
+	if((wRamp)&&(!HangarMode)){
+		
+		if(CheckForDetach()){
+			if(GetAttachmentStatus(AttToRamp)!=NULL){
+				vramp->DetachChild(padramp,0);
+				DelAttachment(AttToRamp);	
+				//AttachedToRamp=false;
+				oapiWriteLog(const_cast<char *>("Detached from Launchpad"));
 			}
-			if ((!wLaunchFX) || (GetAltitude() > FX_Launch.CutoffAltitude)) {
-
-				bool deleted = oapiDeleteVessel(hramp);
-				if (deleted)
-				{
-					wRamp = FALSE;
-					NoMoreRamp = TRUE;
-					oapiWriteLog(const_cast<char*>("LaunchPad Deleted from Scenery"));
+			if((!wLaunchFX)||(GetAltitude()>FX_Launch.CutoffAltitude)){	
+				bool deleted=oapiDeleteVessel(hramp);
+				if(deleted){
+					wRamp = false;
+					NoMoreRamp = true;
+					oapiWriteLog(const_cast<char *>("LaunchPad Deleted from Scenery"));
 				}
 			}
 		}
-	}
-	else if ((HangarMode) && (AttToMSPad)) {
-		if (CheckForDetach()) {
+	} else if((HangarMode)&&(AttToMSPad)){
+		if(CheckForDetach()){
 			DelAttachment(AttToRamp);
-			AttToMSPad = FALSE;
-			oapiWriteLog(const_cast<char*>("Detached from Launchpad"));
+			AttToMSPad = false;
+			oapiWriteLog(const_cast<char *>("Detached from Launchpad"));
 		}
 	}
 
-
-
-
-	if (Configuration == 1) {
-		FLY(simt, simdt, mjd);
-		if (GrowingParticles) { ManageParticles(simdt, TRUE); }
+	if(Configuration==1) {FLY(simt,simdt,mjd);
+		if(GrowingParticles){
+			ManageParticles(simdt, true);
+		}
 	}
-	if (wMach)
-	{
+
+	if(wMach){		
 		CheckForFX(FXMACH, GetMachNumber());
 	}
-	if ((wVent) && (MET <= 5))
-	{
+
+	if((wVent) && (MET <= 5)){
 		CheckForFX(FXVENT, MET);
 	}
-	if (wFailures)
-	{
-		if (CheckForFailure(MET))
-		{
+
+	if(wFailures){
+		if(CheckForFailure(MET)){
 			Failure();
 		}
 	}
 
-
-
 	return;
 }
-void Multistage2015::clbkPostStep(double simt, double simdt, double mjd) {
 
 
-	/*
-	THRUSTER_HANDLE th=CreateThruster(_V(0,0,0),_V(0,0,1),1);
-	THRUSTER_HANDLE* th_pointer=&th;
-	THRUSTER_HANDLE th_getthevalue=*th_pointer;
-	VECTOR3 thdir;
-	GetThrusterDir(*th_pointer,thdir);
+void Multistage2015::clbkPostStep(double simt, double simdt, double mjd){
 
-	sprintf(oapiDebugString(),"X:%.1f Y:%.1f Z:%.1f",thdir.x,thdir.y,thdir.z);
-	*/
-
-	//	if((APstat)&&(wVinkasGuidance)&&(Configuration==0)){//(MET<0)){
-
-
-
-
-		//////Moved in PRE for pad boom
-			/*if((APstat)&&(Configuration==0)){
-			VinkaAutoPilot();
-			MET+=simdt;
-			stage[0].currDelay=-MET;
-			if(Misc.GNC_Debug==1){Guidance_Debug();}
-		}*/
-
-
-	if ((GetThrusterGroupLevel(THGROUP_MAIN) > 0.95) && (Configuration == 0)) {
+	if((GetThrusterGroupLevel(THGROUP_MAIN) > 0.95) && (Configuration == 0)){
 		Configuration = 1;
 		MET = 0;
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-	//if((Configuration==1)) {FLY(simt,simdt,mjd);}
-
-	/*
-	VECTOR3 hhvec,vvvec,rrvec,hloc;
-	oapiGetRelativePos(GetSurfaceRef(),GetHandle(),&rrvec);
-	oapiGetRelativeVel(GetSurfaceRef(),GetHandle(),&vvvec);
-	hhvec=crossp(rrvec,vvvec);
-	MATRIX3 m3;
-	oapiGetRotationMatrix(GetSurfaceRef(),&m3);
-	hloc=tmul(m3,hhvec);
-	normalise(hloc);
-	double INC=acos(hloc.y)*DEG-90-90;
-
-	sprintf(oapiDebugString(),"x: %.3f y:%.3f z:%.3f INC: %.2f tgtapo:%.1f",hloc.x,hloc.y,hloc.z,INC,tgtapo);
-	*/
-
-	for (int pns = currentPayload; pns < nPayloads; pns++)
-	{
-		if (payload[pns].live) { CheckForAdditionalThrust(pns); }
+	for(int i = currentPayload; i < nPayloads; i++){
+		if(payload.at(i).live){
+			CheckForAdditionalThrust(i);
+		}
 	}
 
-	if ((Configuration == 1) && (GrowingParticles)) {
-		ManageParticles(simdt, FALSE);
+	if((Configuration==1) && (GrowingParticles)){
+		ManageParticles(simdt, false);
 	}
-
-
+			
 	th_main_level = GetThrusterGroupLevel(THGROUP_MAIN);
 
-	if (wLaunchFX) {
-		if (FX_Launch.CutoffAltitude > 0) {
+	if(wLaunchFX){
+		if(FX_Launch.CutoffAltitude > 0){
 			launchFx_level = (-1) / (FX_Launch.CutoffAltitude) * GetAltitude() + 1;
-
-			if (launchFx_level >= 1) { launchFx_level = 1; }
-			if (launchFx_level <= 0) { launchFx_level = 0; }
-		}
-		else {
+			if(launchFx_level >= 1){
+				launchFx_level = 1;
+			}
+			if(launchFx_level <= 0){
+				launchFx_level = 0;
+			}
+		} else {
 			launchFx_level = 1;
 		}
+	} else {
+		launchFx_level=0;
 	}
-	else { launchFx_level = 0; }
-	//Try.run();
+
 	launchFx_level *= th_main_level;
+
 	return;
 }
-bool Multistage2015::clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpad* skp) {
+
+bool Multistage2015::clbkDrawHUD(int mode, const HUDPAINTSPEC *hps, oapi::Sketchpad *skp){
+
 	VESSEL4::clbkDrawHUD(mode, hps, skp);
+
 	int cx = hps->CX, cy = hps->CY;
 
 	DWORD w;
 	DWORD h;
 	DWORD bpp;
-	oapiGetViewportSize(&w, &h, &bpp);
 
+	oapiGetViewportSize(&w,&h,&bpp);
+				
 
-	char NAMEbuff[512];
-	memset(NAMEbuff, 0, sizeof(NAMEbuff));
-	int NAMElen;
-	NAMElen = sprintf_s(NAMEbuff, "%s", GetName());
-	skp->Text(0.02 * w, 0.25 * h + 20, NAMEbuff, NAMElen);
+	std::string NAMEbuff;
 
+	NAMEbuff = std::format("{}", GetName());
 
-	char METbuff[512];
-	memset(METbuff, 0, sizeof(METbuff));
-	int METlen;
+	skp->Text(0.02 * w, 0.25 * h + 20, NAMEbuff.c_str(), NAMEbuff.size());
+	
+	std::string METbuff;
 
-	if (MET >= 0) {
-		METlen = sprintf_s(METbuff, "MET: %03.0f:%02.0f:%02.0f", hms(MET));
+	VECTOR3 t = hms(MET);
+			
+	if(MET>=0){
+		METbuff = std::format("MET: {:03.0f}:{:02.0f}:{:02.0f}", t.x, t.y, t.z);
+	} else {
+		METbuff = std::format("T-: {:03.0f}:{:02.0f}:{:02.0f}", t.x, t.y, t.z);
 	}
-	else {
-		METlen = sprintf_s(METbuff, "T-: %03.0f:%02.0f:%02.0f", hms(MET));
-	}
-	skp->Text(0.02 * w, 0.25 * h + 40, METbuff, METlen);
+			skp->Text(0.02 * w, 0.25 * h + 40, METbuff.c_str(), METbuff.size());
 
-	char STAGEbuff[512];
-	memset(STAGEbuff, 0, sizeof(STAGEbuff));
-	int STAGElen;
+			std::string STAGEbuff;
+			
+			STAGEbuff = std::format("Stage: {}", currentStage + 1);
 
-	STAGElen = sprintf_s(STAGEbuff, "Stage: %i", currentStage + 1);
-	skp->Text(0.02 * w, 0.25 * h + 60, STAGEbuff, STAGElen);
+			skp->Text(0.02 * w, 0.25 * h + 60, STAGEbuff.c_str(), STAGEbuff.size());
 
-	char BTbuff[512];
-	memset(BTbuff, 0, sizeof(BTbuff));
-	unsigned int BTlen = 0;
+			std::string BTbuff;
+			
+			BTbuff = std::format("Remaining Stage Burn Time: {:02.0f}:{:02.0f}", hms(RemBurnTime(currentStage)).y, hms(RemBurnTime(currentStage)).z);
 
-	BTlen = sprintf_s(BTbuff, "Remaining Stage Burn Time: %02.0f:%02.0f", hms(RemBurnTime(currentStage)).y, hms(RemBurnTime(currentStage)).z);
-	skp->Text(0.02 * w, 0.25 * h + 80, BTbuff, BTlen);
+			skp->Text(0.02 * w, 0.25 * h + 80, BTbuff.c_str(), BTbuff.size());
+			
+			if((runningPeg)  &&(currentStage == NN  -1)){
 
-	if ((runningPeg) && (currentStage == NN - 1)) {
+				if(GetAltitude() > altsteps.at(3)){
+				std::string PMECObuff; 
+				VECTOR3 PMECO = hms(TMeco);
+				
+				PMECObuff = std::format("Predicted MECO: {:02.0f}:{:02.0f}", PMECO.y, PMECO.z);
 
-		if (GetAltitude() > altsteps[3])
-		{
-			char PMECObuff[512];
-			memset(PMECObuff, 0, sizeof(PMECObuff));
-			int PMECOlen;
-			VECTOR3 PMECO = hms(TMeco);
-			PMECOlen = sprintf_s(PMECObuff, "Predicted MECO: %02.0f:%02.0f", PMECO.y, PMECO.z);
-			skp->Text(0.02 * w, 0.25 * h + 100, PMECObuff, PMECOlen);
-		}
-	}
+				skp->Text(0.02 * w, 0.25 * h + 100, PMECObuff.c_str(), PMECObuff.size());
 
+				}
 
-	char PLNamebuff[512];
-	memset(PLNamebuff, 0, sizeof(PLNamebuff));
-	int PLNamelen;
-	char PLWbuff[512];
-	memset(PLWbuff, 0, sizeof(PLWbuff));
-	int PLWlen;
+			}
 
-	double PLtotWeight = 0;
-	for (int i = currentPayload; i < nPayloads; i++)
-	{
-		PLtotWeight += payload[i].mass;
-	}
-	PLNamelen = sprintf_s(PLNamebuff, "Next Payload: %s", payload[currentPayload].name);
-	skp->Text(w - 400, 0.25 * h + 20, PLNamebuff, PLNamelen);
-	PLWlen = sprintf_s(PLWbuff, "Total Payload Weight: %.1f kg", PLtotWeight);
-	skp->Text(w - 400, 0.25 * h + 40, PLWbuff, PLWlen);
+			
+			std::string PLNamebuff;
+			std::string PLWbuff;
+			
+			double PLtotWeight=0;
 
+			for(int i = currentPayload; i < nPayloads; i++){
+				PLtotWeight += payload.at(i).mass;
+			}
 
-
+			PLNamebuff = std::format("Next Payload: {}", payload.at(currentPayload).name.c_str());
+			skp->Text(w - 400, 0.25 * h + 20, PLNamebuff.c_str(), PLNamebuff.size());
+			PLWbuff = std::format("Total Payload Weight: {:.1f} kg", PLtotWeight);
+			skp->Text(w - 400, 0.25 * h + 40, PLWbuff.c_str(), PLWbuff.size());
 
 	return true;
 }
 
+void Multistage2015::clbkPostCreation(){
 
+	oapiWriteLog(const_cast<char *>("Post Creation Started"));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-void Multistage2015::GeneratePitchTable()
-{
-	gt_step=0;
-		  double init_psi=21;
-		while((init_psi>0))
-		{	CGTE(init_psi*RAD);
-			init_psi-=1;
-		gt_step++;}
-
-
-		char filenmbuff[MAXLEN];
-sprintf(filenmbuff,"Multistage2015\\PitchTables\\%s_%.2f_PT.txt",GetName(),oapiGetSysMJD());
-FILEHANDLE gtPitchTableFile=oapiOpenFile(filenmbuff,FILE_OUT,CONFIG);
-char buffer[MAXLEN];
-sprintf(buffer,"Multistage 2015 Automatically Generated Pitch Table File");
-oapiWriteLine(gtPitchTableFile,buffer);
-sprintf(buffer,"Vehicle name:%s",GetName());
-oapiWriteLine(gtPitchTableFile,buffer);
-sprintf(buffer,"Initial Pitch[deg],Final Time[s],Final Altitude[m],Final Pitch[deg],Downrange[m],Final Velocity[m/s]");
-oapiWriteLine(gtPitchTableFile,buffer);
-
-
-		for(int q=0;q<22;q++)
-	 {
-		 sprintf(buffer,"%.2f,%.1f,%.1f,%.2f,%.1f,%.1f",90-gt_pitch_table[q].Gtpitch*DEG,gt_pitch_table[q].Time,gt_pitch_table[q].Altitude,90-gt_pitch_table[q].Pitch*DEG,gt_pitch_table[q].Downrange,gt_pitch_table[q].Speed);
-		 oapiWriteLine(gtPitchTableFile,buffer);
-	 }
-oapiCloseFile(gtPitchTableFile,FILE_OUT);
-
-}
-*/
-void Multistage2015::clbkPostCreation() {
-	oapiWriteLog(const_cast<char*>("Post Creation Started"));
 	UpdateLivePayloads();
-	if (failureProbability > 0) { wFailures = TRUE; FailuresEvaluation(); }
 
-	/*
+	if(failureProbability > 0){
+		wFailures = true;
+		
+		FailuresEvaluation();
+	}
 
-		MyID=ConnectToOrbiterSoundDLL(GetHandle());
-
-		if(Ssound.Main){
-			ReplaceStockSound(MyID,Ssound.MAIN_THRUST,	REPLACE_MAIN_THRUST);}
-		if(Ssound.Hover){
-			ReplaceStockSound(MyID,Ssound.HOVER_THRUST,	REPLACE_HOVER_THRUST);}
-		if(Ssound.RCS_ta){
-			ReplaceStockSound(MyID,Ssound.RCS_THRUST_ATTACK, REPLACE_RCS_THRUST_ATTACK);}
-		if(Ssound.RCS_ts){
-			ReplaceStockSound(MyID,Ssound.RCS_THRUST_SUSTAIN, REPLACE_RCS_THRUST_SUSTAIN);}
-		if(Ssound.Ac){
-			ReplaceStockSound(MyID,Ssound.AIR_CONDITIONNING, REPLACE_AIR_CONDITIONNING);}
-		if(Ssound.Ca1){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_1, REPLACE_COCKPIT_AMBIENCE_1);}
-		if(Ssound.Ca2){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_2, REPLACE_COCKPIT_AMBIENCE_2);}
-		if(Ssound.Ca3){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_3, REPLACE_COCKPIT_AMBIENCE_3);}
-		if(Ssound.Ca4){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_4, REPLACE_COCKPIT_AMBIENCE_4);}
-		if(Ssound.Ca5){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_5, REPLACE_COCKPIT_AMBIENCE_5);}
-		if(Ssound.Ca6){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_6, REPLACE_COCKPIT_AMBIENCE_6);}
-		if(Ssound.Ca7){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_7, REPLACE_COCKPIT_AMBIENCE_7);}
-		if(Ssound.Ca8){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_8, REPLACE_COCKPIT_AMBIENCE_8);}
-		if(Ssound.Ca9){
-			ReplaceStockSound(MyID,Ssound.COCKPIT_AMBIENCE_9, REPLACE_COCKPIT_AMBIENCE_9);}
-
-		 for(int s=0;s<57;s++){
-			 if(Ssound.GncStepSound[s]!=-5){
-				 RequestLoadVesselWave(MyID,Ssound.GncStepSound[s],Gnc_step[Ssound.GncStepSound[s]].trchar,RADIO_SOUND);
-			 }
-			}
-
-		 */
-
-
-
-
-
-
-
-		 //mu=398600441800000;
-		 //rt=6371010;
 	double planetmass = oapiGetMass(GetGravityRef());
-	mu = GGRAV * planetmass;//oapiGetMass(GetGravityRef());
+
+	mu = GGRAV * planetmass;
+
 	rt = oapiGetSize(GetGravityRef());
+
 	g0 = mu / (rt * rt);
-	//sprintf(logbuff,"g0=%.3f",g0);
-	//oapiWriteLog(logbuff);
-	if (!stepsloaded) { CalculateAltSteps(planetmass); }
+
+	if(!stepsloaded){
+		CalculateAltSteps(planetmass);
+	}
 
 	//////COMPUTATIONAL GRAVITY TURN EVALUATION
-	if (Configuration == 0)
-	{
-
-
+	if(Configuration == 0){
+		 
 		double init_psi = 21;
-		while ((!CGTE(init_psi * RAD)) && (init_psi > 0))
-		{
+		
+		while((!CGTE(init_psi * RAD)) && (init_psi > 0)){
 			init_psi -= 1;
 		}
-		double safety = init_psi * 0.05;//.2;
+		
+		double safety=init_psi * 0.05;
+		
 		init_psi -= safety;
-		if (init_psi < 1) { init_psi = 1; }
-		//double gtip;
-		//GT_InitPitch=(90-init_psi)*RAD;
-		GT_IP_Calculated = (90 - init_psi) * RAD;
-		sprintf(logbuff, "%s: Gravity Turn Initial Pitch by user: %.3f Calculated:%.3f", GetName(), GT_InitPitch * DEG, GT_IP_Calculated * DEG);
-		oapiWriteLog(logbuff);
 
-		if (GT_InitPitch == 0) { GT_InitPitch = GT_IP_Calculated; }
+		if(init_psi < 1){
+			init_psi = 1;
+		}
+
+		GT_IP_Calculated = (90 - init_psi) * RAD;
+
+		logbuff = std::format("{}: Gravity Turn Initial Pitch by user: {:.3f} Calculated:{:.3f}", GetName(), GT_InitPitch * DEG, GT_IP_Calculated * DEG);
+
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
+		if(GT_InitPitch==0) { GT_InitPitch=GT_IP_Calculated; }
 
 		//Ramp or Hangar
-		if (!HangarMode) {
+		if(!HangarMode){
 			Ramp(wRamp);
-		}
-		else {
+		} else {
 			CreateHangar();
 		}
-
-		if (wCamera)
-		{
+		
+		if(wCamera){
 			CreateCamera();
 		}
 
 	}
 
 
-
-
-
 	InitPEG();
 
-	if (Complex)
-	{
+	if(Complex){
 		EvaluateComplexFlight();
 	}
 
-	const ATMCONST* atmconst = oapiGetPlanetAtmConstants(GetSurfaceRef());
+	const ATMCONST *atmconst = oapiGetPlanetAtmConstants(GetSurfaceRef());
+
 	RefPressure = atmconst->p0;
+	
 	double altlimit = atmconst->altlimit;
-	sprintf(logbuff, "%s: Planet Reference Pressure = %.1f Pa  Atmosphere Altitude Limit:%.1f km", GetName(), RefPressure, altlimit / 1000);
-	oapiWriteLog(logbuff);
 
+	logbuff = std::format("{}: Planet Reference Pressure = {:.1f} Pa  Atmosphere Altitude Limit:{:.1f} km", GetName(), RefPressure, altlimit / 1000);
+
+	oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+		
 	GetStatusEx(&vs2);
-	vs2.status = 0;
+
+	vs2.status=0;
+
 	GetRelativePos(GetSurfaceRef(), vs2.rpos);
+	
+	oapiWriteLog(const_cast<char *>("Post Creation Terminated"));
 
-
-	oapiWriteLog(const_cast<char*>("Post Creation Terminated"));
 	return;
 }
 
-void Multistage2015::CreateLaunchFX()
-{
+void Multistage2015::CreateLaunchFX(){
 	double alpha = 0;
-	for (int i = 1; i <= FX_Launch.N; i++)
-	{
-		PARTICLE ps = GetProperPS(FX_Launch.Ps1);
+
+	PARTICLE ps1 = GetProperPS(FX_Launch.Ps1);
+	PARTICLE ps2 = GetProperPS(FX_Launch.Ps2);
+
+	for(int i = 1; i <= FX_Launch.N; i++){
+		
 		alpha = (PI * 2 / FX_Launch.N * (i - 1)) + FX_Launch.Angle * RAD;
-		vramp->AddParticleStream(&ps.Pss, _V(FX_Launch.Distance * cos(alpha), FX_Launch.Distance * sin(alpha), FX_Launch.H), _V(cos(alpha), sin(alpha), 0), &launchFx_level);
-		PARTICLE ps2 = GetProperPS(FX_Launch.Ps2);
+
+		vramp->AddParticleStream(&ps1.Pss, _V(FX_Launch.Distance * cos(alpha), FX_Launch.Distance * sin(alpha), FX_Launch.H), _V(cos(alpha), sin(alpha), 0), &launchFx_level);
+
 		vramp->AddParticleStream(&ps2.Pss, _V(FX_Launch.Distance * cos(alpha), FX_Launch.Distance * sin(alpha), FX_Launch.H), _V(cos(alpha), sin(alpha), 0), &launchFx_level);
+
 	}
+
 }
 
-void Multistage2015::CreateHangar()
-{
-	hhangar = oapiGetVesselByName(const_cast<char*>("MS_Hangar"));
-	if (!oapiIsVessel(hhangar)) {
-		//oapiWriteLog("Creating Hangar");
-		//	DelAttachment(AttToRamp);
-			//oapiWriteLog("Deleting old attachment");
+void Multistage2015::CreateHangar(){
 
+	hhangar = oapiGetVesselByName(const_cast<char *>("MS_Hangar"));
 
-		memset(&vshangar, 0, sizeof(vshangar));
-		vshangar.version = 2;
+	if(!oapiIsVessel(hhangar)){
+
+		memset(&vshangar,0,sizeof(vshangar));
+
+		vshangar.version=2;
+
 		GetStatusEx(&vshangar);
-		oapiWriteLog(const_cast<char*>("Creating Hangar"));
+
+		oapiWriteLog(const_cast<char *>("Creating Hangar"));
+
 		hhangar = oapiCreateVesselEx("MS_Hangar", "MS_Hangar", &vshangar);
-		vshangar.status = 1;
-		vhangar = static_cast<VESSEL4*>(oapiGetVesselInterface(hhangar));
-		if (oapiGetOrbiterVersion() < 160903)
-		{
+
+		vshangar.status=1;
+
+		vhangar = (VESSEL4*)oapiGetVesselInterface(hhangar);
+
+		if(oapiGetOrbiterVersion()<160903){
+			
 			FILEHANDLE fh = oapiOpenFile("\\Multistage2015\\__MSHANG", FILE_OUT, CONFIG);
-			oapiWriteScenario_string(fh, const_cast<char*>("STATUS"), const_cast<char*>("Landed Earth"));
-			oapiWriteScenario_float(fh, const_cast<char*>("HEADING"), vshangar.surf_hdg * DEG);
-			char position[256];
-			sprintf(position, "%.20f %.20f", vshangar.surf_lng * DEG, vshangar.surf_lat * DEG);
-			oapiWriteScenario_string(fh, const_cast<char*>("POS"), position);
+			
+			oapiWriteScenario_string(fh, const_cast<char *>("STATUS"), const_cast<char *>("Landed Earth"));
+
+			oapiWriteScenario_float(fh, const_cast<char *>("HEADING"), vshangar.surf_hdg * DEG);
+
+			std::string position;
+
+			position = std::format("{:.20f} {:.20f}", vshangar.surf_lng * DEG, vshangar.surf_lat * DEG);
+
+			oapiWriteScenario_string(fh, const_cast<char *>("POS"), const_cast<char *>(position.c_str()));
+
 			oapiCloseFile(fh, FILE_OUT);
-			sprintf(logbuff, "Orbiter version: %i . Hangar is created through scenario file procedure", oapiGetOrbiterVersion());
-			oapiWriteLog(logbuff);
+
+			logbuff = std::format("Orbiter version: {} . Hangar is created through scenario file procedure",oapiGetOrbiterVersion());
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
 			fh = oapiOpenFile("\\Multistage2015\\__MSHANG", FILE_IN, CONFIG);
+
 			vhangar->clbkLoadStateEx(fh, &vshangar);
 		}
+
 		vhangar->DefSetStateEx(&vshangar);
 
+		if(wCrawler){
+			
+			hCrawler = oapiGetVesselByName(const_cast<char *>("MS_Crawler"));
 
-		if (wCrawler) {
-			hCrawler = oapiGetVesselByName(const_cast<char*>("MS_Crawler"));
-			if (!oapiIsVessel(hCrawler))
-			{
+			if(!oapiIsVessel(hCrawler)){
+
 				VESSELSTATUS2 vsCrawler;
+
 				memset(&vsCrawler, 0, sizeof(vsCrawler));
+
 				vsCrawler.version = 2;
+
 				vsCrawler = vshangar;
 				vsCrawler.surf_hdg = vshangar.surf_hdg + 180 * RAD;
-
-
+			
 				double rt = 6371010;
 				double earth_circ = rt * 2 * PI;
-				double each_deg = earth_circ / 360;
+				double each_deg = earth_circ / 360; 
 				double d_lat = 2.0 * sin(vsCrawler.surf_hdg);
 				double d_lng = -2.0 * cos(vsCrawler.surf_hdg);
 				vsCrawler.surf_lat += d_lat / each_deg * RAD;
 				vsCrawler.surf_lng += d_lng / each_deg * RAD;
 
 				hCrawler = oapiCreateVesselEx("MS_Crawler", "MS_Crawler", &vsCrawler);
-				oapiWriteLog(const_cast<char*>("Crawler Created"));
+				
+				oapiWriteLog(const_cast<char *>("Crawler Created"));
 			}
 		}
-
-
-
-
-
 	}
 
-	vhangar = static_cast<VESSEL4*>(oapiGetVesselInterface(hhangar));
-	if (!AttToMSPad) {
-		AttToHangar = CreateAttachment(TRUE, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "hangar", FALSE);
+	vhangar = (VESSEL4*)oapiGetVesselInterface(hhangar);
+	if(!AttToMSPad){
+		
+		AttToHangar = CreateAttachment(true, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "hangar", false);
+		
 		DWORD index;
+
 		vhangar->clbkGeneric(VMSG_USER, 1, &index);
-		vhangar->AttachChild(GetHandle(), vhangar->GetAttachmentHandle(FALSE, index), AttToHangar);
-		oapiWriteLog(const_cast<char*>("Attached to the Hangar"));
-	}
-	else {
-		OBJHANDLE hPad = oapiGetVesselByName(const_cast<char*>("MS_Pad"));
-		if (oapiIsVessel(hPad))
-		{
+
+		vhangar->AttachChild(GetHandle(), vhangar->GetAttachmentHandle(false, index), AttToHangar);
+
+		oapiWriteLog(const_cast<char *>("Attached to the Hangar"));
+
+	} else {
+
+		OBJHANDLE hPad = oapiGetVesselByName(const_cast<char *>("MS_Pad"));
+
+		if(oapiIsVessel(hPad)){
 			AttachToMSPad(hPad);
 		}
 	}
 
-
-
-
-
-
 	return;
 }
-void Multistage2015::CreateCamera()
-{
+void Multistage2015::CreateCamera(){
 	//////////////CAMERA CREATION
-	OBJHANDLE hcamera = oapiGetVesselByName(const_cast<char*>("MS_Camera"));
-	if (!oapiIsVessel(hcamera)) {
+	OBJHANDLE hcamera=oapiGetVesselByName(const_cast<char *>("MS_Camera"));
+	if(!oapiIsVessel(hcamera)){
+		
 		VESSELSTATUS2 vscam;
-		memset(&vscam, 0, sizeof(vscam));
-		vscam.version = 2;
-		if (HangarMode) { vscam = vshangar; }
-		else { vscam = vsramp; }
 
-		//	vscam.surf_lat+=0.01*RAD;
-		//	vscam.surf_lng+=0.03*RAD;
+		memset(&vscam,0,sizeof(vscam));
+
+		vscam.version = 2;
+
+		if(HangarMode){
+			vscam = vshangar;
+		} else {
+			vscam = vsramp;
+		}
+
 		vscam.surf_lat += CamDLat * RAD;
+
 		vscam.surf_lng += CamDLng * RAD;
+
 		hcamera = oapiCreateVesselEx("MS_Camera", "MS_Camera", &vscam);
-		if (oapiIsVessel(hcamera))
-		{
+
+		if(oapiIsVessel(hcamera)){
 			VESSEL4* vcam;
-			vcam = static_cast<VESSEL4*>(oapiGetVesselInterface(hcamera));
+			
+			vcam = (VESSEL4*)oapiGetVesselInterface(hcamera);
+
 			vcam->clbkGeneric(VMSG_USER, 1, (void*)GetName());
 		}
 	}
 	return;
 }
-void Multistage2015::Ramp(bool alreadyramp)
-{
-	char PadName[256];
-	sprintf(PadName, "MS_LaunchPad_%s", GetName());
-	if (!alreadyramp) {
-		memset(&vsramp, 0, sizeof(vsramp));
-		vsramp.version = 2;
-		GetStatusEx(&vsramp);
-		oapiWriteLog(const_cast<char*>("Creating Launchpad"));
-		//	hramp= oapiCreateVesselEx("MS_LaunchPad","EmptyModule",&vsramp);
 
-		hramp = oapiCreateVesselEx(PadName, Misc.PadModule, &vsramp);
+void Multistage2015::Ramp(bool alreadyramp){
+		
+	std::string PadName;
+	PadName = std::format("MS_LaunchPad_{}", GetName());
+
+	if(!alreadyramp){	
+		memset(&vsramp, 0, sizeof(vsramp));
+
+		vsramp.version = 2;
+
+		GetStatusEx(&vsramp);
+
+		oapiWriteLog(const_cast<char *>("Creating Launchpad"));
+
+		hramp = oapiCreateVesselEx(PadName.c_str(), Misc.PadModule.c_str(), &vsramp);
+		
 		vsramp.status = 1;
-		vramp = static_cast<VESSEL4*>(oapiGetVesselInterface(hramp));
-		if (oapiGetOrbiterVersion() < 160903)
-		{
+
+		vramp = (VESSEL4*)oapiGetVesselInterface(hramp);
+
+		if(oapiGetOrbiterVersion() < 160903){
+			
 			FILEHANDLE fh = oapiOpenFile("\\Multistage2015\\__MS15", FILE_OUT, CONFIG);
-			oapiWriteScenario_string(fh, const_cast<char*>("STATUS"), const_cast<char*>("Landed Earth"));
-			oapiWriteScenario_float(fh, const_cast<char*>("HEADING"), vsramp.surf_hdg * DEG);
-			char position[256];
-			sprintf(position, "%.20f %.20f", vsramp.surf_lng * DEG, vsramp.surf_lat * DEG);
-			oapiWriteScenario_string(fh, const_cast<char*>("POS"), position);
+
+			oapiWriteScenario_string(fh, const_cast<char *>("STATUS"), const_cast<char *>("Landed Earth"));
+
+			oapiWriteScenario_float(fh, const_cast<char *>("HEADING"), vsramp.surf_hdg * DEG);
+
+			std::string position;
+
+			position = std::format("{:.20f} {:.20f}", vsramp.surf_lng * DEG, vsramp.surf_lat * DEG);
+
+			oapiWriteScenario_string(fh, const_cast<char *>("POS"), const_cast<char *>(position.c_str()));
+
 			oapiCloseFile(fh, FILE_OUT);
-			sprintf(logbuff, "Orbiter version: %i . Ramp is created through scenario file procedure", oapiGetOrbiterVersion());
-			oapiWriteLog(logbuff);
+
+			logbuff = std::format("Orbiter version: {} . Ramp is created through scenario file procedure", oapiGetOrbiterVersion());
+
+			oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
 			fh = oapiOpenFile("\\Multistage2015\\__MS15", FILE_IN, CONFIG);
+
 			vramp->clbkLoadStateEx(fh, &vsramp);
 		}
+
 		vramp->DefSetStateEx(&vsramp);
-		wRamp = TRUE;
-	}
+		
+		wRamp = true;
 
+	} else {
+		
+		hramp = oapiGetVesselByName(const_cast<char *>(PadName.c_str()));
+		
+		if(hramp){
 
-	else {
-		//hramp=oapiGetVesselByName("MS_LaunchPad");
-		hramp = oapiGetVesselByName(PadName);
-		if (hramp) {
-			vramp = static_cast<VESSEL4*>(oapiGetVesselInterface(hramp));
+			
+			vramp = (VESSEL4*)oapiGetVesselInterface(hramp);
 		}
+
 	}
 
-	AttToRamp = CreateAttachment(TRUE, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "pad", FALSE);
-	padramp = vramp->CreateAttachment(FALSE, _V(0, 0, stage[0].height * 0.5 + CogElev), _V(0, -sin(Misc.VerticalAngle), cos(Misc.VerticalAngle)), _V(0, cos(Misc.VerticalAngle), sin(Misc.VerticalAngle)), "pad", FALSE);
-	vramp->AttachChild(GetHandle(), padramp, AttToRamp);
+	AttToRamp = CreateAttachment(true, _V(0, 0, 0), _V(0, 0, -1), _V(0, 1, 0), "pad", false);
 
-	if (wLaunchFX)
-	{
+	padramp = vramp->CreateAttachment(false, _V(0, 0, stage.at(0).height * 0.5 + CogElev), _V(0, -sin(Misc.VerticalAngle), cos(Misc.VerticalAngle)), _V(0, cos(Misc.VerticalAngle), sin(Misc.VerticalAngle)), "pad", false);
+
+	vramp->AttachChild(GetHandle(),padramp,AttToRamp);
+	
+	if(wLaunchFX){
 		CreateLaunchFX();
 	}
-	vramp->SetEnableFocus(FALSE);
-
-
-
+	
+	vramp->SetEnableFocus(false);
+		
 	return;
 }
 
-/*
-void Multistage2015::clbkVisualCreated (VISHANDLE _vis, int refcount)
-{
-  if (refcount > 1) return;
-  vis = _vis;
+double Multistage2015::GetMET(){
 
-
-
-
-
-
-}
-void Multistage2015::clbkVisualDestroyed (VISHANDLE _vis, int refcount)
-{
-  if (vis == _vis) vis = NULL;
-
-
-
-
-
-}
-*/
-
-double Multistage2015::GetMET()
-{
 	return MET;
-}
-bool Multistage2015::GetAutopilotStatus()
-{
-	return APstat;
-}
-int Multistage2015::clbkGeneric(int msgid, int prm, void* context)
-{
 
-	switch (msgid) {
-	case(2015):
-		if (prm == 2015) {
+}
+
+bool Multistage2015::GetAutopilotStatus(){
+	
+	return APstat;
+
+}
+
+int Multistage2015::clbkGeneric (int msgid, int prm, void *context){
+	
+	switch(msgid){
+		case(2015):
+		if(prm==2015){
 			return 2015;
+		} else {
+			return 0;
 		}
-		else { return 0; }
-		break;
+	break;
+
 	case(VMSG_USER):
-		if (prm == 1)
-		{
-			double* met = static_cast<double*>(context);
+		if(prm==1){
+			double *met = (double*)(context);
 			*met = GetMET();
 			return 1;
-		}
-		else if (prm == 2)
-		{
-			bool* ap = static_cast<bool*>(context);
+		} else if(prm == 2){
+
+			bool *ap = (bool*)(context);
+
 			*ap = GetAutopilotStatus();
+
 			return 1;
-		}
-		else if (prm == 3)
-		{
-			VECTOR3* Targets = static_cast<VECTOR3*>(context);
+
+		} else if(prm==3){
+
+			VECTOR3 *Targets = (VECTOR3*)(context);
+
 			*Targets = GetAPTargets();
+
 			return 1;
 		}
 		break;
@@ -4771,197 +4297,328 @@ int Multistage2015::clbkGeneric(int msgid, int prm, void* context)
 	return 0;
 }
 
-int Multistage2015::GetMSVersion()
-{
+int Multistage2015::GetMSVersion(){
+	
 	return MSVERSION;
+
 }
 
-void Multistage2015::CreateDMD()
-{
-	//oapiWriteLog("CREATE DMD");
-	if (!DMD) {
+void Multistage2015::CreateDMD(){
+	
+	if(!DMD){
+
 		DMD = new DevModeDlg(this);
+
 		DMD->Open(g_Param.hDLL);
+
 	}
 }
 
-void Multistage2015::DestroyDMD()
-{
-	if (DMD) {
+void Multistage2015::DestroyDMD(){
+	
+	if(DMD){
 		delete DMD;
 		DMD = 0;
 		hDlg = 0;
 	}
+
 }
 
 
-DLLCLBK void InitModule(HINSTANCE hModule) {
+DLLCLBK void InitModule(HINSTANCE hModule){
 	g_Param.hDLL = hModule;
 }
-DLLCLBK void ExitModule(HINSTANCE hModule) {
+
+DLLCLBK void ExitModule(HINSTANCE hModule){
 	CloseDlg(hDlg);
 }
-DLLCLBK VESSEL* ovcInit(OBJHANDLE hvessel, int flightmodel) { return new Multistage2015(hvessel, flightmodel); }
-DLLCLBK void ovcExit(VESSEL* vessel) { if (vessel)delete(Multistage2015*)vessel; }
-DevModeDlg* dlg;
 
-INT_PTR CALLBACK DlgProcHook(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+DLLCLBK VESSEL *ovcInit(OBJHANDLE hvessel,int flightmodel){
+	
+	return new Multistage2015(hvessel, flightmodel);
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)lParam);
+}
+
+DLLCLBK void ovcExit(VESSEL *vessel){
+
+	if(vessel)delete(Multistage2015*) vessel;
+
+}
+
+DevModeDlg *dlg;
+
+BOOL CALLBACK DlgProcHook(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, (LONG)lParam);
 		((DevModeDlg*)lParam)->hDlg = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->DlgProc(hWnd, uMsg, wParam, lParam);
-	else     return oapiDefDialogProc(hWnd, uMsg, wParam, lParam);
-}
-INT_PTR CALLBACK DlgProcPld(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->DlgProc (hWnd, uMsg, wParam, lParam);
+	} else {
+		return oapiDefDialogProc (hWnd, uMsg, wParam, lParam);
+	}
+}
+
+BOOL CALLBACK DlgProcPld(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_PLD] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->PldProc(hWnd, uMsg, wParam, lParam);
-	else     return FALSE;
-}
-INT_PTR CALLBACK DlgProcViewTxt(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
-		((DevModeDlg*)lParam)->hChild[CD_VIEW] = hWnd;
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->PldProc (hWnd, uMsg, wParam, lParam);
+	} else {
+		return false;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->ViewTxtProc(hWnd, uMsg, wParam, lParam);
-	else     return FALSE;
 }
-INT_PTR CALLBACK DlgProcFairing(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+BOOL CALLBACK DlgProcViewTxt(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if (uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
+		((DevModeDlg*)lParam)->hChild[CD_VIEW]= hWnd;
+	}
+
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->ViewTxtProc (hWnd, uMsg, wParam, lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcFairing(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_FAIRING] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->FairingProc(hWnd, uMsg, wParam, lParam);
-	else   return FALSE;
-}
-INT_PTR CALLBACK DlgProcParticle(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->FairingProc(hWnd, uMsg, wParam, lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcParticle(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_PARTICLE] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->ParticleProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcMisc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->ParticleProc(hWnd, uMsg, wParam, lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcMisc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_MISC] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->MiscProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcTex(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->MiscProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcTex(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_TEX] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->TexProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcBooster(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->TexProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcBooster(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_BOOSTER] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->BoosterProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcCurve(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->BoosterProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcCurve(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_CURVE] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->CurveProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcStage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->CurveProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcStage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_STAGE] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->StageProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcUllage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->StageProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcUllage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if (uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_ULLAGE] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->UllageProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcInterstage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->UllageProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcInterstage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_INTERSTAGE] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->InterstageProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcLes(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->InterstageProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcLes(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_LES] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->LesProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcAdapter(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->LesProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+
+BOOL CALLBACK DlgProcAdapter(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd, GWLP_USERDATA, lParam);
 		((DevModeDlg*)lParam)->hChild[CD_ADAPTER] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->AdapterProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcFX(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->AdapterProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcFX(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG) {
+		SetWindowLongPtr (hWnd,GWLP_USERDATA,lParam);
 		((DevModeDlg*)lParam)->hChild[CD_FX] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->FXProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
-}
-INT_PTR CALLBACK DlgProcScenario(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd,GWLP_USERDATA);
 
-	if (uMsg == WM_INITDIALOG) {
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+	if(dlg){
+		return dlg->FXProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
+
+}
+
+BOOL CALLBACK DlgProcScenario(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	
+	if(uMsg == WM_INITDIALOG){
+		SetWindowLongPtr (hWnd,GWLP_USERDATA,lParam);
+		
 		((DevModeDlg*)lParam)->hChild[CD_SCENARIO] = hWnd;
 	}
-	dlg = (DevModeDlg*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	if (dlg) return dlg->ScenarioProc(hWnd, uMsg, wParam, lParam);
-	else return FALSE;
+
+	dlg = (DevModeDlg*)GetWindowLongPtr (hWnd,GWLP_USERDATA);
+
+	if(dlg){
+		return dlg->ScenarioProc(hWnd,uMsg,wParam,lParam);
+	} else {
+		return false;
+	}
 }
