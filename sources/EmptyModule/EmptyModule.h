@@ -1,9 +1,13 @@
 #pragma once
+#ifndef __EMPTYMODULE_H_
+#define __EMPTYMODULE_H_
+#define STRICT
+
 /****************************************************************************
   This file is part of Multistage2015 project
   Copyright belogs to Fred18 for module implementation and its code
   Biggest Credit goes to Vinka for his idea of Multistage.dll. None of his code was used here since his addons are all closed source.
-  Credit goes to Face for having pointed me to the GetPrivateProfileString 
+  Credit goes to Face for having pointed me to the GetPrivateProfileString
   Credit goes to Hlynkacg for his OrientForBurn function which was the basis on which I developed the Attitude Function.
 
   Multistage2015 is distributed FREEWARE. Its code is distributed along with the dll. Nobody is authorized to exploit the module or the code or parts of them commercially directly or indirectly.
@@ -21,32 +25,31 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 
 
  */
-// ==============================================================
-//						MultiStage2015
-//                  
-//					       By Fred18
-//                  
-//
-// EmptyModule.h
-// ==============================================================
+ // ==============================================================
+ //						MultiStage2015
+ //                  
+ //					       By Fred18
+ //                  
+ //
+ // EmptyModule.h
+ // ==============================================================
 
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NONSTDC_NO_DEPRECATE
-#define ORBITER_MODULE
+
 
 #include "..//..//Orbitersdk//include//Orbitersdk.h"
 using namespace std;
 
-class EmptyModule:public VESSEL4{
-	public:
-	 EmptyModule(OBJHANDLE hObj,int fmodel);
-	 ~EmptyModule();
-	 void clbkSetClassCaps(FILEHANDLE cfg) override;
-	 void clbkLoadStateEx(FILEHANDLE scn,void *vs) override;
-	 void clbkSaveState(FILEHANDLE scn) override;
-	 //void clbkSetStateEx (const void *status);
+class EmptyModule :public VESSEL3 {
+public:
+	EmptyModule(OBJHANDLE hObj, int fmodel);
+	~EmptyModule();
+	void clbkSetClassCaps(FILEHANDLE cfg) override;
+	void clbkLoadStateEx(FILEHANDLE scn, void* vs) override;
+	void clbkSaveState(FILEHANDLE scn) override;
+	//void clbkSetStateEx (const void *status);
 };
 
-
-
+#endif

@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <strstream>
-#include "..//..//Orbitersdk//include//Orbitersdk.h"
+#include "orbitersdk.h"
 
 using namespace std;
 

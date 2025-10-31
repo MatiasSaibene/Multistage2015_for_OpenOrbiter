@@ -40,7 +40,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # Enlace a librerías: versiones específicas por configuración
 target_link_libraries(${PROJECT_NAME}
-    ${ORBITER_LIBS_DEBUG}
+    ${ORBITER_LIBS_RELEASE}
 )
 
 # Salida en la carpeta Modules para Debug y Release

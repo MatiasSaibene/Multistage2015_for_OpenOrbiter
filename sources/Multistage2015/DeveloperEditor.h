@@ -1,4 +1,4 @@
-#pragma once
+
 #ifndef __DEVELOPER_EDITOR
 #define __DEVELOPER_EDITOR
 

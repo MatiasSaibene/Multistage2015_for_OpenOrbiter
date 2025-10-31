@@ -33,7 +33,7 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 
 
 //############################################################################//
-//#define ORBITER_MODULE
+#define ORBITER_MODULE
 //#define _CRT_SECURE_NO_WARNINGS
 //#define _CRT_NONSTDC_NO_DEPRECATE
 #include <math.h>
@@ -44,21 +44,21 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 #include "MS_Hangar.h"
 
 //Creation
-MS_Hangar::MS_Hangar(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
+MS_Hangar::MS_Hangar(OBJHANDLE hObj,int fmodel):VESSEL3(hObj,fmodel){
 
 	PadHangar = NULL;
 
-	for(int i = 0; i < 5; i++){
+	for (int i = 0; i < 5; i++) {
 		Hangarlight[i] = NULL;
 	}
 
-	col_d = {0, 0, 0, 0};
+	col_d = { 0, 0, 0, 0 };
 
-	col_s = {0, 0, 0, 0};
+	col_s = { 0, 0, 0, 0 };
 
-	col_a = {0, 0, 0, 0};
+	col_a = { 0, 0, 0, 0 };
 
-	col_white = {0, 0, 0, 0};
+	col_white = { 0, 0, 0, 0 };
 
 	BridgeTrY = 0;
 
@@ -77,11 +77,8 @@ MS_Hangar::MS_Hangar(OBJHANDLE hObj,int fmodel):VESSEL4(hObj,fmodel){
 	TrailerTrX = 0;
 
 	hangaranims = _V(0, 0, 0);
-
 }
-
 MS_Hangar::~MS_Hangar(){}
-
 bool MS_Hangar::UpdateHangarAnimations(VECTOR3 pos)
 {
 
@@ -154,53 +151,58 @@ void MS_Hangar::clbkSetClassCaps(FILEHANDLE cfg){
 	  SetClipRadius(0.01);
 	double ro=10;
 			   TOUCHDOWNVTX td[4];
-	 for(int i=0;i<4;i++)
-	 {
+ for(int i=0;i<4;i++)
+ {
 	
-		 td[i].damping=3e5;
-		 td[i].mu=3;
-		 td[i].mu_lng=3;
-		 td[i].stiffness=3e5;
-	 }
-	 td[0].pos.x=-cos(30*RAD)*ro;
-	 td[0].pos.y=-sin(30*RAD)*ro;
-	 td[0].pos.z=0.01;
-	 td[1].pos.x=0;
-	 td[1].pos.y=1*ro;
-	 td[1].pos.z=0.01;
-	 td[2].pos.x=cos(30*RAD)*ro;
-	 td[2].pos.y=-sin(30*RAD)*ro;
-	 td[2].pos.z=0.01;
-	 td[3].pos.x=0;
-	 td[3].pos.y=0;
-	 td[3].pos.z=5*ro;
+	 td[i].damping=3e5;
+	 td[i].mu=3;
+	 td[i].mu_lng=3;
+	 td[i].stiffness=3e5;
+ }
+ td[0].pos.x=-cos(30*RAD)*ro;
+ td[0].pos.y=-sin(30*RAD)*ro;
+ td[0].pos.z=0.01;
+ td[1].pos.x=0;
+ td[1].pos.y=1*ro;
+ td[1].pos.z=0.01;
+ td[2].pos.x=cos(30*RAD)*ro;
+ td[2].pos.y=-sin(30*RAD)*ro;
+ td[2].pos.z=0.01;
+ td[3].pos.x=0;
+ td[3].pos.y=0;
+ td[3].pos.z=5*ro;
+
  
-	SetTouchdownPoints(td,4);
+SetTouchdownPoints(td,4);
 
-	char msg1[] = "Creating Hangar";
-	oapiWriteLog(msg1);
-	MESHHANDLE ms1=oapiLoadMeshGlobal("Multistage2015\\MS_Hangar\\MS_Hangar");
 
-	char msg2[] = "Hangar Mesh Loaded";
-	oapiWriteLog(msg2);
-	VECTOR3 ofs=_V(0,0,0);
-	AddMesh(ms1,&ofs);
-	col_d.a=0;
-	col_d.b=1;
-	col_d.g=0.8;
-	col_d.r=0.9;
-	col_s.a=0;
-	col_s.b=1;
-	col_s.g=0.8;
-	col_s.r=1.9;
-	col_a.a=0;
-	col_a.b=0;
-	col_a.g=0;
-	col_a.r=0;
-	col_white.a=0;
-	col_white.b=1;
-	col_white.g=1;
-	col_white.r=1;
+
+
+
+
+
+oapiWriteLog(const_cast<char *>("Creating Hangar"));
+MESHHANDLE ms1=oapiLoadMeshGlobal("Multistage2015\\MS_Hangar\\MS_Hangar");
+
+oapiWriteLog(const_cast<char *>("Hangar Mesh Loaded"));
+VECTOR3 ofs=_V(0,0,0);
+AddMesh(ms1,&ofs);
+col_d.a=0;
+col_d.b=1;
+col_d.g=0.8;
+col_d.r=0.9;
+col_s.a=0;
+col_s.b=1;
+col_s.g=0.8;
+col_s.r=1.9;
+col_a.a=0;
+col_a.b=0;
+col_a.g=0;
+col_a.r=0;
+col_white.a=0;
+col_white.b=1;
+col_white.g=1;
+col_white.r=1;
 		
 		
 		PadHangar = CreateAttachment(FALSE,_V(1.3,-10,57.75),_V(0,0,1),_V(0,1,0),"hangar",FALSE);
@@ -225,8 +227,7 @@ void MS_Hangar::clbkSetClassCaps(FILEHANDLE cfg){
 			Hangarlight[i]->Activate(FALSE);
 		}
 		
-	char msg3[]	= "Hangar Lights Created";
-	oapiWriteLog(msg3);
+	oapiWriteLog(const_cast<char *>("Hangar Lights Created"));
 
 	static UINT HookGrp[2]={574,575};
 	static MGROUP_TRANSLATE HookTr_compX (0,HookGrp,2,_V(80,0,0));
@@ -267,8 +268,13 @@ void MS_Hangar::clbkSetClassCaps(FILEHANDLE cfg){
 	SetAttachmentParams(PadHangar,hangaranims,_V(0,0,1),_V(0,1,0));
 	UpdateHangarAnimations(hangaranims);
 
-	char msg4[] = "Hangar Animations Created and Set";
-	oapiWriteLog(msg4);
+	oapiWriteLog(const_cast<char *>("Hangar Animations Created and Set"));
+
+
+
+
+
+
 
 	return;
 }

@@ -1,4 +1,4 @@
- /*********************************************************************************************
+  /*********************************************************************************************
   This file is part of Multistage2015 project
   Copyright belogs to Fred18 for module implementation and its code
   Biggest Credit goes to Vinka for his idea of Multistage.dll. None of his code was used here since his addons are all closed source.
@@ -33,7 +33,7 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 
 #include <math.h>
 #include <stdio.h>
-#include "..//..//Orbitersdk//include//Orbitersdk.h"
+#include "orbitersdk.h"
 //############################################################################//
 #include "Multistage2015.h"
 
@@ -806,7 +806,7 @@ void Multistage2015::VinkaDeleteStep(int q)
 	if(Gnc_step[q].GNC_Comand==CM_DISABLE_PITCH){pitchdisabled=FALSE;}
 	if(Gnc_step[q].GNC_Comand==CM_DISABLE_JETTISON){AJdisabled=FALSE;}
 	Gnc_step[q].GNC_Comand=CM_NOLINE;
-	sprintf(Gnc_step[q].Comand,"0");
+	sprintf(Gnc_step[q].Comand,"\0");
 	VinkaRearrangeSteps();
 	nsteps=VinkaCountSteps();
 	VinkaCheckInitialMet();
@@ -822,7 +822,7 @@ void Multistage2015::VinkaRearrangeSteps()
 	for(int q=0;q<150;q++)
 	{
 		trans[q].GNC_Comand=CM_NOLINE;
-		sprintf(trans[q].Comand,"0");
+		sprintf(trans[q].Comand,"\0");
 		trans[0].time_fin=-10000; // this should be unnecessary but who knows...
 			
 	}
@@ -1157,7 +1157,7 @@ void Multistage2015::VinkaAddStep(char input[MAXLEN])
 			}else{ value4=values.substr(findThirdComma+1,values.npos);}
 			}else{ value3=values.substr(findSecondComma+1,values.npos);}
 			}else{ value2=values.substr(findFirstComma+1,values.npos);}
-			}else{ value1=values;}
+			}else{ value1=values.substr(0,values.npos);}
 		}}
 		if(Gnc_step[nsteps+1].wValue[0]){	Gnc_step[nsteps+1].trval1=atof(&value1[0]);}else{Gnc_step[nsteps+1].trval1=0;}
 		if(Gnc_step[nsteps+1].wValue[1]){	Gnc_step[nsteps+1].trval2=atof(&value2[0]);}else{Gnc_step[nsteps+1].trval2=0;}
@@ -1205,9 +1205,7 @@ void Multistage2015::VinkaAddStep(char input[MAXLEN])
 		std::size_t findclose=line.find_first_of(")");
 		string filename=line.substr(findopen+1,findclose-findopen-1);
 			sprintf(Gnc_step[nsteps+1].Comand,"playsound");
-			size_t len = min(filename.length(), static_cast<size_t>(MAXLEN - 1));
-			filename.copy(Gnc_step[nsteps].trchar, len, 0);
-			Gnc_step[nsteps].trchar[len] = '\0';
+			filename.copy(Gnc_step[nsteps+1].trchar,MAXLEN,0);
 		}
 		
 		Gnc_step[nsteps+1]=VinkaComposeSpecificGNCSteps(Gnc_step[nsteps+1]);

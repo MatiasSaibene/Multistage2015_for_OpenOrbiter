@@ -1,14 +1,8 @@
-#include "..//..//Orbitersdk//include//Orbitersdk.h"
 #include "Multistage2015.h"
 #include "DevModeCtrl.h"	
-#include "Shlwapi.h"
-#include <iostream>
 #include <algorithm>
 #include <fstream>
 #include "Graph.h"
-#include "..//..//Orbitersdk//include//OrbiterAPI.h"
-
-
 
 DevModeDlg::DevModeDlg(Multistage2015 *_Ms15)
 {
@@ -173,7 +167,7 @@ void DevModeDlg::InitDialog(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,b
 		{
 			insertstruct.hParent=hrootBoosters;
 			char text[256];
-			sprintf(text,"Booster %i",i+1);
+			sprintf(text,"Booster %i\0",i+1);
 			insertstruct.item.pszText=(LPSTR)text;
 			insertstruct.item.cchTextMax=11;
 			TreeView_InsertItem(GetDlgItem(hWnd,IDC_TREE1),&insertstruct);
@@ -184,7 +178,7 @@ void DevModeDlg::InitDialog(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,b
 		{
 			insertstruct.hParent=hrootStages;
 			char text[256];
-			sprintf(text,"Stage %i",i+1);
+			sprintf(text,"Stage %i\0",i+1);
 			insertstruct.item.pszText=(LPSTR)text;
 			insertstruct.item.cchTextMax=10;
 			TreeView_InsertItem(GetDlgItem(hWnd,IDC_TREE1),&insertstruct);
@@ -194,7 +188,7 @@ void DevModeDlg::InitDialog(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,b
 		{
 			insertstruct.hParent=hrootParticles;
 			char text[256];
-			sprintf(text,"Particle %i",i+1);
+			sprintf(text,"Particle %i\0",i+1);
 			insertstruct.item.pszText=(LPSTR)text;
 			insertstruct.item.cchTextMax=12;
 			TreeView_InsertItem(GetDlgItem(hWnd,IDC_TREE1),&insertstruct);
@@ -204,7 +198,7 @@ void DevModeDlg::InitDialog(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,b
 		{
 			insertstruct.hParent=hrootPayloads;
 			char text[256];
-			sprintf(text,"Payload %i",i+1);
+			sprintf(text,"Payload %i\0",i+1);
 			insertstruct.item.pszText=(LPSTR)text;
 			insertstruct.item.cchTextMax=12;
 			TreeView_InsertItem(GetDlgItem(hWnd,IDC_TREE1),&insertstruct);
@@ -328,8 +322,7 @@ BOOL DevModeDlg::DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				sprintf(logbuff,"DMD: Ini File Backup Created-> File Name: %s",DestFile);
 				oapiWriteLog(logbuff);
 				}else{
-					char logMsg1[] = "DMD: Unable to Backup the ini file, Config\\Multistage2015\\Backups\\ folder may not be present";
-				oapiWriteLog(logMsg1);
+				oapiWriteLog(const_cast<char *>("DMD: Unable to Backup the ini file, Config\\Multistage2015\\Backups\\ folder may not be present"));
 				}
 				return FALSE;
 			} 
@@ -478,47 +471,63 @@ BOOL DevModeDlg::DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return oapiDefDialogProc (hWnd, uMsg, wParam, lParam);
 }
-std::string DevModeDlg::PickFileName(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool NoExtension)
+char* DevModeDlg::PickFileName(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool NoExtension=TRUE)
 {
-    char szFile[260] = {'\0'};
-    OPENFILENAME ofn;
-    HANDLE hf;
+	
 
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = hWnd;
-    ofn.lpstrFile = szFile;
-    ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "*.*\0";
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = NULL;
-    ofn.nMaxFileTitle = 0;
-    ofn.lpstrInitialDir = NULL;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	OPENFILENAME ofn;       // common dialog box structure
+				char szFile[260];       // buffer for file name
+				//HWND hwnd;              // owner window
+				HANDLE hf;              // file handle
 
-    char currentdir[MAX_PATH];
-    GetCurrentDirectory(sizeof(currentdir), currentdir);
+				// Initialize OPENFILENAME
+				ZeroMemory(&ofn, sizeof(ofn));
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = hWnd;
+				ofn.lpstrFile = szFile;
+				// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+				// use the contents of szFile to initialize itself.
+				ofn.lpstrFile[0] = '\0';
+				ofn.nMaxFile = sizeof(szFile);
+				ofn.lpstrFilter = "*.*\0";
+				ofn.nFilterIndex = 1;
+				ofn.lpstrFileTitle = NULL;
+				ofn.nMaxFileTitle = 0;
+				ofn.lpstrInitialDir = NULL;
+				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+				
+				// Display the Open dialog box. 
+				char currentdir[MAX_PATH];
+				//DWORD length=GetCurrentDirectory(0,0);
+				GetCurrentDirectory(sizeof(currentdir)/sizeof(char),currentdir);
+			
+				if (GetOpenFileName(&ofn)==TRUE) 
+					hf = CreateFile(ofn.lpstrFile, 
+									GENERIC_READ,
+									0,
+									(LPSECURITY_ATTRIBUTES) NULL,
+									OPEN_EXISTING,
+									FILE_ATTRIBUTE_NORMAL,
+									(HANDLE) NULL);
+							
+				SetCurrentDirectory(currentdir);
+				
+				char FileNameNoExtension[260]={'\0'};
+				
 
-    std::string result;
-
-    if (GetOpenFileName(&ofn) == TRUE) {
-        hf = CreateFile(ofn.lpstrFile, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-        std::string filename(szFile);
-
-        if (NoExtension && ofn.nFileExtension > 0) {
-            result = filename.substr(0, ofn.nFileExtension - 1);
-        } else {
-            result = filename;
-        }
-
-        if (hf != INVALID_HANDLE_VALUE) CloseHandle(hf);
-    }
-
-    SetCurrentDirectory(currentdir);
-    return result;
+				strncpy(FileNameNoExtension,szFile,260);
+				string filename(FileNameNoExtension);
+				string retfn=filename.substr(0,ofn.nFileExtension-1);
+				strncpy(FileNameNoExtension,retfn.c_str(),retfn.size()+1);
+				if(NoExtension)
+				{
+					if(hf)	CloseHandle(hf);
+				return FileNameNoExtension;
+				}else{
+					if(hf)  CloseHandle(hf);
+				return szFile;
+				}
 }
-
 
 UINT DevModeDlg::BoosterCurveNpts(BOOSTER bst)
 {
@@ -590,18 +599,12 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 	strcat(filebuff,filebuffname);
 	}
 	scn=oapiOpenFile(filebuff,FILE_OUT,SCENARIOS);
-	char scnMsg1[] = "BEGIN_DESC";
-	oapiWriteLine(scn, scnMsg1);
-	char scnMsg2[] = "Multistage 2015 Scenario Automatically Generated";
-	oapiWriteLine(scn, scnMsg2);
-	char scnMsg3[] = "END_DESC";
-	oapiWriteLine(scn, scnMsg3);
-	char scnMsg4[] = "";
-	oapiWriteLine(scn, scnMsg4);
-	char scnMsg5[] = "BEGIN_ENVIRONMENT";
-	oapiWriteLine(scn, scnMsg5);
-	char scnMsg6[] = "  System Sol";
-	oapiWriteLine(scn,scnMsg6);
+	oapiWriteLine(scn,const_cast<char *>("BEGIN_DESC"));
+	oapiWriteLine(scn,const_cast<char *>("Multistage 2015 Scenario Automatically Generated"));
+	oapiWriteLine(scn,const_cast<char *>("END_DESC"));
+	oapiWriteLine(scn,const_cast<char *>(""));
+	oapiWriteLine(scn,const_cast<char *>("BEGIN_ENVIRONMENT"));
+	oapiWriteLine(scn,const_cast<char *>("  System Sol"));
 	LRESULT getcheck;
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_NOW,BM_GETCHECK,0,0);
 	if(getcheck==BST_UNCHECKED)
@@ -612,41 +615,27 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 		sprintf(valbuff,"  Date MJD %.6f",date);
 		oapiWriteLine(scn,valbuff);
 	}
-	char scnMsg7[] = "END_ENVIRONMENT";
-	oapiWriteLine(scn, scnMsg7);
-	char scnMsg8[] = "";
-	oapiWriteLine(scn, scnMsg8);
-	char scnMsg9[] = "BEGIN_FOCUS";
-	oapiWriteLine(scn, scnMsg9);
+	oapiWriteLine(scn,const_cast<char *>("END_ENVIRONMENT"));
+	oapiWriteLine(scn,const_cast<char *>(""));
+	oapiWriteLine(scn,const_cast<char *>("BEGIN_FOCUS"));
 	GetDlgItemText(hChild[CD_SCENARIO],IDC_SCN_SHIPNAME,shipname,256);
 	sprintf(valbuff,"  Ship %s",shipname);
 	oapiWriteLine(scn,valbuff);
-	char scnMsg10[] = "END_FOCUS";
-	oapiWriteLine(scn, scnMsg10);
-	char scnMsg11[] = "";
-	oapiWriteLine(scn, scnMsg11);
-	char scnMsg12[] = "BEGIN_CAMERA";
-	oapiWriteLine(scn, scnMsg12);
+	oapiWriteLine(scn,const_cast<char *>("END_FOCUS"));
+	oapiWriteLine(scn,const_cast<char *>(""));
+	oapiWriteLine(scn,const_cast<char *>("BEGIN_CAMERA"));
 	sprintf(valbuff,"  TARGET %s",shipname);
 	oapiWriteLine(scn,valbuff);
-	char scnMsg13[] = "  MODE Extern";
-	oapiWriteLine(scn, scnMsg13);
-	char scnMsg14[] = "  POS 2.89 0.74 -110.96";
-	oapiWriteLine(scn, scnMsg14);
-	char scnMsg15[] = "  TRACKMODE TargetRelative";
-	oapiWriteLine(scn, scnMsg15);
-	char scnMsg16[] = "  FOV 60.00";
-	oapiWriteLine(scn, scnMsg16);
-	char scnMsg17[] = "END_CAMERA";
-	oapiWriteLine(scn, scnMsg17);
-	char scnMsg18[] = "";
-	oapiWriteLine(scn, scnMsg18);
-	char scnMsg19[] = "BEGIN_SHIPS";
-	oapiWriteLine(scn, scnMsg19);
+	oapiWriteLine(scn,const_cast<char *>("  MODE Extern"));
+	oapiWriteLine(scn,const_cast<char *>("  POS 2.89 0.74 -110.96"));
+	oapiWriteLine(scn,const_cast<char *>("  TRACKMODE TargetRelative"));
+	oapiWriteLine(scn,const_cast<char *>("  FOV 60.00"));
+	oapiWriteLine(scn,const_cast<char *>("END_CAMERA"));
+	oapiWriteLine(scn,const_cast<char *>(""));
+	oapiWriteLine(scn,const_cast<char *>("BEGIN_SHIPS"));
 	sprintf(valbuff,"%s:Multistage2015",shipname);
 	oapiWriteLine(scn,valbuff);
-	char scnMsg20[] = "  STATUS Landed Earth";
-	oapiWriteLine(scn, scnMsg20);
+	oapiWriteLine(scn,const_cast<char *>("  STATUS Landed Earth"));
 	GetDlgItemText(hChild[CD_SCENARIO],IDC_SCN_LAT,valbuff,256);
 	double lat,lng;
 	sscanf(valbuff,"%lf",&lat);
@@ -659,10 +648,8 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 	sscanf(valbuff,"%lf",&hdg);
 	sprintf(valbuff,"  HEADING %.2f",hdg);
 	oapiWriteLine(scn,valbuff);
-	char scnMsg21[] = "  FUEL 1.000";
-	oapiWriteLine(scn, scnMsg21);
-	char scnMsg22[] = "  CONFIGURATION 0";
-	oapiWriteLine(scn, scnMsg22);
+	oapiWriteLine(scn,const_cast<char *>("  FUEL 1.000"));
+	oapiWriteLine(scn,const_cast<char *>("  CONFIGURATION 0"));
 	GetDlgItemText(hChild[CD_SCENARIO],IDC_SCN_CONFIGFILE,stringbuff,256);
 	sprintf(valbuff,"  CONFIG_FILE %s",stringbuff);
 	oapiWriteLine(scn,valbuff);
@@ -683,14 +670,12 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_COMPLEX,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
 	{
-		char scnMsg23[] = "  COMPLEX";
-		oapiWriteLine(scn, scnMsg23);
+		oapiWriteLine(scn,const_cast<char *>("  COMPLEX"));
 	}
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_GROWINGPART,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
 	{
-		char scnMsg24[] = "  GROWING_PARTICLES";
-		oapiWriteLine(scn, scnMsg24);
+		oapiWriteLine(scn,const_cast<char *>("  GROWING_PARTICLES"));
 	}
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_FAILURES,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
@@ -704,20 +689,17 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_CAMERA,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
 	{
-		char scnMsg25[] = "  CAMERA";
-		oapiWriteLine(scn, scnMsg25);
+		oapiWriteLine(scn,const_cast<char *>("  CAMERA"));
 	}
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_HANGAR,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
 	{
-		char scnMsg26[] = "  HANGAR";
-		oapiWriteLine(scn, scnMsg26);
+		oapiWriteLine(scn,const_cast<char *>("  HANGAR"));
 	}
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_CRAWLER,BM_GETCHECK,0,0);
 	if(getcheck==BST_CHECKED)
 	{
-		char scnMsg27[] = "  CRAWLER";
-		oapiWriteLine(scn, scnMsg27);
+		oapiWriteLine(scn,const_cast<char *>("  CRAWLER"));
 	}
 	getcheck=SendDlgItemMessage(hChild[CD_SCENARIO],IDC_SCN_PEGDEFAULT,BM_GETCHECK,0,0);
 	if(getcheck==BST_UNCHECKED)
@@ -746,8 +728,7 @@ bool DevModeDlg::SaveScenarioFile(bool defname)
 		sprintf(valbuff,"  PEG_MC_INTERVAL %.3f",pegmcinterval);
 		oapiWriteLine(scn,valbuff);
 	}
-	char scnMsgEnd[] = "END";
-	oapiWriteLine(scn, scnMsgEnd);
+	oapiWriteLine(scn,const_cast<char *>("END"));
 	oapiCloseFile(scn,FILE_OUT);
 	return TRUE;
 }
@@ -1186,7 +1167,7 @@ BOOL DevModeDlg::AdapterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_ADAPTER_PICKMESH:
 				{
 					char FileNameChar[MAX_PATH];
-					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 					char dir[MAX_PATH];
 					int len=GetCurrentDirectory(MAX_PATH,dir);
 					char Msh[9]={"\\Meshes\0"};
@@ -1278,7 +1259,7 @@ BOOL DevModeDlg::InterstageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_INTERSTAGE_PICKMESH:
 				{
 					char FileNameChar[MAX_PATH];
-					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 					char dir[MAX_PATH];
 					int len=GetCurrentDirectory(MAX_PATH,dir);
 					char Msh[9]={"\\Meshes\0"};
@@ -1297,7 +1278,7 @@ BOOL DevModeDlg::InterstageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			case IDC_INTERSTAGE_PICKMODULE:
 				{
 					char FileNameChar[MAX_PATH];
-					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+					sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 					char dir[MAX_PATH];
 					int len=GetCurrentDirectory(MAX_PATH,dir);
 					char Msh[17]={"\\Config\\Vessels\0"};
@@ -1631,7 +1612,7 @@ BOOL DevModeDlg::StageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					
 
 				char FileNameChar[MAX_PATH];
-				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 			
 				char dir[MAX_PATH];
 			
@@ -1658,8 +1639,7 @@ BOOL DevModeDlg::StageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 			
 				char FileNameChar[MAX_PATH];
-				std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-				strcpy(FileNameChar, filename.c_str());
+				sprintf_s(FileNameChar,PickFileName(hWnd,uMsg,wParam,lParam));
 			
 				char dir[MAX_PATH];
 			
@@ -1870,7 +1850,7 @@ BOOL DevModeDlg::LesProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case IDC_LES_PICKMESH:
 			{
 				char FileNameChar[MAX_PATH];
-				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 				char dir[MAX_PATH];
 				int len=GetCurrentDirectory(MAX_PATH,dir);
 				char Msh[9]={"\\Meshes\0"};
@@ -1889,8 +1869,8 @@ BOOL DevModeDlg::LesProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case IDC_LES_PICKMODULE:
 			{
 				char FileNameChar[MAX_PATH];
-				std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-				strcpy(FileNameChar, filename.c_str());			
+				sprintf_s(FileNameChar,PickFileName(hWnd,uMsg,wParam,lParam));
+			
 				char dir[MAX_PATH];
 			
 				int len=GetCurrentDirectory(MAX_PATH,dir);
@@ -2150,8 +2130,7 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					boosterid=GetDlgItemInt(hChild[CD_BOOSTER],IDC_BOOSTER_ID,FALSE,FALSE);
 			char FileNameChar[MAX_PATH];
-			std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-			strcpy(FileNameChar, filename.c_str());
+			sprintf_s(FileNameChar,PickFileName(hWnd,uMsg,wParam,lParam));
 			
 			char dir[MAX_PATH];
 			
@@ -2176,8 +2155,7 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					boosterid=GetDlgItemInt(hChild[CD_BOOSTER],IDC_BOOSTER_ID,FALSE,FALSE);
 			char FileNameChar[MAX_PATH];
-			std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-			strcpy(FileNameChar, filename.c_str());
+			sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 			
 			char dir[MAX_PATH];
 			
@@ -2846,7 +2824,7 @@ BOOL DevModeDlg::FairingProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_FAIR_PICKMESH:
 				{
 				char FileNameChar[MAX_PATH];
-				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+				sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 				char dir[MAX_PATH];
 				int len=GetCurrentDirectory(MAX_PATH,dir);
 				char Msh[9]={"\\Meshes\0"};
@@ -2919,8 +2897,7 @@ BOOL DevModeDlg::FairingProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 			
 			char FileNameChar[MAX_PATH];
-			std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-			strcpy(FileNameChar, filename.c_str());
+			sprintf_s(FileNameChar,PickFileName(hWnd,uMsg,wParam,lParam));
 			
 			char dir[MAX_PATH];
 			
@@ -3035,7 +3012,7 @@ BOOL DevModeDlg::PldProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 			pldid=GetDlgItemInt(hChild[CD_PLD],IDC_PLD_ID,FALSE,FALSE);
 			char FileNameChar[MAX_PATH];
-			sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam, true).c_str());
+			sprintf(FileNameChar,"%s", PickFileName(hWnd,uMsg,wParam,lParam));
 			
 			char dir[MAX_PATH];
 			
@@ -3065,8 +3042,7 @@ BOOL DevModeDlg::PldProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 			pldid=GetDlgItemInt(hChild[CD_PLD],IDC_PLD_ID,FALSE,FALSE);
 			char FileNameChar[MAX_PATH];
-			std::string filename = PickFileName(hWnd, uMsg, wParam, lParam, true);
-			strcpy(FileNameChar, filename.c_str());
+			sprintf_s(FileNameChar,PickFileName(hWnd,uMsg,wParam,lParam));
 			
 			char dir[MAX_PATH];
 			
@@ -5704,7 +5680,7 @@ void DevModeDlg::Notify(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			TreeView_GetItem(GetDlgItem(hWnd,IDC_TREE1),&tvi);
 			char item[256];
 			UINT id=0;
-			sscanf(text,"%s %i",item,&id);
+			sscanf(text,"%s %i",&item,&id);
 			//removeSpaces(item);
 			for(int i=0;i<sizeof(item)/sizeof(char);i++)
 			{
