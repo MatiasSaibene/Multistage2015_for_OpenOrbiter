@@ -79,15 +79,15 @@ bool WriteIni::WritePayload(PAYLOAD pld, UINT idx, bool Erase)
 
 	SetCurrentSection(sectionpld);
 	if (!Erase) {
-		W("Meshname", pld.meshname);
+		W("Meshname", pld.meshname.data());
 		//Wvec("Off",pld.off[0],filename);
 		W("Off", pld.MultiOffset);
 		Wvec("Rotation", pld.Rotation);
 		Wdouble("Height", pld.height);
 		Wdouble("Diameter", pld.diameter);
 		Wdouble("Mass", pld.mass);
-		W("Module", pld.module);
-		W("Name", pld.name);
+		W("Module", pld.module.data());
+		W("Name", pld.name.data());
 		Wvec("Speed", pld.speed);
 		Wvec("Rot_speed", pld.rot_speed);
 		Wint("Render", pld.render);
@@ -107,14 +107,14 @@ bool WriteIni::WriteFairing(FAIRING frg, bool wFairing)
 	SetCurrentSection(sectionFair);
 	if (wFairing)
 	{
-		W("Meshname", frg.meshname);
+		W("Meshname", frg.meshname.data());
 		Wvec("Off", frg.off);
 		Wint("N", frg.N);
 		Wdouble("Angle", frg.angle);
 		Wdouble("Height", frg.height);
 		Wdouble("Diameter", frg.diameter);
 		Wdouble("EmptyMass", frg.emptymass);
-		W("Module", frg.module);
+		W("Module", frg.module.data());
 		Wvec("Speed", frg.speed);
 		Wvec("Rot_Speed", frg.rot_speed);
 	}
@@ -293,7 +293,7 @@ bool WriteIni::WriteBooster(BOOSTER bst, UINT idx, bool Erase)
 	{
 		Wint("N", bst.N);
 		Wdouble("Angle", bst.angle * DEG);
-		W("Meshname", bst.meshname);
+		W("Meshname", bst.meshname.data());
 		Wvec("Off", bst.off);
 		Wdouble("Height", bst.height);
 		Wdouble("Diameter", bst.diameter);
@@ -306,9 +306,9 @@ bool WriteIni::WriteBooster(BOOSTER bst, UINT idx, bool Erase)
 		Wdouble("BurnDelay", bst.burndelay);
 		//}
 		Wdouble("Eng_diameter", bst.eng_diameter);
-		W("Eng_tex", bst.eng_tex);
-		W("Eng_pstream1", bst.eng_pstream1);
-		W("Eng_pstream2", bst.eng_pstream2);
+		W("Eng_tex", bst.eng_tex.data());
+		W("Eng_pstream1", bst.eng_pstream1.data());
+		W("Eng_pstream2", bst.eng_pstream2.data());
 
 		if ((bst.eng_dir.x != 0) && (bst.eng_dir.y != 0) && (bst.eng_dir.z != 1))
 		{
@@ -347,7 +347,7 @@ bool WriteIni::WriteBooster(BOOSTER bst, UINT idx, bool Erase)
 		if (bst.expbolt.wExpbolt)
 		{
 			Wvec("Expbolts_Pos", bst.expbolt.pos);
-			W("Expbolts_Pstream", bst.expbolt.pstream);
+			W("Expbolts_Pstream", bst.expbolt.pstream.data());
 			Wdouble("Expbolts_Anticipation", bst.expbolt.anticipation);
 		}
 
@@ -382,7 +382,7 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 	SetCurrentSection(sectionstage);
 	if (!Erase)
 	{
-		W("Meshname", stg.meshname);
+		W("Meshname", stg.meshname.data());
 		Wvec("Off", stg.off);
 		Wdouble("Height", stg.height);
 		Wdouble("Diameter", stg.diameter);
@@ -471,24 +471,24 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 		{
 			buffreset[i] = '0';
 		}
-		if (strncmp(stg.eng_tex, buffreset, MAXLEN - 5) == 0) {
+		if (strncmp(stg.eng_tex.data(), buffreset, MAXLEN - 5) == 0) {
 			W("Eng_tex", NULL);
 		}
 		else {
-			W("Eng_tex", stg.eng_tex);
+			W("Eng_tex", stg.eng_tex.data());
 		}
-		if (strncmp(stg.eng_pstream1, buffreset, MAXLEN - 5) == 0) {
+		if (strncmp(stg.eng_pstream1.data(), buffreset, MAXLEN - 5) == 0) {
 			W("Eng_pstream1", NULL);
 		}
 		else {
-			W("Eng_pstream1", stg.eng_pstream1);
+			W("Eng_pstream1", stg.eng_pstream1.data());
 		}
 
-		if (strncmp(stg.eng_pstream2, buffreset, MAXLEN - 5) == 0) {
+		if (strncmp(stg.eng_pstream2.data(), buffreset, MAXLEN - 5) == 0) {
 			W("Eng_pstream2", NULL);
 		}
 		else {
-			W("Eng_pstream2", stg.eng_pstream2);
+			W("Eng_pstream2", stg.eng_pstream2.data());
 		}
 
 		if (stg.ParticlesPacked)
@@ -497,7 +497,7 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 		}
 		Wvec("Eng_dir", stg.eng_dir);
 
-		W("Module", stg.module);
+		W("Module", stg.module.data());
 		Wvec("Speed", stg.speed);
 		Wvec("Rot_speed", stg.rot_speed);
 
@@ -530,7 +530,7 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 		if (stg.expbolt.wExpbolt)
 		{
 			Wvec("Expbolt_pos", stg.expbolt.pos);
-			W("Expbolt_pstream", stg.expbolt.pstream);
+			W("Expbolt_pstream", stg.expbolt.pstream.data());
 			Wdouble("Expbolt_anticipation", stg.expbolt.anticipation);
 		}
 		else {
@@ -550,7 +550,7 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 		if (idx > 0) {
 			if (stg.wInter)
 			{
-				W("Meshname", stg.interstage.meshname);
+				W("Meshname", stg.interstage.meshname.data());
 				Wvec("Off", stg.interstage.off);
 				Wdouble("Height", stg.interstage.height);
 				Wdouble("Diameter", stg.interstage.diameter);
@@ -563,7 +563,7 @@ bool WriteIni::WriteStage(STAGE stg, UINT idx, bool Erase)
 					W("Separation_delay", NULL);
 				}
 
-				W("Module", stg.interstage.module);
+				W("Module", stg.interstage.module.data());
 				Wvec("Speed", stg.interstage.speed);
 				Wvec("Rot_speed", stg.interstage.rot_speed);
 			}
@@ -596,12 +596,12 @@ bool WriteIni::WriteLes(LES les, bool wLes)
 
 	if (wLes)
 	{
-		W("Meshname", les.meshname);
+		W("Meshname", les.meshname.data());
 		Wvec("Off", les.off);
 		Wdouble("Height", les.height);
 		Wdouble("Diameter", les.diameter);
 		Wdouble("EmptyMass", les.emptymass);
-		W("Module", les.module);
+		W("Module", les.module.data());
 		Wvec("Speed", les.speed);
 		Wvec("Rot_speed", les.rot_speed);
 	}
@@ -626,7 +626,7 @@ bool WriteIni::WriteAdapter(ADAPTER adp, bool wAdapter)
 
 	if (wAdapter)
 	{
-		W("Meshname", adp.meshname);
+		W("Meshname", adp.meshname.data());
 		Wvec("Off", adp.off);
 		Wdouble("Height", adp.height);
 		Wdouble("Diameter", adp.diameter);
@@ -650,7 +650,7 @@ bool WriteIni::WriteFX_Mach(FX_MACH fxm, bool wMach)
 	char buff[28];
 	if (wMach)
 	{
-		W("pstream", fxm.pstream);
+		W("pstream", fxm.pstream.data());
 		Wdouble("Mach_min", fxm.mach_min);
 		Wdouble("Mach_max", fxm.mach_max);
 		Wvec("Dir", fxm.dir);
@@ -684,7 +684,7 @@ bool WriteIni::WriteFX_Vent(FX_VENT fxv, bool wVent)
 	char buff[28];
 	if (wVent)
 	{
-		W("pstream", fxv.pstream);
+		W("pstream", fxv.pstream.data());
 		for (UINT i = 1; i <= fxv.nVent; i++)
 		{
 			sprintf(buff, "Off_%i", i);

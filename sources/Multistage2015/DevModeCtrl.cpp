@@ -549,7 +549,7 @@ void DevModeDlg::SaveInterstage(UINT stageid)
 					if(check==BST_CHECKED)
 					{
 						DMD_stage[stageid].wInter=TRUE;
-						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_MESHNAME,DMD_stage[stageid].interstage.meshname,128);
+						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_MESHNAME,DMD_stage[stageid].interstage.meshname.data(),128);
 						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_OFFX,buff,128);
 						sscanf(buff,"%lf",&DMD_stage[stageid].interstage.off.x);
 						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_OFFY,buff,128);
@@ -564,7 +564,7 @@ void DevModeDlg::SaveInterstage(UINT stageid)
 						sscanf(buff,"%lf",&DMD_stage[stageid].interstage.emptymass);
 						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_SEPARATIONDELAY,buff,128);
 						sscanf(buff,"%lf",&DMD_stage[stageid].interstage.separation_delay);
-						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_MODULE,DMD_stage[stageid].interstage.module,128);
+						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_MODULE,DMD_stage[stageid].interstage.module.data(),128);
 						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_SPDX,buff,128);
 						sscanf(buff,"%lf",&DMD_stage[stageid].interstage.speed.x);
 						GetDlgItemText(hChild[CD_INTERSTAGE],IDC_INTERSTAGE_SPDY,buff,128);
@@ -1049,7 +1049,7 @@ BOOL DevModeDlg::FXProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if(getcheck == BST_CHECKED)
 					{
 						DMD_wVent=TRUE;
-						GetDlgItemText(hChild[CD_FX],IDC_FXVENT_PSTREAM,DMD_FX_Vent.pstream,128);
+						GetDlgItemText(hChild[CD_FX],IDC_FXVENT_PSTREAM,DMD_FX_Vent.pstream.data(),128);
 						DMD_FX_Vent.nVent=SendDlgItemMessage(hChild[CD_FX],IDC_FXVENT_CB,CB_GETCURSEL,0,0);
 						DMD_FX_Vent.off[0]=_V(0,0,0);
 						DMD_FX_Vent.off[1]=GetDlgItemVector3(hChild[CD_FX],IDC_FXVENT_OFF1X,IDC_FXVENT_OFF1Y,IDC_FXVENT_OFF1Z,128);
@@ -1085,7 +1085,7 @@ BOOL DevModeDlg::FXProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if(getcheck == BST_CHECKED)
 					{
 						DMD_wMach=TRUE;
-						GetDlgItemText(hChild[CD_FX],IDC_FXMACH_PSTREAM,DMD_FX_Mach.pstream,128);
+						GetDlgItemText(hChild[CD_FX],IDC_FXMACH_PSTREAM,DMD_FX_Mach.pstream.data(),128);
 						DMD_FX_Mach.nmach=SendDlgItemMessage(hChild[CD_FX],IDC_FXMACH_CB,CB_GETCURSEL,0,0);
 						DMD_FX_Mach.mach_max=GetDlgItemDouble(hChild[CD_FX],IDC_FXMACH_MAX,128);
 						DMD_FX_Mach.mach_min=GetDlgItemDouble(hChild[CD_FX],IDC_FXMACH_MIN,128);
@@ -1189,7 +1189,7 @@ BOOL DevModeDlg::AdapterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if(getcheck == BST_CHECKED)
 					{
 						DMD_wAdapter=TRUE;
-						GetDlgItemText(hChild[CD_ADAPTER],IDC_ADAPTER_MESHNAME,DMD_Adapter.meshname,128);
+						GetDlgItemText(hChild[CD_ADAPTER],IDC_ADAPTER_MESHNAME,DMD_Adapter.meshname.data(),128);
 						DMD_Adapter.off=GetDlgItemVector3(hChild[CD_ADAPTER],IDC_ADAPTER_OFFX,IDC_ADAPTER_OFFY,IDC_ADAPTER_OFFZ,128);
 						DMD_Adapter.height=GetDlgItemDouble(hChild[CD_ADAPTER],IDC_ADAPTER_HEIGHT,128);
 						DMD_Adapter.diameter=GetDlgItemDouble(hChild[CD_ADAPTER],IDC_ADAPTER_DIAM,128);
@@ -1350,7 +1350,7 @@ void DevModeDlg::SaveUllage(UINT stageid)
 					if(check==BST_CHECKED)
 					{
 						DMD_stage[stageid].expbolt.wExpbolt=TRUE;
-						GetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBPS,DMD_stage[stageid].expbolt.pstream,128);
+						GetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBPS,DMD_stage[stageid].expbolt.pstream.data(),128);
 						GetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBX,buff,128);
 						sscanf(buff,"%lf",&DMD_stage[stageid].expbolt.pos.x);
 						GetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBY,buff,128);
@@ -1669,7 +1669,7 @@ BOOL DevModeDlg::StageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					{
 						UINT stageid=GetDlgItemInt(hChild[CD_STAGE],IDC_STAGE_ID,FALSE,FALSE);
 //						char buff[128];
-						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MESHNAME,DMD_stage[stageid].meshname,128);
+						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MESHNAME,DMD_stage[stageid].meshname.data(),128);
 						DMD_stage[stageid].off=GetDlgItemVector3(hChild[CD_STAGE],IDC_STAGE_OFFX,IDC_STAGE_OFFY,IDC_STAGE_OFFZ,128);
 						DMD_stage[stageid].height=GetDlgItemDouble(hChild[CD_STAGE],IDC_STAGE_HEIGHT,128);
 						DMD_stage[stageid].diameter=GetDlgItemDouble(hChild[CD_STAGE],IDC_STAGE_DIAM,128);
@@ -1697,9 +1697,9 @@ BOOL DevModeDlg::StageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						}
 
 						DMD_stage[stageid].eng_diameter=GetDlgItemDouble(hChild[CD_STAGE],IDC_STAGE_ENGDIAM,128);
-						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGTEX,DMD_stage[stageid].eng_tex,128);
-						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS1,DMD_stage[stageid].eng_pstream1,128);
-						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS2,DMD_stage[stageid].eng_pstream2,128);
+						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGTEX,DMD_stage[stageid].eng_tex.data(),128);
+						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS1,DMD_stage[stageid].eng_pstream1.data(),128);
+						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS2,DMD_stage[stageid].eng_pstream2.data(),128);
 						
 						getcheck=SendDlgItemMessage(hChild[CD_STAGE],IDC_STAGE_PARTPACKCHECK,BM_GETCHECK,0,0);
 						if(getcheck == BST_CHECKED)
@@ -1788,7 +1788,7 @@ BOOL DevModeDlg::StageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 							DMD_stage[stageid].linearthrust=GetDlgItemDouble(hChild[CD_STAGE],IDC_STAGE_LINEARTHRUST,128);
 						}
 
-						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MODULE,DMD_stage[stageid].module,128);
+						GetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MODULE,DMD_stage[stageid].module.data(),128);
 						DMD_stage[stageid].speed=GetDlgItemVector3(hChild[CD_STAGE],IDC_STAGE_SPDX,IDC_STAGE_SPDY,IDC_STAGE_SPDZ,128);
 						DMD_stage[stageid].rot_speed=GetDlgItemVector3(hChild[CD_STAGE],IDC_STAGE_RSPDX,IDC_STAGE_RSPDY,IDC_STAGE_RSPDZ,128);
 
@@ -1896,12 +1896,12 @@ BOOL DevModeDlg::LesProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if(getcheck == BST_CHECKED)
 				{
 					DMD_wLes=TRUE;
-					GetDlgItemText(hChild[CD_LES],IDC_LES_MESHNAME,DMD_Les.meshname,128);
+					GetDlgItemText(hChild[CD_LES],IDC_LES_MESHNAME,DMD_Les.meshname.data(),128);
 					DMD_Les.off=GetDlgItemVector3(hChild[CD_LES],IDC_LES_OFFX,IDC_LES_OFFY,IDC_LES_OFFZ,128);
 					DMD_Les.height=GetDlgItemDouble(hChild[CD_LES],IDC_LES_HEIGHT,128);
 					DMD_Les.diameter=GetDlgItemDouble(hChild[CD_LES],IDC_LES_DIAM,128);
 					DMD_Les.emptymass=GetDlgItemDouble(hChild[CD_LES],IDC_LES_EMPTYMASS,128);
-					GetDlgItemText(hChild[CD_LES],IDC_LES_MODULE,DMD_Les.module,128);
+					GetDlgItemText(hChild[CD_LES],IDC_LES_MODULE,DMD_Les.module.data(),128);
 					DMD_Les.speed=GetDlgItemVector3(hChild[CD_LES],IDC_LES_SPDX,IDC_LES_SPDY,IDC_LES_SPDZ,128);
 					DMD_Les.rot_speed=GetDlgItemVector3(hChild[CD_LES],IDC_LES_RSPDX, IDC_LES_RSPDY, IDC_LES_RSPDZ,128);
 				}else{
@@ -2230,7 +2230,7 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ANGLE,buff,128);
 					sscanf(buff,"%lf",&DMD_booster[boosterid].angle);
 					DMD_booster[boosterid].angle*=RAD;
-					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_MESHNAME,DMD_booster[boosterid].meshname,128);
+					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_MESHNAME,DMD_booster[boosterid].meshname.data(),128);
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_OFFX,buff,128);
 					sscanf(buff,"%lf",&DMD_booster[boosterid].off.x);
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_OFFY,buff,128);
@@ -2255,9 +2255,9 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGDIAM,buff,128);
 					sscanf(buff,"%lf",&DMD_booster[boosterid].eng_diameter);
-					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGTEX,DMD_booster[boosterid].eng_tex,128);
-					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGPS1,DMD_booster[boosterid].eng_pstream1,128);
-					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGPS2,DMD_booster[boosterid].eng_pstream2,128);
+					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGTEX,DMD_booster[boosterid].eng_tex.data(),128);
+					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGPS1,DMD_booster[boosterid].eng_pstream1.data(),128);
+					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGPS2,DMD_booster[boosterid].eng_pstream2.data(),128);
 
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_ENGDIRX,buff,128);
 					sscanf(buff,"%lf",&DMD_booster[boosterid].eng_dir.x);
@@ -2353,7 +2353,7 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						}
 					}
 					
-					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_MODULE,DMD_booster[boosterid].module,256);
+					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_MODULE,DMD_booster[boosterid].module.data(),256);
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_SPDX,buff,128);
 					sscanf(buff,"%lf",&DMD_booster[boosterid].speed.x);
 					GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_SPDY,buff,128);
@@ -2372,7 +2372,7 @@ BOOL DevModeDlg::BoosterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					getcheck=SendDlgItemMessage(hChild[CD_BOOSTER],IDC_BOOSTER_WEXPB,BM_GETCHECK,0,0);
 					if(getcheck==BST_CHECKED)
 					{
-						GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBPS,DMD_booster[boosterid].expbolt.pstream,128);
+						GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBPS,DMD_booster[boosterid].expbolt.pstream.data(),128);
 						GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBANT,buff,128);
 						sscanf(buff,"%lf",&DMD_booster[boosterid].expbolt.anticipation);
 						GetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBX,buff,128);
@@ -2953,7 +2953,7 @@ BOOL DevModeDlg::FairingProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_FAIR_STOREVALS:
 			{
 				char buff[128];
-				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_MESHNAME,(LPSTR)DMD_fairing.meshname,128);
+				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_MESHNAME,(LPSTR)DMD_fairing.meshname.data(),128);
 				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_OFFX,(LPSTR)buff,128);
 				sscanf(buff,"%lf",&DMD_fairing.off.x);
 				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_OFFY,(LPSTR)buff,128);
@@ -2972,7 +2972,7 @@ BOOL DevModeDlg::FairingProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				sscanf(buff,"%lf",&DMD_fairing.diameter);
 				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_EMPTYMASS,(LPSTR)buff,128);
 				sscanf(buff,"%lf",&DMD_fairing.emptymass);
-				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_MODULE,(LPSTR)DMD_fairing.module,128);
+				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_MODULE,(LPSTR)DMD_fairing.module.data(),128);
 				
 				GetDlgItemText(hChild[CD_FAIRING],IDC_FAIR_SPDX,(LPSTR)buff,128);
 				sscanf(buff,"%lf",&DMD_fairing.speed.x);
@@ -3083,10 +3083,10 @@ BOOL DevModeDlg::PldProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				getcheck=SendDlgItemMessage(hChild[CD_PLD],IDC_PLD_MULTIMSH,BM_GETCHECK,0,0);
 				if(getcheck==BST_CHECKED)
 				{
-				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MULTIMSHNAME,(LPSTR)DMD_payload[pldid].meshname,128);
+				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MULTIMSHNAME,(LPSTR)DMD_payload[pldid].meshname.data(),128);
 				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MULTIOFF,(LPSTR)DMD_payload[pldid].MultiOffset,128);
 				}else{
-				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MESHNAME,(LPSTR)DMD_payload[pldid].meshname,128);
+				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MESHNAME,(LPSTR)DMD_payload[pldid].meshname.data(),128);
 				GetDlgItemText(hChild[CD_PLD],IDC_PLD_OFFX,(LPSTR)buff,128);
 				sscanf(buff,"%lf",&DMD_payload[pldid].off[0].x);
 				GetDlgItemText(hChild[CD_PLD],IDC_PLD_OFFY,(LPSTR)buff,128);
@@ -3096,8 +3096,8 @@ BOOL DevModeDlg::PldProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				sprintf(DMD_payload[pldid].MultiOffset,"(%.3f,%.3f,%.3f)",DMD_payload[pldid].off[0].x,DMD_payload[pldid].off[0].y,DMD_payload[pldid].off[0].z);
 				
 				}
-				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MODULE,(LPSTR)DMD_payload[pldid].module,128);
-				GetDlgItemText(hChild[CD_PLD],IDC_PLD_NAME,(LPSTR)DMD_payload[pldid].name,128);
+				GetDlgItemText(hChild[CD_PLD],IDC_PLD_MODULE,(LPSTR)DMD_payload[pldid].module.data(),128);
+				GetDlgItemText(hChild[CD_PLD],IDC_PLD_NAME,(LPSTR)DMD_payload[pldid].name.data(),128);
 				
 				
 
@@ -3596,7 +3596,7 @@ void DevModeDlg::PopulateBoosters(UINT iddialog, UINT id)
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_N,buff);
 			sprintf(buff,"%.1f",DMD_booster[id-1].angle);
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ANGLE,buff);
-			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_MESHNAME,DMD_booster[id-1].meshname);
+			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_MESHNAME,DMD_booster[id-1].meshname.data());
 			sprintf(buff,"%.3f",DMD_booster[id-1].off.x);
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_OFFX,buff);
 			sprintf(buff,"%.3f",DMD_booster[id-1].off.y);
@@ -3628,13 +3628,13 @@ void DevModeDlg::PopulateBoosters(UINT iddialog, UINT id)
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGDIAM,buff);
 			if(DMD_booster[id-1].eng_tex[0]=='0'){
 				SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGTEX,emptybuff.c_str());}else{
-					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGTEX,DMD_booster[id-1].eng_tex);}
+					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGTEX,DMD_booster[id-1].eng_tex.data());}
 			if(DMD_booster[id-1].eng_pstream1[0]=='0'){
 				SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS1,emptybuff.c_str());}else{
-					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS1,DMD_booster[id-1].eng_pstream1);}
+					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS1,DMD_booster[id-1].eng_pstream1.data());}
 			if(DMD_booster[id-1].eng_pstream2[0]=='0'){
 				SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS2,emptybuff.c_str());}else{
-					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS2,DMD_booster[id-1].eng_pstream2);}
+					SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGPS2,DMD_booster[id-1].eng_pstream2.data());}
 
 			sprintf(buff,"%.3f",DMD_booster[id-1].eng_dir.x);
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_ENGDIRX,buff);
@@ -3783,7 +3783,7 @@ void DevModeDlg::PopulateBoosters(UINT iddialog, UINT id)
 
 			}
 
-			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_MODULE,DMD_booster[id-1].module);
+			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_MODULE,DMD_booster[id-1].module.data());
 			sprintf(buff,"%.3f",DMD_booster[id-1].speed.x);
 			SetDlgItemText(hChild[iddialog],IDC_BOOSTER_SPDX,buff);
 			sprintf(buff,"%.3f",DMD_booster[id-1].speed.y);
@@ -3802,7 +3802,7 @@ void DevModeDlg::PopulateBoosters(UINT iddialog, UINT id)
 			if(DMD_booster[id-1].expbolt.wExpbolt)
 			{
 				SendDlgItemMessage(hChild[CD_BOOSTER],IDC_BOOSTER_WEXPB,BM_SETCHECK,BST_CHECKED,0);
-				SetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBPS,DMD_booster[id-1].expbolt.pstream);
+				SetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBPS,DMD_booster[id-1].expbolt.pstream.data());
 				sprintf(buff,"%.3f",DMD_booster[id-1].expbolt.anticipation);
 				SetDlgItemText(hChild[CD_BOOSTER],IDC_BOOSTER_EXPBANT,buff);
 				sprintf(buff,"%.3f",DMD_booster[id-1].expbolt.pos.x);
@@ -4260,7 +4260,7 @@ void DevModeDlg::PopulateStages(UINT iddialog, UINT id)
 	}
 	sprintf(buff,"%i",id-1);
 	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ID,buff);
-	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MESHNAME,DMD_stage[id-1].meshname);
+	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MESHNAME,DMD_stage[id-1].meshname.data());
 	sprintf(buff,"%.3f",DMD_stage[id-1].off.x);
 	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_OFFX,buff);
 	sprintf(buff,"%.3f",DMD_stage[id-1].off.y);
@@ -4357,13 +4357,13 @@ void DevModeDlg::PopulateStages(UINT iddialog, UINT id)
 	sprintf(buff,"%.3f",DMD_stage[id-1].eng_diameter);
 	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGDIAM,buff);
 	if(DMD_stage[id-1].eng_tex[0]!='0'){
-		SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGTEX,DMD_stage[id-1].eng_tex);
+		SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGTEX,DMD_stage[id-1].eng_tex.data());
 	}else{SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGTEX,buffempty);}
 	if(DMD_stage[id-1].eng_pstream1[0]!='0'){
-	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS1,DMD_stage[id-1].eng_pstream1);
+	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS1,DMD_stage[id-1].eng_pstream1.data());
 	}else{SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS1,buffempty);}
 	if(DMD_stage[id-1].eng_pstream2[0]!='0'){
-	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS2,DMD_stage[id-1].eng_pstream2);
+	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS2,DMD_stage[id-1].eng_pstream2.data());
 	}else{SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_ENGPS2,buffempty);}
 	if(DMD_stage[id-1].ParticlesPacked)
 	{
@@ -4416,7 +4416,7 @@ void DevModeDlg::PopulateStages(UINT iddialog, UINT id)
 	SetMultipleDlgItemsText(hChild[CD_STAGE],SetTextz,engz,5);
 	SetMultipleDlgItemsText(hChild[CD_STAGE],SetTextt,engt,5);
 	
-	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MODULE,DMD_stage[id-1].module);
+	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_MODULE,DMD_stage[id-1].module.data());
 	sprintf(buff,"%.3f",DMD_stage[id-1].speed.x);
 	SetDlgItemText(hChild[CD_STAGE],IDC_STAGE_SPDX,buff);
 	sprintf(buff,"%.3f",DMD_stage[id-1].speed.y);
@@ -4435,7 +4435,7 @@ void DevModeDlg::PopulateStages(UINT iddialog, UINT id)
 			if(DMD_stage[id-1].expbolt.wExpbolt)
 			{
 				SendDlgItemMessage(hChild[CD_ULLAGE],IDC_STAGE_WEXPB,BM_SETCHECK,BST_CHECKED,0);
-				SetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBPS,DMD_stage[id-1].expbolt.pstream);
+				SetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBPS,DMD_stage[id-1].expbolt.pstream.data());
 				sprintf(buff,"%.3f",DMD_stage[id-1].expbolt.anticipation);
 				SetDlgItemText(hChild[CD_ULLAGE],IDC_STAGE_EXPBANT,buff);
 				sprintf(buff,"%.3f",DMD_stage[id-1].expbolt.pos.x);
@@ -4682,7 +4682,7 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 	sprintf(buff,"%i",id-1);
 	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_ID),(LPCSTR)buff);
 
-	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_MESHNAME),(LPCSTR)DMD_payload[id-1].meshname);
+	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_MESHNAME),(LPCSTR)DMD_payload[id-1].meshname.data());
 	sprintf(buff,"%.3f",DMD_payload[id-1].off[0].x);
 	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_OFFX),(LPCSTR)buff);
 	sprintf(buff,"%.3f",DMD_payload[id-1].off[0].y);
@@ -4692,8 +4692,8 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 	
 	//sprintf(DMD_payload[id-1].MultiOffset,"(%.3f,%.3f,%.3f)",DMD_payload[id-1].off[0].x,DMD_payload[id-1].off[0].y,DMD_payload[id-1].off[0].z);
 	
-	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_MODULE),(LPCSTR)DMD_payload[id-1].module);
-	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_NAME),(LPCSTR)DMD_payload[id-1].name);
+	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_MODULE),(LPCSTR)DMD_payload[id-1].module.data());
+	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_NAME),(LPCSTR)DMD_payload[id-1].name.data());
 
 	sprintf(buff,"%.3f",DMD_payload[id-1].height);
 	SetWindowText(GetDlgItem(hChild[iddialog],IDC_PLD_HEIGHT),(LPCSTR)buff);
@@ -4845,7 +4845,7 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 					
 
 			char buff[256];
-			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_MESHNAME),(LPCSTR)DMD_fairing.meshname);
+			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_MESHNAME),(LPCSTR)DMD_fairing.meshname.data());
 			sprintf(buff,"%.3f",DMD_fairing.off.x);
 			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_OFFX),(LPCSTR)buff);
 			sprintf(buff,"%.3f",DMD_fairing.off.y);
@@ -4863,7 +4863,7 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_DIAM),(LPCSTR)buff);
 			sprintf(buff,"%.1f",DMD_fairing.emptymass);
 			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_EMPTYMASS),(LPCSTR)buff);
-			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_MODULE),(LPCSTR)DMD_fairing.module);
+			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_MODULE),(LPCSTR)DMD_fairing.module.data());
 			sprintf(buff,"%.1f",DMD_fairing.speed.x);
 			SetWindowText(GetDlgItem(hChild[iddialog],IDC_FAIR_SPDX),(LPCSTR)buff);
 			sprintf(buff,"%.1f",DMD_fairing.speed.y);
@@ -5115,11 +5115,11 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 			{
 				//sprintf(buff,"Payload %i",i);
 				//int check=SendDlgItemMessage(hChild[iddialog],IDC_MISC_FOCUS,CB_FINDSTRING,-1,(LPARAM)buff);
-				int check=SendDlgItemMessage(hChild[iddialog],IDC_MISC_FOCUS,CB_FINDSTRING,-1,(LPARAM)DMD_payload[i-1].name);
+				int check=SendDlgItemMessage(hChild[iddialog],IDC_MISC_FOCUS,CB_FINDSTRING,-1,(LPARAM)DMD_payload[i-1].name.data());
 				
 				if(check==CB_ERR)
 				{
-					SendDlgItemMessage(hChild[iddialog],IDC_MISC_FOCUS,CB_INSERTSTRING,i-1,(LPARAM)DMD_payload[i-1].name);
+					SendDlgItemMessage(hChild[iddialog],IDC_MISC_FOCUS,CB_INSERTSTRING,i-1,(LPARAM)DMD_payload[i-1].name.data());
 				}
 			}
 			if(DMD_Misc.Focus!=0)
@@ -5303,7 +5303,7 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 				SendMultipleDlgItemsMessage(hChild[CD_FX],VentVecs,EM_SETREADONLY,TRUE,0,70);
 				SendMultipleDlgItemsMessage(hChild[CD_FX],VentVecs,EM_SETREADONLY,FALSE,0,7*DMD_FX_Vent.nVent);
 				SetMultipleDlgItemsText(hChild[CD_FX],VentVecs,VentTxt,70);
-				SetDlgItemText(hChild[CD_FX],IDC_FXVENT_PSTREAM,DMD_FX_Vent.pstream);
+				SetDlgItemText(hChild[CD_FX],IDC_FXVENT_PSTREAM,DMD_FX_Vent.pstream.data());
 				//string transstring[7];
 				UINT counter=0;
 				for(UINT i=0;i<DMD_FX_Vent.nVent;i++)
@@ -5361,7 +5361,7 @@ void DevModeDlg::PopulateChildDialog(UINT iddialog, UINT id)
 				SendDlgItemMessage(hChild[CD_FX],IDC_FXMACH_CB,CB_SETCURSEL,DMD_FX_Mach.nmach,0);
 				SendMultipleDlgItemsMessage(hChild[CD_FX],MachVecs,EM_SETREADONLY,TRUE,0,15);
 				SetMultipleDlgItemsText(hChild[CD_FX],MachVecs,MachTxt,15);
-				SetDlgItemText(hChild[CD_FX],IDC_FXMACH_PSTREAM,DMD_FX_Mach.pstream);
+				SetDlgItemText(hChild[CD_FX],IDC_FXMACH_PSTREAM,DMD_FX_Mach.pstream.data());
 				sprintf(buff,"%.1f",DMD_FX_Mach.mach_max);
 				SetDlgItemText(hChild[CD_FX],IDC_FXMACH_MAX,buff);
 				sprintf(buff,"%.1f",DMD_FX_Mach.mach_min);

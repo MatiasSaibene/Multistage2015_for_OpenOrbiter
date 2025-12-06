@@ -32,8 +32,8 @@ You install and use Multistage2015 at your own risk, author will not be responsi
  // ==============================================================
 
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NONSTDC_NO_DEPRECATE
+/* #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE */
 #define MSVERSION 170506
 
 #define MAXLEN 4096
@@ -67,8 +67,9 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 //#include "DevModeCtrl.h"
 
 
-#include <mmsystem.h>
-#pragma comment (lib, "winmm.lib")
+/* #include <mmsystem.h>
+#pragma comment (lib, "winmm.lib") */
+#include <array>
 
 
 using namespace std;
@@ -113,18 +114,15 @@ struct BATTS {
 struct EXPBOLT {
 	VECTOR3 pos;
 	VECTOR3 dir;
-	char pstream[MAXLEN];
+	std::string pstream;
 	double anticipation;
 	bool wExpbolt;
 	THRUSTER_HANDLE threxp_h;
 	EXPBOLT()
 	{
+		threxp_h = nullptr;
 		pos = _V(0, 0, 0);
 		dir = _V(0, 0, 0);
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			pstream[i] = '\0';
-		}
 		anticipation = 0;
 		wExpbolt = FALSE;
 	}
@@ -229,6 +227,7 @@ struct PSGROWING {
 	//int Th_idx;
 	PSGROWING()
 	{
+		pss = {0};
 		psh[0] = 0;
 		psh[1] = 0;
 		psh[2] = 0;
@@ -255,7 +254,7 @@ struct PSGROWING {
 struct BOOSTER {
 	//mandatory
 	int N;
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double height;
 	double diameter;
@@ -268,16 +267,16 @@ struct BOOSTER {
 	double burndelay;
 	VECTOR3 speed;
 	VECTOR3 rot_speed;
-	char module[MAXLEN];
+	std::string module;
 	VECTOR3 eng[4];
 	double engine_phase[32];
 	double engine_amp[32];
 	double freq[32];
 	double eng_diameter;
-	char eng_tex[MAXLEN];
-	char eng_pstream1[MAXLEN];
+	std::string eng_tex;
+	std::string eng_pstream1;
 	bool wps1;
-	char eng_pstream2[MAXLEN];
+	std::string eng_pstream2;
 	bool wps2;
 	VECTOR3 eng_dir;
 	THGROUP_HANDLE Thg_boosters_h;
@@ -286,12 +285,16 @@ struct BOOSTER {
 	double isp;
 	double volume;
 	PROPELLANT_HANDLE tank;
-	THRUSTER_HANDLE th_booster_h[10];
-	MESHHANDLE msh_h[10];
-	int msh_idh[10];
+	std::array<THRUSTER_HANDLE, 10> th_booster_h;
+	//THRUSTER_HANDLE th_booster_h[10];
+	std::array<MESHHANDLE, 10> msh_h;
+	//MESHHANDLE msh_h[10];
+	std::array<int, 10> msh_idh;
+	//int msh_idh[10];
 	int nEngines;
 	double currDelay;
-	VECTOR3 curve[10];
+	//VECTOR3 curve[10];
+	std::array<VECTOR3, 10> curve;
 	double IgnitionTime;
 	bool Ignited;
 	bool PSSdefined;
@@ -299,14 +302,21 @@ struct BOOSTER {
 	int ParticlesPackedToEngine;
 	BOOSTER()
 	{
+
+		isp = 0.0;
+		currDelay = 0.0;
+		Thg_boosters_h = nullptr;
+		IgnitionTime = 0.0;
+		volume = 0.0;
+		th_booster_h.fill(nullptr);
+		tank = nullptr;
+		msh_idh.fill(0);
+		msh_h.fill({});
+		isp = 0.0;
+		currDelay = 0.0;
+		Thg_boosters_h = nullptr;
+		IgnitionTime = 0.0;
 		N = 0;
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			module[i] = '\0';
-			eng_pstream1[i] = '\0';
-			eng_pstream2[i] = '\0';
-		}
 		wps1 = FALSE;
 		wps2 = FALSE;
 		off = _V(0, 0, 0);
@@ -349,7 +359,7 @@ struct BOOSTER {
 };
 struct INTERSTAGE {
 	//mandatory
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double height;
 	double diameter;
@@ -359,17 +369,12 @@ struct INTERSTAGE {
 	double separation_delay;
 	VECTOR3 speed;
 	VECTOR3 rot_speed;
-	char module[MAXLEN];
+	std::string module;
 	MESHHANDLE msh_h;
 	int msh_idh;
 	double currDelay;
 	INTERSTAGE()
 	{
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			module[i] = '\0';
-		}
 		off = _V(0, 0, 0);
 		height = 0;
 		diameter = 0;
@@ -383,7 +388,7 @@ struct INTERSTAGE {
 };
 struct ADAPTER {
 	//mandatory
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double height;
 	double diameter;
@@ -393,10 +398,6 @@ struct ADAPTER {
 	int msh_idh;
 	ADAPTER()
 	{
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-		}
 		off = _V(0, 0, 0);
 		height = 0;
 		diameter = 0;
@@ -405,24 +406,19 @@ struct ADAPTER {
 };
 
 struct LES {
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double height;
 	double diameter;
 	double emptymass;
 	VECTOR3 speed;
 	VECTOR3 rot_speed;
-	char module[MAXLEN];
+	std::string module;
 	MESHHANDLE msh_h;
 	int msh_idh;
 	double volume;
 	LES()
 	{
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			module[i] = '\0';
-		}
 		height = 0;
 		diameter = 0;
 		emptymass = 0;
@@ -444,7 +440,7 @@ struct ULLAGE {
 	VECTOR3 dir;
 	double length;
 	double diameter;
-	char tex[MAXLEN];
+	std::string tex;
 	THRUSTER_HANDLE th_ullage;
 	double rectfactor;
 	ULLAGE()
@@ -461,15 +457,11 @@ struct ULLAGE {
 		length = 0;
 		diameter = 0;
 		rectfactor = 0;
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			tex[i] = '\0';
-		}
 	}
 };
 struct STAGE {
 	//mandatory
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double height;
 	double diameter;
@@ -492,24 +484,26 @@ struct STAGE {
 	double ignite_delay;
 	VECTOR3 speed;
 	VECTOR3 rot_speed;
-	char module[MAXLEN];
+	std::string module;
 	double pitchthrust;
 	bool defpitch;
 	double yawthrust;
 	bool defyaw;
 	double rollthrust;
 	bool defroll;
-	VECTOR3 eng[32];
+	//VECTOR3 eng[32];
+	std::array<VECTOR3, 32> eng;
 	double engine_phase[32];
 	double engine_amp[32];
 	double freq[32];
-	VECTOR4F engV4[32];
+	//VECTOR4F engV4[32];
+	std::array<VECTOR4F, 32> engV4;
 	double eng_diameter;
-	char eng_tex[MAXLEN];
-	char eng_pstream1[MAXLEN];
+	std::string eng_tex;
+	std::string eng_pstream1;
 	bool wps1;
 	bool wps2;
-	char eng_pstream2[MAXLEN];
+	std::string eng_pstream2;
 	VECTOR3 eng_dir;
 	ULLAGE ullage;
 	EXPBOLT expbolt;
@@ -517,7 +511,9 @@ struct STAGE {
 	double isp;
 	double volume;
 	PROPELLANT_HANDLE tank;
-	THRUSTER_HANDLE th_main_h[32], th_att_h[2];
+	std::array<THRUSTER_HANDLE, 32> th_main_h;
+	std::array<THRUSTER_HANDLE, 2> th_att_h;
+	//THRUSTER_HANDLE th_main_h[32], th_att_h[2];
 	MESHHANDLE msh_h;
 	int msh_idh;
 	int nEngines;
@@ -538,14 +534,6 @@ struct STAGE {
 	//bool NoEngDef;
 	STAGE()
 	{
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			module[i] = '\0';
-			eng_tex[i] = '\0';
-			eng_pstream1[i] = '\0';
-			eng_pstream2[i] = '\0';
-		}
 		wps1 = FALSE;
 		wps2 = FALSE;
 		off = _V(0, 0, 0);
@@ -603,19 +591,20 @@ struct STAGE {
 };
 struct PAYLOAD {
 	//mandatory
-	char meshname[MAXLEN];
-	char meshname0[MAXLEN];
-	char meshname1[MAXLEN];
-	char meshname2[MAXLEN];
-	char meshname3[MAXLEN];
-	char meshname4[MAXLEN];
+	std::string meshname;
+	std::string meshname0;
+	std::string meshname1;
+	std::string meshname2;
+	std::string meshname3;
+	std::string meshname4;
 
-	VECTOR3 off[5];
+	//VECTOR3 off[5];
+	std::array<VECTOR3, 5> off;
 	double height;
 	double diameter;
 	double mass;
-	char module[MAXLEN];
-	char name[MAXLEN];
+	std::string module;
+	std::string name;
 	//unmandatory
 	char MultiOffset[128];
 	VECTOR3 speed;
@@ -632,15 +621,6 @@ struct PAYLOAD {
 
 	PAYLOAD()
 	{
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			meshname0[i] = '\0';
-			meshname1[i] = '\0';
-			meshname2[i] = '\0';
-			meshname3[i] = '\0';
-			meshname4[i] = '\0';
-		}
 		for (int i = 0; i < 5; i++) {
 			off[i] = _V(0, 0, 0);
 			msh_h[i] = NULL;
@@ -665,7 +645,7 @@ struct PAYLOAD {
 struct FAIRING {
 	//mandatory
 	int N;
-	char meshname[MAXLEN];
+	std::string meshname;
 	VECTOR3 off;
 	double angle;
 	double height;
@@ -675,17 +655,12 @@ struct FAIRING {
 	double volume;
 	VECTOR3 speed;
 	VECTOR3 rot_speed;
-	char module[MAXLEN];
+	std::string module;
 	MESHHANDLE msh_h[10];
 	int msh_idh[10];
 	FAIRING()
 	{
 		N = 0;
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			meshname[i] = '\0';
-			module[i] = '\0';
-		}
 		off = _V(0, 0, 0);
 		angle = 0;
 		height = 0;
@@ -773,9 +748,10 @@ struct FX_LAUNCH {
 struct FX_MACH {
 	double mach_min;
 	double mach_max;
-	char pstream[MAXLEN];
+	std::string pstream;
 	bool added;
-	VECTOR3 off[10];
+	std::array<VECTOR3, 10> off;
+	//VECTOR3 off[10];
 	VECTOR3 dir;
 	PSTREAM_HANDLE ps_h[10];
 	int nmach;
@@ -784,34 +760,27 @@ struct FX_MACH {
 	{
 		mach_min = 0;
 		mach_max = 0;
-		for (UINT i = 0; i < MAXLEN; i++)
-		{
-			pstream[i] = '\0';
-		}
 		added = FALSE;
 		dir = _V(0, 0, 0);
 		nmach = 0;
-		for (UINT j = 0; j < 10; j++)
-		{
-			off[j] = _V(0, 0, 0);
-		}
+		off.fill(_V(0, 0, 0));
 	}
 };
 struct FX_VENT {
-	double time_fin[11];
-	char pstream[MAXLEN];
-	VECTOR3 off[11];
-	VECTOR3 dir[11];
+	//double time_fin[11];
+	std::array<double, 11> time_fin;
+	std::string pstream;
+	std::array<VECTOR3, 11> off;
+	//VECTOR3 off[11];
+	std::array<VECTOR3, 11> dir;
+	//VECTOR3 dir[11];
 	PSTREAM_HANDLE ps_h[11];
-	bool added[11];
+	//bool added[11];
+	std::array<bool, 11> added;
 	int nVent;
 	FX_VENT()
 	{
 		nVent = 0;
-		for (UINT j = 0; j < MAXLEN; j++)
-		{
-			pstream[j] = '\0';
-		}
 		for (UINT i = 0; i <= 10; i++)
 		{
 			time_fin[i] = 0;
@@ -839,18 +808,18 @@ public:
 
 	void CreateDMD();
 	void DestroyDMD();
-	void clbkSetClassCaps(FILEHANDLE cfg);
-	int clbkConsumeBufferedKey(DWORD key, bool down, char* kstate);
-	int clbkConsumeDirectKey(char* kstate);
-	void clbkLoadStateEx(FILEHANDLE scn, void* vs);
-	void clbkSaveState(FILEHANDLE scn);
-	void clbkPostStep(double simt, double simdt, double mjd);
-	void clbkPreStep(double simt, double simdt, double mjd);
-	void clbkPostCreation();
-	bool clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpad* skp);
+	void clbkSetClassCaps(FILEHANDLE cfg) override;
+	int clbkConsumeBufferedKey(DWORD key, bool down, char* kstate) override;
+	int clbkConsumeDirectKey(char* kstate) override;
+	void clbkLoadStateEx(FILEHANDLE scn, void* vs) override;
+	void clbkSaveState(FILEHANDLE scn) override;
+	void clbkPostStep(double simt, double simdt, double mjd) override;
+	void clbkPreStep(double simt, double simdt, double mjd) override;
+	void clbkPostCreation() override;
+	bool clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpad* skp) override;
 	//void clbkVisualCreated (VISHANDLE _vis, int refcount);
 	//void clbkVisualDestroyed (VISHANDLE _vis, int refcount);
-	int clbkGeneric(int msgid, int prm, void* context);
+	int clbkGeneric(int msgid, int prm, void* context) override;
 	int MyID;
 	//VISHANDLE vis;
 	THGROUP_HANDLE thg_h_main;
@@ -898,11 +867,11 @@ public:
 	VECTOR3 GetBoosterPos(int nBooster, int N);
 	void ArrangePayloadMeshes(char data[MAXLEN], int pnl);
 	char* GetProperPayloadMeshName(int pnl, int n);
-	void ArrangePayloadOffsets(char data[MAXLEN], int pnl);
+	void ArrangePayloadOffsets(const std::string &data, int pnl);
 	void Jettison(int type, int current);
 	void Spawn(int type, int current);
-	VECTOR3 CharToVec(char charvar[MAXLEN], VECTOR3* outvec);
-	VECTOR4F CharToVec4(char charvar[MAXLEN], VECTOR4F* outvec);
+	VECTOR3 CharToVec(const std::string &str);
+	VECTOR4F CharToVec4(const std::string &str);
 	int Configuration;
 	double CogElev;
 
@@ -925,9 +894,12 @@ public:
 	bool wVent;
 	bool wLaunchFX;
 	int wFairing;
-	STAGE stage[10];
-	BOOSTER booster[10];
-	PAYLOAD payload[10];
+	std::array<STAGE, 10> stage;
+	//STAGE stage[10];
+	std::array<BOOSTER, 10> booster;
+	//BOOSTER booster[10];
+	//PAYLOAD payload[10];
+	std::array<PAYLOAD, 10> payload;
 	FAIRING fairing;
 	MISC Misc;
 	TEX tex;

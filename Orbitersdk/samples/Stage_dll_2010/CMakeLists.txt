@@ -14,15 +14,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Variables de ruta
 set(ORBITER_ROOT "C:/Users/Matias_Saibene/Desktop/OpenOrbiter2024")
 set(ORBITER_SDK_INCLUDE "${ORBITER_ROOT}/Orbitersdk/include")
-set(ORBITER_SDK_LIB_RELEASE "${ORBITER_ROOT}/Orbitersdk/lib")
-set(ORBITER_SDK_LIB_DEBUG "${ORBITER_ROOT}/Orbitersdk/lib_debug")
+set(ORBITER_SDK_LIB_RELEASE "${ORBITER_ROOT}/Orbitersdk/lib/*.lib")
+set(ORBITER_SDK_LIB_DEBUG "${ORBITER_ROOT}/Orbitersdk/lib_debug/*.lib")
 set(ORBITER_MODULES "${ORBITER_ROOT}/Modules")
 set(ORBITER_SOURCE "${ORBITER_ROOT}/sources/Multistage2015")
 
-file(TO_CMAKE_PATH "${ORBITER_SDK_LIB_DEBUG}" ORBITER_SDK_LIB_DEBUG)
-
-file(GLOB ORBITER_LIBS_DEBUG "${ORBITER_SDK_LIB_DEBUG}/*.lib")
-file(GLOB ORBITER_LIBS_RELEASE "${ORBITER_SDK_LIB_RELEASE}/*.lib")
 
 # Archivos fuente
 set(SOURCES
@@ -40,7 +36,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # Enlace a librerías: versiones específicas por configuración
 target_link_libraries(${PROJECT_NAME}
-    ${ORBITER_LIBS_RELEASE}
+    ${ORBITER_SDK_LIB_DEBUG}
 )
 
 # Salida en la carpeta Modules para Debug y Release

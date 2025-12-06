@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../Orbitersdk/samples/Stage_dll_2010"
+		},
+		{
+			"path": "../../Orbitersdk/samples/Multistage2015_MFD"
+		},
+		{
+			"path": "../../../Proyectos_Orbiter/ARCHIVE_MULTISTAGE/MULTISTAGE_WITH_STL_AND_SIMPLEINI_AND_AT"
+		}
+	],
+	"settings": {}
+}

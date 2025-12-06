@@ -1,3 +1,7 @@
+#include <string>
+#include <format>
+#include "Multistage2015.h"
+#include "..//simpleini//SimpleIni.h"
 #define STRICT
 
 /*********************************************************************************************
@@ -29,39 +33,65 @@ You install and use Multistage2015 at your own risk, author will not be responsi
 // ==============================================================
 
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NONSTDC_NO_DEPRECATE
-//#define ORBITER_MODULE
+/* #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE */
+//define ORBITER_MODULE
 
 #include <math.h>
 #include <stdio.h>
+#include <sstream>
 #include "..//..//Orbitersdk//include//Orbitersdk.h"
 #include "Multistage2015.h"
 
-
-
 void Multistage2015::parseInterstages(char filename[MAXLEN], int parsingstage) {
-	char intertxt[64];
-	char bufftxt[128];
+	
+	oapiWriteLogV("%s: parseInterstages() filename=%s", GetName(), filename);
+
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
 	int ins = 0;
 
-
-
-
-	sprintf(intertxt, "SEPARATION");
-	sprintf(bufftxt, "_%i%i", parsingstage, parsingstage + 1);
-	strcat(intertxt, bufftxt);
+	std::string intertxt = std::format("SEPARATION_{}{}", parsingstage, parsingstage + 1);
 	//oapiWriteLog(intertxt);
 
-	stage[parsingstage].IntIncremental = 0;
-	GetPrivateProfileString(intertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+	stage.at(parsingstage).IntIncremental = 0;
+	
+	if(!ini.GetSection(intertxt.c_str())){
+		std::string msg = std::format("No more sections after {}", intertxt);
+		oapiWriteLog(const_cast<char *>(msg.c_str()));
+		return;
+	} else {
+		stage.at(parsingstage).interstage.meshname = ini.GetValue(intertxt.c_str(), "meshname", "");
+		stage.at(parsingstage).wInter = true;
+		stage.at(parsingstage).IntIncremental = ins + 1;
+		std::string off_vec = ini.GetValue(intertxt.c_str(), "off", "0,0,0");
+		stage.at(parsingstage).interstage.off = CharToVec(off_vec);
+		stage.at(parsingstage).interstage.height = std::stof(ini.GetValue(intertxt.c_str(), "height", "0.0"));
+		stage.at(parsingstage).interstage.diameter = std::stof(ini.GetValue(intertxt.c_str(), "diameter", "0.0"));
+		stage.at(parsingstage).interstage.emptymass = std::stof(ini.GetValue(intertxt.c_str(), "emptymass", "0.0"));
+		stage.at(parsingstage).interstage.separation_delay = std::stof(ini.GetValue(intertxt.c_str(), "separation_delay", "0.0"));
+		std::string speed_vec = ini.GetValue(intertxt.c_str(), "speed", "0.0");
+		stage.at(parsingstage).interstage.speed = CharToVec(speed_vec);
+		std::string rot_speed = ini.GetValue(intertxt.c_str(), "rot_speed", "0,0,0");
+		stage.at(parsingstage).interstage.rot_speed = CharToVec(rot_speed);
+		stage.at(parsingstage).interstage.module = ini.GetValue(intertxt.c_str(), "module", "Stage");
+
+		ins += 1;
+		nInterstages = ins;
+	}
+
+	/* GetPrivateProfileString(intertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
 	if (dataparsed[0] != '0') {
 		stage[parsingstage].wInter = TRUE;
 		stage[parsingstage].IntIncremental = ins + 1;
 		sprintf(stage[parsingstage].interstage.meshname, dataparsed);
 		GetPrivateProfileString(intertxt, "off", buffreset, dataparsed, MAXLEN, filename);
 		//interstage[ins].off=CharToVec(dataparsed);
-		CharToVec(dataparsed, &stage[parsingstage].interstage.off);
 		GetPrivateProfileString(intertxt, "height", buffreset, dataparsed, MAXLEN, filename);
 		stage[parsingstage].interstage.height = atof(dataparsed);
 		GetPrivateProfileString(intertxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
@@ -83,21 +113,49 @@ void Multistage2015::parseInterstages(char filename[MAXLEN], int parsingstage) {
 		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
 		sprintf(stage[parsingstage].interstage.module, dataparsed);
 		ins += 1;
-		nInterstages = ins;
-		sprintf(logbuff, "%s: Number of Interstages in the ini file: %i", GetName(), nInterstages);
-		oapiWriteLog(logbuff);
-		return;
-	}
-	else {
-		return;
-	}
+		nInterstages = ins; */
+		std::string logbuff = std::format("{}: Number of Interstages in the ini file: {}", GetName(), nInterstages);
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+
 	return;
 }
 void Multistage2015::parseLes(char filename[MAXLEN]) {
-	char lestxt[64];
-	sprintf(lestxt, "LES");
+	
+	oapiWriteLogV("%s: parseLes() filename=%s", GetName(), filename);
 
-	GetPrivateProfileString(lestxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	std::string lestxt = "LES";
+
+	if(!ini.GetSection(lestxt.c_str())){
+		std::string msg = std::format("No more sections after {}", lestxt);
+		oapiWriteLog(const_cast<char *>(msg.c_str()));
+		return;
+	} else {
+		Les.meshname = ini.GetValue(lestxt.c_str(), "meshname", "");
+		wLes = true;
+		std::string off_vec = ini.GetValue(lestxt.c_str(), "off", "0,0,0");
+		Les.off = CharToVec(off_vec);
+		Les.height = std::stof(ini.GetValue(lestxt.c_str(), "height", "0.0"));
+		Les.diameter = std::stof(ini.GetValue(lestxt.c_str(), "diameter", "0.0"));
+		Les.emptymass = std::stof(ini.GetValue(lestxt.c_str(), "emptymass", "0.0"));
+		std::string speed_vec = ini.GetValue(lestxt.c_str(), "speed", "0,0,0");
+		Les.speed = CharToVec(speed_vec);
+		std::string rotspeed_vec = ini.GetValue(lestxt.c_str(), "rot_speed", "0,0,0");
+		Les.rot_speed = CharToVec(rotspeed_vec);
+		Les.module = ini.GetValue(lestxt.c_str(), "module", "Stage");
+
+		std::string logbuff = std::format("{}: LES Found", GetName());
+		oapiWriteLog(const_cast<char *>(logbuff.c_str()));
+		return;
+	}
+
+	/* GetPrivateProfileString(lestxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
 	if (dataparsed[0] != '0') {
 		wLes = TRUE;
 		sprintf(Les.meshname, dataparsed);
@@ -123,49 +181,57 @@ void Multistage2015::parseLes(char filename[MAXLEN]) {
 	}
 	else {
 		return;
-	}
+	} */
 	return;
 }
+
 void Multistage2015::parseAdapter(char filename[MAXLEN]) {
-	char intertxt[64];
-	char bufftxt[128];
 
-	sprintf(intertxt, "SEPARATION");
-	sprintf(bufftxt, "_%i%i", nStages, nStages + 1);
-	strcat(intertxt, bufftxt);
+	oapiWriteLogV("%s: parseAdapter() filename=%s", GetName(), filename);
 
+	std::string intertxt = std::format("SEPARATION_{}{}", nStages, nStages + 1);
 
+	CSimpleIniA ini(true, false, false);
 
-	GetPrivateProfileString(intertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
-	if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(intertxt, "ADAPTER"); }
-	GetPrivateProfileString(intertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
-	if (dataparsed[0] != '0') {
-		wAdapter = TRUE;
-		sprintf(Adapter.meshname, dataparsed);
-		GetPrivateProfileString(intertxt, "off", buffreset, dataparsed, MAXLEN, filename);
-		//interstage[ins].off=CharToVec(dataparsed);
-		CharToVec(dataparsed, &Adapter.off);
-		GetPrivateProfileString(intertxt, "height", buffreset, dataparsed, MAXLEN, filename);
-		Adapter.height = atof(dataparsed);
-		GetPrivateProfileString(intertxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
-		Adapter.diameter = atof(dataparsed);
-		GetPrivateProfileString(intertxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
-		Adapter.emptymass = atof(dataparsed);
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
 
+	std::string meshname = ini.GetValue(intertxt.c_str(), "meshname", "");
 
-		return;
+	if(meshname.empty()){
+		intertxt = "ADAPTER";
+		meshname = ini.GetValue(intertxt.c_str(), "meshname", "");
 	}
-	else {
-		return;
-	}
-	return;
+
+	if(meshname.empty()) return;
+
+	wAdapter = true;
+	Adapter.meshname = meshname;
+
+	Adapter.off = CharToVec(ini.GetValue(intertxt.c_str(), "off", "0,0,0"));
+    Adapter.height = std::stod(ini.GetValue(intertxt.c_str(), "height", "0"));
+    Adapter.diameter = std::stod(ini.GetValue(intertxt.c_str(), "diameter", "0"));
+    Adapter.emptymass = std::stod(ini.GetValue(intertxt.c_str(), "emptymass", "0"));
+
+    oapiWriteLogV("%s: Adapter parsed from section [%s]", GetName(), intertxt.c_str());
+	
 }
+
 void Multistage2015::parseStages(char filename[MAXLEN]) {
 
-	char stagetxt[64];
-	char engtxt[64];
+	oapiWriteLogV("%s: parseInterstages() filename=%s", GetName(), filename);
 
-	char buff[128];
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	std::string stagetxt;
+	std::string engtxt;
 
 	int i;
 	for (i = 0; i <= 10; i++) {
@@ -175,169 +241,299 @@ void Multistage2015::parseStages(char filename[MAXLEN]) {
 
 		////////STAGE SECTION//////////////////////////////////////////////////////////////
 
-		sprintf(stagetxt, "STAGE");
-		sprintf(buff, "_%i", i + 1);
-		strcat(stagetxt, buff);
+		stagetxt = std::format("STAGE_{}", i + 1);
 
-		GetPrivateProfileString(stagetxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(stage[i].meshname, dataparsed);
-		GetPrivateProfileString(stagetxt, "off", buffreset, dataparsed, MAXLEN, filename);
+		//GetPrivateProfileString(stagetxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(stage[i].meshname, dataparsed);
+		stage.at(i).meshname = ini.GetValue(stagetxt.c_str(), "meshname", "");
+		//GetPrivateProfileString(stagetxt, "off", buffreset, dataparsed, MAXLEN, filename);
 		//stage[i].off=CharToVec(dataparsed);
-		CharToVec(dataparsed, &stage[i].off);
-		GetPrivateProfileString(stagetxt, "height", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].height = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].diameter = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "thrust", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].thrust = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].emptymass = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "fuelmass", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].fuelmass = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "burntime", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].burntime = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ignite_delay", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ignite_delay = atof(dataparsed);
-		stage[i].currDelay = stage[i].ignite_delay;
-		GetPrivateProfileString(stagetxt, "speed", buffreset, dataparsed, MAXLEN, filename);
+		//CharToVec(dataparsed, &stage[i].off);
+		std::string off_vec = ini.GetValue(stagetxt.c_str(), "off", "0,0,0");
+		stage.at(i).off = CharToVec(off_vec);
+		//GetPrivateProfileString(stagetxt, "height", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].height = atof(dataparsed);
+		stage.at(i).height = std::stof(ini.GetValue(stagetxt.c_str(), "height", "0.0"));
+		//GetPrivateProfileString(stagetxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].diameter = atof(dataparsed);
+		stage.at(i).diameter = std::stof(ini.GetValue(stagetxt.c_str(), "diameter", "0.0"));
+		//GetPrivateProfileString(stagetxt, "thrust", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].thrust = atof(dataparsed);
+		stage.at(i).thrust = std::stof(ini.GetValue(stagetxt.c_str(), "thrust", "0.0"));
+		//GetPrivateProfileString(stagetxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].emptymass = atof(dataparsed);
+		stage.at(i).emptymass = std::stof(ini.GetValue(stagetxt.c_str(), "emptymass", "0.0"));
+		//GetPrivateProfileString(stagetxt, "fuelmass", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].fuelmass = atof(dataparsed);
+		stage.at(i).fuelmass = std::stof(ini.GetValue(stagetxt.c_str(), "fuelmass", "0.0"));
+		//GetPrivateProfileString(stagetxt, "burntime", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].burntime = atof(dataparsed);
+		stage.at(i).burntime = std::stof(ini.GetValue(stagetxt.c_str(), "burntime", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ignite_delay", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ignite_delay = atof(dataparsed);
+		//stage[i].currDelay = stage[i].ignite_delay;
+		stage.at(i).ignite_delay = std::stof(ini.GetValue(stagetxt.c_str(), "ignite_delay", "0.0"));
+		stage.at(i).currDelay = std::stof(ini.GetValue(stagetxt.c_str(), "ignite_delay", "0.0"));
+		//GetPrivateProfileString(stagetxt, "speed", buffreset, dataparsed, MAXLEN, filename);
 		//stage[i].speed=CharToVec(dataparsed);
-		CharToVec(dataparsed, &stage[i].speed);
-		GetPrivateProfileString(stagetxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
+		//CharToVec(dataparsed, &stage[i].speed);
+		std::string speed_vec = ini.GetValue(stagetxt.c_str(), "speed", "0,0,0");
+		stage.at(i).speed = CharToVec(speed_vec);
+		//GetPrivateProfileString(stagetxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
 		//stage[i].rot_speed=CharToVec(dataparsed);
-		CharToVec(dataparsed, &stage[i].rot_speed);
-		GetPrivateProfileString(stagetxt, "module", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
-		sprintf(stage[i].module, dataparsed);
+		//CharToVec(dataparsed, &stage[i].rot_speed);
+		std::string rotspeed_vec = ini.GetValue(stagetxt.c_str(), "rot_speed", "0,0,0");
+		stage.at(i).rot_speed = CharToVec(rotspeed_vec);
+		//GetPrivateProfileString(stagetxt, "module", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
+		//sprintf(stage[i].module, dataparsed);
+		stage.at(i).module = ini.GetValue(stagetxt.c_str(), "module", "Stage");
 
 		//added by rcraig42 to get values for ispref and pref----------------------------------------------------------------	
 
-		GetPrivateProfileString(stagetxt, "isp_sl", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ispref = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "pressure_sl", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].pref = atof(dataparsed);
+		//GetPrivateProfileString(stagetxt, "isp_sl", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ispref = atof(dataparsed);
+		stage.at(i).ispref = std::stof(ini.GetValue(stagetxt.c_str(), "isp_sl", "0.0"));
+		//GetPrivateProfileString(stagetxt, "pressure_sl", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].pref = atof(dataparsed);
+		stage.at(i).pref = std::stof(ini.GetValue(stagetxt.c_str(), "pressure_sl", "0.0"));
 
 		//--------------------------------------------------------------------------------------------------------------	
 
 
 
-		GetPrivateProfileString(stagetxt, "pitchthrust", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].pitchthrust = 2 * atof(dataparsed);
-		if (stage[i].pitchthrust == 0) { stage[i].defpitch = TRUE; }
-		GetPrivateProfileString(stagetxt, "yawthrust", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].yawthrust = 2 * atof(dataparsed);
-		if (stage[i].yawthrust == 0) { stage[i].defyaw = TRUE; }
-		GetPrivateProfileString(stagetxt, "rollthrust", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].rollthrust = 2 * atof(dataparsed);
-		if (stage[i].rollthrust == 0) { stage[i].defroll = TRUE; }
-		GetPrivateProfileString(stagetxt, "linearthrust", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].linearthrust = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "linear_isp", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].linearisp = atof(dataparsed);
+		//GetPrivateProfileString(stagetxt, "pitchthrust", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].pitchthrust = 2 * atof(dataparsed);
+		stage.at(i).pitchthrust = 2 * std::stof(ini.GetValue(stagetxt.c_str(), "pitchthrust", "0.0"));
+		//if (stage[i].pitchthrust == 0) { stage[i].defpitch = TRUE; }
+		if(stage.at(i).pitchthrust == 0) {stage.at(i).defpitch = true;}
+		//GetPrivateProfileString(stagetxt, "yawthrust", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].yawthrust = 2 * atof(dataparsed);
+		//if (stage[i].yawthrust == 0) { stage[i].defyaw = TRUE; }
+		stage.at(i).yawthrust = 2 * std::stof(ini.GetValue(stagetxt.c_str(), "yawthrust", "0.0"));
+		if(stage.at(i).yawthrust == 0) {stage.at(i).defyaw = true;}
+		//GetPrivateProfileString(stagetxt, "rollthrust", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].rollthrust = 2 * atof(dataparsed);
+		//if (stage[i].rollthrust == 0) { stage[i].defroll = TRUE; }
+		stage.at(i).rollthrust = 2 * std::stof(ini.GetValue(stagetxt.c_str(), "rollthrust", "0.0"));
+		if(stage.at(i).rollthrust == 0) {stage.at(i).defroll = true;}
+		//GetPrivateProfileString(stagetxt, "linearthrust", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].linearthrust = atof(dataparsed);
+		stage.at(i).linearthrust = std::stof(ini.GetValue(stagetxt.c_str(), "linearthrust", "0.0"));
+		//GetPrivateProfileString(stagetxt, "linear_isp", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].linearisp = atof(dataparsed);
+		stage.at(i).linearisp = std::stof(ini.GetValue(stagetxt.c_str(), "linearisp", "0.0"));
 
 		//engines///
 		int neng;
 		for (neng = 0; neng < 32; neng++) {
-			sprintf(engtxt, "ENG");
-			sprintf(buff, "_%i", neng + 1);
-			strcat(engtxt, buff);
-			GetPrivateProfileString(stagetxt, engtxt, buffreset, dataparsed, MAXLEN, filename);
+			std::string engtxt = std::format("ENG_{}", neng + 1);
+
+			std::string value = ini.GetValue(stagetxt.c_str(), engtxt.c_str(), "");
+
+			if(value.empty()){
+				break;
+			}
+
+			//GetPrivateProfileString(stagetxt, engtxt, buffreset, dataparsed, MAXLEN, filename);
 
 
 			//CharToVec(dataparsed,&stage[i].eng[neng]);
-			CharToVec4(dataparsed, &stage[i].engV4[neng]);
-			stage[i].eng[neng].x = stage[i].engV4[neng].x;
-			stage[i].eng[neng].y = stage[i].engV4[neng].y;
-			stage[i].eng[neng].z = stage[i].engV4[neng].z;
-			if ((stage[i].engV4[neng].t <= 0) || (stage[i].engV4[neng].t > 10)) { stage[i].engV4[neng].t = 1; }
+			//CharToVec4(dataparsed, &stage[i].engV4[neng]);
+			stage.at(i).engV4.at(neng) = CharToVec4(value);
 
+			stage.at(i).eng.at(neng).x = stage.at(i).engV4.at(neng).x;
+			stage.at(i).eng.at(neng).y = stage.at(i).engV4.at(neng).y;
+			stage.at(i).eng.at(neng).z = stage.at(i).engV4.at(neng).z;
+			if ((stage.at(i).engV4.at(neng).t <= 0) || (stage.at(i).engV4.at(neng).t > 10)) { stage.at(i).engV4.at(neng).t = 1; }
 
-			if (dataparsed[0] == '0') {
-				//if(neng==0){stage[i].NoEngDef=TRUE;}
-
-				break;
-			}
-			stage[i].nEngines = neng + 1;
-
-
+			stage.at(i).nEngines = neng + 1;
 
 		}
-		GetPrivateProfileString(stagetxt, "eng_diameter", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].eng_diameter = atof(dataparsed);
-		if (stage[i].eng_diameter == 0) { stage[i].eng_diameter = 0.5 * stage[i].diameter; }
-		GetPrivateProfileString(stagetxt, "eng_dir", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].eng_dir = _V(0, 0, 1); }
-		else { CharToVec(dataparsed, &stage[i].eng_dir); }
-		GetPrivateProfileString(stagetxt, "eng_tex", buffreset, dataparsed, MAXLEN, filename);
-		strcpy(stage[i].eng_tex, dataparsed);
-		GetPrivateProfileString(stagetxt, "eng_pstream1", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(stage[i].eng_pstream1, dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].wps1 = FALSE; }
-		else { stage[i].wps1 = TRUE; }
-		GetPrivateProfileString(stagetxt, "eng_pstream2", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(stage[i].eng_pstream2, dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].wps2 = FALSE; }
-		else { stage[i].wps2 = TRUE; }
-		GetPrivateProfileString(stagetxt, "particles_packed_to_engine", buffreset, dataparsed, MAXLEN, filename);
+
+		stage.at(i).eng_diameter = std::stof(ini.GetValue(stagetxt.c_str(), "eng_diameter", "0"));
+		if(stage.at(i).eng_diameter == 0){
+			stage.at(i).eng_diameter = 0.5 * stage.at(i).diameter;
+		}
+
+		//GetPrivateProfileString(stagetxt, "eng_diameter", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].eng_diameter = atof(dataparsed);
+		//if (stage[i].eng_diameter == 0) { stage[i].eng_diameter = 0.5 * stage[i].diameter; }
+
+		//GetPrivateProfileString(stagetxt, "eng_dir", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].eng_dir = _V(0, 0, 1); }
+		//else { CharToVec(dataparsed, &stage[i].eng_dir); }
+
+		std::string engdir_vec = ini.GetValue(stagetxt.c_str(), "eng_dir", "0,0,0");
+		if(engdir_vec.empty()){
+			stage.at(i).eng_dir = _V(0, 0, 1);
+		} else {
+			stage.at(i).eng_dir = CharToVec(engdir_vec);
+		}
+
+		//GetPrivateProfileString(stagetxt, "eng_tex", buffreset, dataparsed, MAXLEN, filename);
+		//strcpy(stage[i].eng_tex, dataparsed);
+
+		stage.at(i).eng_tex = ini.GetValue(stagetxt.c_str(), "eng_tex", "");
+
+		//GetPrivateProfileString(stagetxt, "eng_pstream1", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(stage[i].eng_pstream1, dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].wps1 = FALSE; }
+		//else { stage[i].wps1 = TRUE; }
+
+		stage.at(i).eng_pstream1 = ini.GetValue(stagetxt.c_str(), "eng_pstream1", "");
+		if(stage.at(i).eng_pstream1.empty()){
+			stage.at(i).wps1 = false;
+		} else {
+			stage.at(i).wps1 = true;
+		}
+
+		//GetPrivateProfileString(stagetxt, "eng_pstream2", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(stage[i].eng_pstream2, dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].wps2 = FALSE; }
+		//else { stage[i].wps2 = TRUE; }
+
+		stage.at(i).eng_pstream2 = ini.GetValue(stagetxt.c_str(), "eng_pstream2", "");
+		if(stage.at(i).eng_pstream2.empty()){
+			stage.at(i).wps2 = false;
+		} else {
+			stage.at(i).wps2 = true;
+		}
+
+		//GetPrivateProfileString(stagetxt, "particles_packed_to_engine", buffreset, dataparsed, MAXLEN, filename);
 		stage[i].ParticlesPackedToEngine = atoi(dataparsed);
-		if (stage[i].ParticlesPackedToEngine != 0) {
-			stage[i].ParticlesPacked = TRUE;
+		//if (stage[i].ParticlesPackedToEngine != 0) {
+			//stage[i].ParticlesPacked = TRUE;
 
-			sprintf(logbuff, "%s: Particles Packed to Engine %i", GetName(), abs(stage[i].ParticlesPackedToEngine));
-			oapiWriteLog(logbuff);
+			//sprintf(logbuff, "%s: Particles Packed to Engine %i", GetName(), abs(stage[i].ParticlesPackedToEngine));
+			//oapiWriteLog(logbuff);
+		//}
+		//else { stage[i].ParticlesPacked = FALSE; }
+
+		stage.at(i).ParticlesPackedToEngine = std::stoi(ini.GetValue(stagetxt.c_str(), "particles_packed_to_engine", "0"));
+		if(stage.at(i).ParticlesPackedToEngine != 0){
+			stage.at(1).ParticlesPacked = true;
+
+			oapiWriteLogV("%s: Particles Packed to Engine %i", GetName(), std::abs(stage.at(i).ParticlesPackedToEngine));
 		}
-		else { stage[i].ParticlesPacked = FALSE; }
-		GetPrivateProfileString(stagetxt, "reignitable", buffreset, dataparsed, MAXLEN, filename);
-		int transfer;
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { transfer = 1; }
+
+		//GetPrivateProfileString(stagetxt, "reignitable", buffreset, dataparsed, MAXLEN, filename);
+		int transfer = std::stoi(ini.GetValue(stagetxt.c_str(), "reignitable", "0"));
+		if(transfer == 0){
+			stage.at(i).reignitable = false;
+		} else {
+			stage.at(i).reignitable = true;
+		}
+
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { transfer = 1; }
 		else { transfer = atoi(dataparsed); }
 		if (transfer == 0) { stage[i].reignitable = FALSE; }
-		else { stage[i].reignitable = TRUE; }
+		else { stage[i].reignitable = TRUE; } */
 
-		GetPrivateProfileString(stagetxt, "boiloff", buffreset, dataparsed, MAXLEN, filename);
-		int tboil;
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { tboil = 0; }
+		//GetPrivateProfileString(stagetxt, "boiloff", buffreset, dataparsed, MAXLEN, filename);
+		int tboil = std::stoi(ini.GetValue(stagetxt.
+		c_str(), "boiloff", "0"));
+
+		if(tboil == 0){
+			stage.at(i).wBoiloff = false;
+		} else {
+			stage.at(i).wBoiloff = true;
+		}
+
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { tboil = 0; }
 		else { tboil = atoi(dataparsed); }
 		if (tboil == 0) { stage[i].wBoiloff = FALSE; }
-		else { stage[i].wBoiloff = TRUE; }
+		else { stage[i].wBoiloff = TRUE; } */
 
 
-		GetPrivateProfileString(stagetxt, "battery", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) {
-			stage[i].batteries.MaxCharge = 12 * 3600; stage[i].batteries.wBatts = FALSE; stage[i].batteries.CurrentCharge = stage[i].batteries.MaxCharge;
+		//GetPrivateProfileString(stagetxt, "battery", buffreset, dataparsed, MAXLEN, filename);
+
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) {
+			stage[i].batteries.MaxCharge = 12 * 3600; stage[i].batteries.wBatts = FALSE; 
+			stage[i].batteries.CurrentCharge = stage[i].batteries.MaxCharge;
 		}
 		else {
-			stage[i].batteries.MaxCharge = atof(dataparsed) * 3600; stage[i].batteries.wBatts = TRUE; stage[i].batteries.CurrentCharge = stage[i].batteries.MaxCharge;
+			stage[i].batteries.MaxCharge = atof(dataparsed) * 3600;
+			stage[i].batteries.wBatts = TRUE;
+			stage[i].batteries.CurrentCharge = stage[i].batteries.MaxCharge;
+		} */
+
+		int battery = std::stoi(ini.GetValue(stagetxt.c_str(), "battery", "0"));
+		if(battery == 0){
+			stage.at(i).batteries.MaxCharge = 12 * 3600;
+			stage.at(i).batteries.wBatts = false;
+			stage.at(i).batteries.CurrentCharge = stage.at(i).batteries.MaxCharge;
+		} else {
+			stage.at(i).batteries.MaxCharge = 3600 * battery;
+			stage.at(i).batteries.wBatts = true;
+			stage.at(i).batteries.CurrentCharge = stage.at(i).batteries.MaxCharge;
 		}
 
-		GetPrivateProfileString(stagetxt, "ullage_thrust", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].ullage.wUllage = FALSE; }
+		//GetPrivateProfileString(stagetxt, "ullage_thrust", buffreset, dataparsed, MAXLEN, filename);
+		stage.at(i).ullage.thrust = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_thrust", "0.0"));
+		if(stage.at(i).ullage.thrust == 0){
+			stage.at(i).ullage.wUllage = false;
+		} else {
+			stage.at(i).ullage.wUllage = true;
+		}
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].ullage.wUllage = FALSE; }
 		else { stage[i].ullage.wUllage = TRUE; }
-		stage[i].ullage.thrust = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_anticipation", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.anticipation = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_overlap", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.overlap = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_N", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.N = atoi(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_angle", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.angle = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_diameter", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.diameter = atof(dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_length", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.length = atof(dataparsed);
-		if (stage[i].ullage.length == 0) { stage[i].ullage.length = 10 * stage[i].ullage.diameter; }
-		GetPrivateProfileString(stagetxt, "ullage_dir", buffreset, dataparsed, MAXLEN, filename);
-		CharToVec(dataparsed, &stage[i].ullage.dir);
-		GetPrivateProfileString(stagetxt, "ullage_pos", buffreset, dataparsed, MAXLEN, filename);
-		CharToVec(dataparsed, &stage[i].ullage.pos);
-		GetPrivateProfileString(stagetxt, "ullage_tex", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(stage[i].ullage.tex, dataparsed);
-		GetPrivateProfileString(stagetxt, "ullage_rectfactor", buffreset, dataparsed, MAXLEN, filename);
-		stage[i].ullage.rectfactor = atof(dataparsed);
-		if (stage[i].ullage.rectfactor == 0) { stage[i].ullage.rectfactor = 1; }
+		stage[i].ullage.thrust = atof(dataparsed); */
+		
+		//GetPrivateProfileString(stagetxt, "ullage_anticipation", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.anticipation = atof(dataparsed);
+		stage.at(i).ullage.anticipation = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_anticipation", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ullage_overlap", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.overlap = atof(dataparsed);
+		stage.at(i).ullage.overlap = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_overlap", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ullage_N", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.N = atoi(dataparsed);
+		stage.at(i).ullage.N = std::stoi(ini.GetValue(stagetxt.c_str(), "ullage_N", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ullage_angle", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.angle = atof(dataparsed);
+		stage.at(i).ullage.angle = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_angle", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ullage_diameter", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.diameter = atof(dataparsed);
+		stage.at(i).ullage.diameter = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_diameter", "0.0"));
+		//GetPrivateProfileString(stagetxt, "ullage_length", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.length = atof(dataparsed);
+		stage.at(i).ullage.length = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_length", "0.0"));
+		//if (stage[i].ullage.length == 0) { stage[i].ullage.length = 10 * stage[i].ullage.diameter; }
+		if(stage.at(i).ullage.length == 0){
+			stage.at(i).ullage.length = 10 * stage.at(i).ullage.diameter;
+		}
+		//GetPrivateProfileString(stagetxt, "ullage_dir", buffreset, dataparsed, MAXLEN, filename);
+		//CharToVec(dataparsed, &stage[i].ullage.dir);
+		std::string ullage_dir = ini.GetValue(stagetxt.c_str(), "ullage_dir", "0.0");
+		stage.at(i).ullage.dir = CharToVec(ullage_dir);
+		//GetPrivateProfileString(stagetxt, "ullage_pos", buffreset, dataparsed, MAXLEN, filename);
+		//CharToVec(dataparsed, &stage[i].ullage.pos);
+		std::string ullagepos_dir = ini.GetValue(stagetxt.c_str(), "ullage_pos", "0,0,0");
+		stage.at(i).ullage.pos = CharToVec(ullagepos_dir);
+		//GetPrivateProfileString(stagetxt, "ullage_tex", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(stage[i].ullage.tex, dataparsed);
+		stage.at(i).ullage.tex = ini.GetValue(stagetxt.c_str(), "ullage_tex", "");
+		//GetPrivateProfileString(stagetxt, "ullage_rectfactor", buffreset, dataparsed, MAXLEN, filename);
+		//stage[i].ullage.rectfactor = atof(dataparsed);
+		stage.at(i).ullage.rectfactor = std::stof(ini.GetValue(stagetxt.c_str(), "ullage_rectfactor", "0.0"));
+		//if (stage[i].ullage.rectfactor == 0) { stage[i].ullage.rectfactor = 1; }
+		if(stage.at(i).ullage.rectfactor == 0){ stage.at(i).ullage.rectfactor = 1;}
 
-		GetPrivateProfileString(stagetxt, "expbolts_pos", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].expbolt.wExpbolt = FALSE; }
+		//GetPrivateProfileString(stagetxt, "expbolts_pos", buffreset, dataparsed, MAXLEN, filename);
+		std::string expbolts_pos_vec = ini.GetValue(stagetxt.c_str(), "expbolts_pos", "0,0,0");
+		if(expbolts_pos_vec.empty()){
+			stage.at(i).expbolt.wExpbolt = false;
+		} else {
+			stage.at(i).expbolt.wExpbolt = true;
+			stage.at(i).expbolt.pos = CharToVec(expbolts_pos_vec);
+			stage.at(i).expbolt.pstream = ini.GetValue(stagetxt.c_str(), "expbolts_pstream", "");
+			stage.at(i).expbolt.dir = _V(0, 0, 1);
+			stage.at(i).expbolt.anticipation = std::stof(ini.GetValue(stagetxt.c_str(), "expbolts_anticipation", "0.0"));
+			if(stage.at(i).expbolt.anticipation == 0){
+				stage.at(i).expbolt.anticipation = 1;
+			}
+		}
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].expbolt.wExpbolt = FALSE; }
 		else {
 			stage[i].expbolt.wExpbolt = TRUE;
 			CharToVec(dataparsed, &stage[i].expbolt.pos);
@@ -347,24 +543,42 @@ void Multistage2015::parseStages(char filename[MAXLEN]) {
 			GetPrivateProfileString(stagetxt, "expbolts_anticipation", buffreset, dataparsed, MAXLEN, filename);
 			if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { stage[i].expbolt.anticipation = 1; }
 			else { stage[i].expbolt.anticipation = atof(dataparsed); }
-		}
-		if (stage[i].meshname[0] == '0') {
+		} */
+		/* if (stage[i].meshname[0] == '0') {
 			nStages = i;
 			sprintf(logbuff, "%s: Number of stages in the ini file: %i", GetName(), nStages);
 			oapiWriteLog(logbuff);
 			break;
-		}
-
-
+		} */
+		 if(!ini.GetSection(stagetxt.c_str())){
+			nStages = i;
+			oapiWriteLogV("%s: Number of stages in the ini file: %i", GetName(), nStages);
+			break;
+		 }
 	}
-
-
 }
+
+
 void Multistage2015::parseBoosters(char filename[MAXLEN]) {
-	char boostertxt[64];
-	char buff[128];
-	char engtxt[64];
-	char curvetxt[128];
+
+	oapiWriteLogV("%s: parseBoosters() filename=%s", GetName(), filename);
+
+	std::string boostertxt;
+
+	std::string engtxt;
+
+	std::string curvetxt;
+
+	nBoosters = 0;
+
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	std::string buff;
 	int cc;
 
 	int b;
@@ -372,88 +586,182 @@ void Multistage2015::parseBoosters(char filename[MAXLEN]) {
 
 		////////BOOSTER SECTION//////////////////////////////////////////////////////////////
 
-		sprintf(boostertxt, "BOOSTER");
-		sprintf(buff, "_%i", b + 1);
-		strcat(boostertxt, buff);
+		boostertxt = std::format("BOOSTER_{}", b + 1);
 
-		GetPrivateProfileString(boostertxt, "N", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].N = atoi(dataparsed);
+		if(!ini.GetSection(boostertxt.c_str())){
+			std::string msg = std::format("No more booster sections after {}", boostertxt);
+			oapiWriteLog(const_cast<char *>(msg.c_str()));
+			break;
+		}
 
-		GetPrivateProfileString(boostertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(booster[b].meshname, dataparsed);
-		GetPrivateProfileString(boostertxt, "off", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,0,0.001)"); }
+		//GetPrivateProfileString(boostertxt, "N", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].N = atoi(dataparsed);
+		booster.at(b).N = std::stoi(ini.GetValue(boostertxt.c_str(), "N", 0));
+
+		booster.at(b).meshname = ini.GetValue(boostertxt.c_str(), "meshname", "");
+		if(booster.at(b).meshname.empty()){
+			oapiWriteLogV("Booster %s meshname not defined", boostertxt.c_str());
+		}
+
+		//GetPrivateProfileString(boostertxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(booster[b].meshname, dataparsed);
+
+		std::string off_vec = ini.GetValue(boostertxt.c_str(), "off", "(0,0,0.001)");
+		
+		booster.at(b).off = CharToVec(off_vec);
+
+		//GetPrivateProfileString(boostertxt, "off", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,0,0.001)"); }
 		//booster[b].off=CharToVec(dataparsed);
-		CharToVec(dataparsed, &booster[b].off);
-		GetPrivateProfileString(boostertxt, "height", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].height = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "angle", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].angle = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].diameter = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "thrust", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].thrust = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].emptymass = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "fuelmass", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].fuelmass = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "burntime", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].burntime = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "burndelay", buffreset, dataparsed, MAXLEN, filename);
-		booster[b].burndelay = atof(dataparsed);
-		booster[b].currDelay = booster[b].burndelay;
-		GetPrivateProfileString(boostertxt, "speed", buffreset, dataparsed, MAXLEN, filename);
-		//booster[b].speed=CharToVec(dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(3,0,0)"); }
+		//CharToVec(dataparsed, &booster[b].off);
 
-		CharToVec(dataparsed, &booster[b].speed);
-		GetPrivateProfileString(boostertxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
+		booster.at(b).height = std::stof(ini.GetValue(boostertxt.c_str(), "height", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "height", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].height = atof(dataparsed);
+
+		booster.at(b).angle = std::stof(ini.GetValue(boostertxt.c_str(), "angle", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "angle", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].angle = atof(dataparsed);
+
+		booster.at(b).diameter = std::stof(ini.GetValue(boostertxt.c_str(), "diameter", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].diameter = atof(dataparsed);
+
+		booster.at(b).thrust = std::stof(ini.GetValue(boostertxt.c_str(), "thrust", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "thrust", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].thrust = atof(dataparsed);
+
+		booster.at(b).emptymass = std::stof(ini.GetValue(boostertxt.c_str(), "emptymass", "0.0"));
+		
+		//GetPrivateProfileString(boostertxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].emptymass = atof(dataparsed);
+
+		booster.at(b).fuelmass = std::stof(ini.GetValue(boostertxt.c_str(), "fuelmass", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "fuelmass", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].fuelmass = atof(dataparsed);
+
+		booster.at(b).burntime = std::stof(ini.GetValue(boostertxt.c_str(), "burntime", "0.0"));
+		
+		//GetPrivateProfileString(boostertxt, "burntime", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].burntime = atof(dataparsed);
+		
+		booster.at(b).burndelay = std::stof(ini.GetValue(boostertxt.c_str(), "burndelay", "0.0"));
+
+		//GetPrivateProfileString(boostertxt, "burndelay", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].burndelay = atof(dataparsed);
+		
+		booster.at(b).currDelay = booster.at(b).burndelay;
+
+		//booster[b].currDelay = booster[b].burndelay;
+
+		std::string speed_vec = ini.GetValue(boostertxt.c_str(), "speed", "(3,0,0)");
+
+		booster.at(b).speed = CharToVec(speed_vec);
+		
+		//GetPrivateProfileString(boostertxt, "speed", buffreset, dataparsed, MAXLEN, filename);
+		//booster[b].speed=CharToVec(dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(3,0,0)"); }
+
+		//CharToVec(dataparsed, &booster[b].speed);
+
+		std::string rotspeed_vec = ini.GetValue(boostertxt.c_str(), "rot_speed", "(0,-0.1,0)");
+
+		booster.at(b).rot_speed = CharToVec(rotspeed_vec);
+
+		//GetPrivateProfileString(boostertxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
 		//booster[b].rot_speed=CharToVec(dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,-0.1,0)"); }
-		CharToVec(dataparsed, &booster[b].rot_speed);
-		GetPrivateProfileString(boostertxt, "module", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
-		sprintf(booster[b].module, dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,-0.1,0)"); }
+		//CharToVec(dataparsed, &booster[b].rot_speed);
+
+		booster.at(b).module = ini.GetValue(boostertxt.c_str(), "module", "Stage");
+
+		//GetPrivateProfileString(boostertxt, "module", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
+		//sprintf(booster[b].module, dataparsed);
 
 		//engines///
 		int nbeng;
-		for (nbeng = 0; nbeng <= 4; nbeng++) {
-			sprintf(engtxt, "ENG");
-			sprintf(buff, "_%i", nbeng + 1);
-			strcat(engtxt, buff);
-			GetPrivateProfileString(boostertxt, engtxt, buffreset, dataparsed, MAXLEN, filename);
-			if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) {
-				booster[b].nEngines = nbeng;
+		for (nbeng = 0; nbeng < 5; nbeng++) {
+			std::string key = std::format("ENG_{}", nbeng + 1);
+
+			std::string value = ini.GetValue(boostertxt.c_str(), key.c_str(), "");
+
+			if(value.empty()){
+				booster.at(b).nEngines = nbeng;
 				break;
 			}
-			else {
-				CharToVec(dataparsed, &booster[b].eng[nbeng]);
-			}
+
+			booster[b].eng[nbeng] = CharToVec(value);
+    		booster[b].nEngines = nbeng + 1;
 		}
-		GetPrivateProfileString(boostertxt, "eng_diameter", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "%.3f", booster[b].diameter * 0.5); }
-		booster[b].eng_diameter = atof(dataparsed);
-		GetPrivateProfileString(boostertxt, "eng_tex", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(booster[b].eng_tex, dataparsed);
-		GetPrivateProfileString(boostertxt, "eng_dir", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].eng_dir = _V(0, 0, 1); }
-		else { CharToVec(dataparsed, &booster[b].eng_dir); }
-		GetPrivateProfileString(boostertxt, "eng_pstream1", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(booster[b].eng_pstream1, dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].wps1 = FALSE; }
-		else { booster[b].wps1 = TRUE; }
-		GetPrivateProfileString(boostertxt, "eng_pstream2", buffreset, dataparsed, MAXLEN, filename);
-		sprintf(booster[b].eng_pstream2, dataparsed);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].wps2 = FALSE; }
-		else { booster[b].wps2 = TRUE; }
+
+		booster.at(b).eng_diameter = std::stof(ini.GetValue(boostertxt.c_str(), "eng_diameter", "0.5"));
+
+		//GetPrivateProfileString(boostertxt, "eng_diameter", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "%.3f", booster[b].diameter * 0.5); }
+		//booster[b].eng_diameter = atof(dataparsed);
+
+		booster.at(b).eng_tex = ini.GetValue(boostertxt.c_str(), "eng_tex", "");
+		
+		if(booster.at(b).eng_tex.empty()){
+			oapiWriteLogV("Booster %s eng_tex is not defined", boostertxt.c_str());
+		}
+
+
+		//GetPrivateProfileString(boostertxt, "eng_tex", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(booster[b].eng_tex, dataparsed);
+
+		std::string dir_vec = ini.GetValue(boostertxt.c_str(), "eng_dir", "(0, 0, 1)");
+
+		booster.at(b).eng_dir = CharToVec(dir_vec);
+
+		//GetPrivateProfileString(boostertxt, "eng_dir", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].eng_dir = _V(0, 0, 1); }
+		//else { CharToVec(dataparsed, &booster[b].eng_dir); }
+
+		booster.at(b).eng_pstream1 = ini.GetValue(boostertxt.c_str(), "eng_pstream1", "");
+		if(booster.at(b).eng_pstream1.empty()){
+			oapiWriteLogV("Booster %s eng_pstream1 not defined", boostertxt.c_str());
+			booster.at(b).wps1 = false;
+		} else {
+			booster.at(b).wps1 = true;
+		}
+
+
+		//GetPrivateProfileString(boostertxt, "eng_pstream1", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(booster[b].eng_pstream1, dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].wps1 = FALSE; }
+		//else { booster[b].wps1 = TRUE; }
+
+		booster.at(b).eng_pstream2 = ini.GetValue(boostertxt.c_str(), "eng_pstream2", "");
+		if(booster.at(b).eng_pstream2.empty()){
+			oapiWriteLogV("Booster %s eng_pstream2 not defined", boostertxt.c_str());
+			booster.at(b).wps2 = false;
+		} else {
+			booster.at(b).wps2 = true;
+		}
+
+		//GetPrivateProfileString(boostertxt, "eng_pstream2", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(booster[b].eng_pstream2, dataparsed);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].wps2 = FALSE; }
+		//else { booster[b].wps2 = TRUE; }
+
+		
 
 		for (cc = 0; cc < 10; cc++) {
-			sprintf(curvetxt, "CURVE_%i", cc + 1);
-			GetPrivateProfileString(boostertxt, curvetxt, buffreset, dataparsed, MAXLEN, filename);
-			if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(9000000,100,0)"); }
-			CharToVec(dataparsed, &booster[b].curve[cc]);
+			//sprintf(curvetxt, "CURVE_%i", cc + 1);
+			curvetxt = std::format("CURVE_{}", cc + 1);
+			std::string curve_vec = ini.GetValue(boostertxt.c_str(), curvetxt.c_str(), "(9000000,100,0)");
+			//GetPrivateProfileString(boostertxt, curvetxt, buffreset, dataparsed, MAXLEN, filename);
+			//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(9000000,100,0)"); }
+			booster.at(b).curve.at(cc) = CharToVec(curve_vec);
 
-			booster[b].curve[cc].z = 0;
+			booster.at(b).curve.at(cc).z = 0;
 
 			//if(booster[b].curve[c].y==0){
 				//booster[b].curve[c].y=100;
@@ -462,9 +770,24 @@ void Multistage2015::parseBoosters(char filename[MAXLEN]) {
 			//oapiWriteLog(logbuff);
 		}
 
+		//GetPrivateProfileString(boostertxt, "expbolts_pos", buffreset, dataparsed, MAXLEN, filename);
+		std::string expbolts_pos_vec = ini.GetValue(boostertxt.c_str(), "expbolts_pos", "0,0,0");
+		if(expbolts_pos_vec.empty()){
+			booster.at(b).expbolt.wExpbolt = false;
+		} else {
+			booster.at(b).expbolt.wExpbolt = true;
+			booster.at(b).expbolt.pos = CharToVec(expbolts_pos_vec);
+			booster.at(b).expbolt.pstream = ini.GetValue(boostertxt.c_str(), "expbolts_pstream", "");
+			booster.at(b).expbolt.dir = _V(0, 0, 1);
+			std::string expbolts_anticipation = ini.GetValue(boostertxt.c_str(), "expbolts_anticipation", "0.0");
+			if(expbolts_anticipation.empty()){
+				booster.at(b).expbolt.anticipation = 1;
+			} else {
+				booster.at(b).expbolt.anticipation = std::stof(expbolts_anticipation);
+			}
+		}
 
-		GetPrivateProfileString(boostertxt, "expbolts_pos", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].expbolt.wExpbolt = FALSE; }
+		/* if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].expbolt.wExpbolt = FALSE; }
 		else {
 			booster[b].expbolt.wExpbolt = TRUE;
 			CharToVec(dataparsed, &booster[b].expbolt.pos);
@@ -474,7 +797,7 @@ void Multistage2015::parseBoosters(char filename[MAXLEN]) {
 			GetPrivateProfileString(boostertxt, "expbolts_anticipation", buffreset, dataparsed, MAXLEN, filename);
 			if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { booster[b].expbolt.anticipation = 1; }
 			else { booster[b].expbolt.anticipation = atof(dataparsed); }
-		}
+		} */
 
 
 		if (booster[b].meshname[0] == '0') {
@@ -494,43 +817,72 @@ void Multistage2015::parseBoosters(char filename[MAXLEN]) {
 }
 
 void Multistage2015::parseFairing(char filename[MAXLEN]) {
-	hasFairing = FALSE;
 
-	char fairingtxt[64];
+	oapiWriteLogV("%s: parseFairing() filename=%s", GetName(), filename);
+
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	hasFairing = false;
+
+	std::string fairingtxt;
 
 
 	//if(wFairing==1){
-	sprintf(fairingtxt, "FAIRING");
-	GetPrivateProfileString(fairingtxt, "N", buffreset, dataparsed, MAXLEN, filename);
-	fairing.N = atoi(dataparsed);
-	if (fairing.N != 0) { hasFairing = TRUE; sprintf(logbuff, "%s: This Rocket Has Fairing", GetName()); oapiWriteLog(logbuff); }
-	GetPrivateProfileString(fairingtxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
-	sprintf(fairing.meshname, dataparsed);
-	GetPrivateProfileString(fairingtxt, "off", buffreset, dataparsed, MAXLEN, filename);
+	fairingtxt = "FAIRING";
+	//GetPrivateProfileString(fairingtxt, "N", buffreset, dataparsed, MAXLEN, filename);
+	//fairing.N = atoi(dataparsed);
+	fairing.N = std::stoi(ini.GetValue(fairingtxt.c_str(), "N", "0"));
+	//if (fairing.N != 0) { hasFairing = TRUE; sprintf(logbuff, "%s: This Rocket Has Fairing", GetName()); oapiWriteLog(logbuff); }
+	if(fairing.N != 0) {
+		hasFairing = true;
+		oapiWriteLogV("%s: This Rocket Has Fairing", GetName());
+	}
+	//GetPrivateProfileString(fairingtxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+	//sprintf(fairing.meshname, dataparsed);
+	fairing.meshname = ini.GetValue(fairingtxt.c_str(), "meshname");
+	//GetPrivateProfileString(fairingtxt, "off", buffreset, dataparsed, MAXLEN, filename);
 	//fairing.off=CharToVec(dataparsed);
-	CharToVec(dataparsed, &fairing.off);
-	GetPrivateProfileString(fairingtxt, "height", buffreset, dataparsed, MAXLEN, filename);
-	fairing.height = atof(dataparsed);
-	GetPrivateProfileString(fairingtxt, "angle", buffreset, dataparsed, MAXLEN, filename);
-	fairing.angle = atof(dataparsed);
-	GetPrivateProfileString(fairingtxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
-	fairing.diameter = atof(dataparsed);
-	GetPrivateProfileString(fairingtxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
-	fairing.emptymass = atof(dataparsed);
-	GetPrivateProfileString(fairingtxt, "speed", buffreset, dataparsed, MAXLEN, filename);
+	//CharToVec(dataparsed, &fairing.off);
+	std::string off_vec = ini.GetValue(fairingtxt.c_str(), "off", "0,0,0");
+	fairing.off = CharToVec(off_vec);
+	//GetPrivateProfileString(fairingtxt, "height", buffreset, dataparsed, MAXLEN, filename);
+	//fairing.height = atof(dataparsed);
+	fairing.height = std::stof(ini.GetValue(fairingtxt.c_str(), "height", "0.0"));
+	//GetPrivateProfileString(fairingtxt, "angle", buffreset, dataparsed, MAXLEN, filename);
+	//fairing.angle = atof(dataparsed);
+	fairing.angle = std::stof(ini.GetValue(fairingtxt.c_str(), "angle", "0.0"));
+	//GetPrivateProfileString(fairingtxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
+	//fairing.diameter = atof(dataparsed);
+	fairing.diameter = std::stof(ini.GetValue(fairingtxt.c_str(), "diameter", "0.0"));
+	//GetPrivateProfileString(fairingtxt, "emptymass", buffreset, dataparsed, MAXLEN, filename);
+	//fairing.emptymass = atof(dataparsed);
+	fairing.emptymass = std::stof(ini.GetValue(fairingtxt.c_str(), "emptymass", "0.0"));
+	//GetPrivateProfileString(fairingtxt, "speed", buffreset, dataparsed, MAXLEN, filename);
 	//fairing.speed=CharToVec(dataparsed);
-	if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,-3,0)"); }
-	CharToVec(dataparsed, &fairing.speed);
+	std::string speed_vec = ini.GetValue(fairingtxt.c_str(), "speed", "0,0,0");
+	//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "(0,-3,0)"); }
+	if(speed_vec.empty()){
+		speed_vec = "(0,-3,0)";
+	}
+	//CharToVec(dataparsed, &fairing.speed);
+	fairing.speed = CharToVec(speed_vec);
 
-	GetPrivateProfileString(fairingtxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
+	//GetPrivateProfileString(fairingtxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
 	//fairing.rot_speed=CharToVec(dataparsed);
 	//if(strncmp(dataparsed,buffreset,MAXLEN-5)==0){sprintf(dataparsed,"(0,0,0)");}
+	std::string rotspeed_vec = ini.GetValue(fairingtxt.c_str(), "rot_speed", "0,0,0");
+	//CharToVec(dataparsed, &fairing.rot_speed);
+	fairing.rot_speed = CharToVec(rotspeed_vec);
 
-	CharToVec(dataparsed, &fairing.rot_speed);
-
-	GetPrivateProfileString(fairingtxt, "module", buffreset, dataparsed, MAXLEN, filename);
-	if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
-	sprintf(fairing.module, dataparsed);
+	//GetPrivateProfileString(fairingtxt, "module", buffreset, dataparsed, MAXLEN, filename);
+	fairing.module = ini.GetValue(fairingtxt.c_str(), "module", "Stage");
+	//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
+	//sprintf(fairing.module, dataparsed);
 
 
 	//}else{
@@ -545,13 +897,14 @@ void Multistage2015::parseFairing(char filename[MAXLEN]) {
 }
 
 void Multistage2015::ArrangePayloadMeshes(char data[MAXLEN], int pnl) {
+	
 	string meshnm(data);
 
 	string meshnm0, meshnm1, meshnm2, meshnm3, meshnm4;
 	std::size_t findFirstSC = meshnm.find_first_of(";");
 	if (findFirstSC != meshnm.npos) {
 		meshnm0 = meshnm.substr(0, findFirstSC);
-		meshnm0.copy(payload[pnl].meshname0, MAXLEN, 0);
+		payload.at(pnl).meshname0 = meshnm0;
 		std::size_t findSecondSC = meshnm.find_first_of(";", findFirstSC + 1);
 		if (findSecondSC != meshnm.npos) {
 			meshnm1 = meshnm.substr(findFirstSC + 1, findSecondSC - findFirstSC - 1);
@@ -562,163 +915,161 @@ void Multistage2015::ArrangePayloadMeshes(char data[MAXLEN], int pnl) {
 				if (findFourthSC != meshnm.npos) {
 					meshnm3 = meshnm.substr(findThirdSC + 1, findFourthSC - findThirdSC - 1);
 					meshnm4 = meshnm.substr(findFourthSC + 1, meshnm.npos);
-					payload[pnl].nMeshes = 5;
+					payload.at(pnl).nMeshes = 5;
 				}
-				else { meshnm3 = meshnm.substr(findThirdSC + 1, meshnm.npos); payload[pnl].nMeshes = 4; }
+				else { meshnm3 = meshnm.substr(findThirdSC + 1, meshnm.npos); payload.at(pnl).nMeshes = 4; }
 			}
-			else { meshnm2 = meshnm.substr(findSecondSC + 1, meshnm.npos); payload[pnl].nMeshes = 3; }
+			else { meshnm2 = meshnm.substr(findSecondSC + 1, meshnm.npos); payload.at(pnl).nMeshes = 3; }
 		}
-		else { meshnm1 = meshnm.substr(findFirstSC + 1, meshnm.npos); payload[pnl].nMeshes = 2; }
+		else { meshnm1 = meshnm.substr(findFirstSC + 1, meshnm.npos); payload.at(pnl).nMeshes = 2; }
 	}
-	else { meshnm0 = meshnm.substr(0, meshnm.npos); payload[pnl].nMeshes = 1; }
+	else { meshnm0 = meshnm.substr(0, meshnm.npos); payload.at(pnl).nMeshes = 1; }
 
-	meshnm0.copy(payload[pnl].meshname0, MAXLEN, 0);
+	payload.at(pnl).meshname0 = meshnm0;
 	//	oapiWriteLog(payload[pnl].meshname0);
-	if (payload[pnl].nMeshes == 5) {
-		meshnm1.copy(payload[pnl].meshname1, MAXLEN, 0);
-		meshnm2.copy(payload[pnl].meshname2, MAXLEN, 0);
-		meshnm3.copy(payload[pnl].meshname3, MAXLEN, 0);
-		meshnm4.copy(payload[pnl].meshname4, MAXLEN, 0);
+	if (payload.at(pnl).nMeshes == 5) {
+		payload.at(pnl).meshname1 = meshnm1;
+		payload.at(pnl).meshname2 = meshnm2;
+		payload.at(pnl).meshname3 = meshnm3;
+		payload.at(pnl).meshname4 = meshnm4;
 	}
-	else if (payload[pnl].nMeshes == 4) {
-		meshnm1.copy(payload[pnl].meshname1, MAXLEN, 0);
-		meshnm2.copy(payload[pnl].meshname2, MAXLEN, 0);
-		meshnm3.copy(payload[pnl].meshname3, MAXLEN, 0);
+	else if (payload.at(pnl).nMeshes == 4) {
+		payload.at(pnl).meshname1 = meshnm1;
+		payload.at(pnl).meshname2 = meshnm2;
+		payload.at(pnl).meshname3 = meshnm3;
 	}
-	else if (payload[pnl].nMeshes == 3) {
-		meshnm1.copy(payload[pnl].meshname1, MAXLEN, 0);
-		meshnm2.copy(payload[pnl].meshname2, MAXLEN, 0);
+	else if (payload.at(pnl).nMeshes == 3) {
+		payload.at(pnl).meshname1 = meshnm1;
+		payload.at(pnl).meshname2 = meshnm2;
 	}
-	else if (payload[pnl].nMeshes == 2) {
-		meshnm1.copy(payload[pnl].meshname1, MAXLEN, 0);
+	else if (payload.at(pnl).nMeshes == 2) {
+		payload.at(pnl).meshname1 = meshnm1;
 	}
 	//sprintf(logbuff,"0 %s 1 %s 2 %s 3 %s 4 %s",payload[pnl].meshname0,payload[pnl].meshname1,payload[pnl].meshname2,payload[pnl].meshname3,payload[pnl].meshname4);
 	//oapiWriteLog(logbuff);
 }
 
-void Multistage2015::ArrangePayloadOffsets(char data[MAXLEN], int pnl) {
-	string offg(data);
-	string off0, off1, off2, off3, off4;
-	char coff0[MAXLEN], coff1[MAXLEN], coff2[MAXLEN], coff3[MAXLEN], coff4[MAXLEN];
-	if (payload[pnl].nMeshes == 1) {
-		std::size_t FindClosingParenthesis = offg.find_first_of(")");
-		//off0=offg.substr(0,offg.npos);
-		off0 = offg.substr(0, FindClosingParenthesis);
-		off0.copy(coff0, MAXLEN, 0);
-		CharToVec(coff0, &payload[pnl].off[0]);
-		//}else if(payload[pnl].nMeshes==2){
-	}
-	else if (payload[pnl].nMeshes > 1) {
-		std::size_t findFirstSC = offg.find_first_of(";");
-		off0 = offg.substr(0, findFirstSC);
-		off0.copy(coff0, MAXLEN, 0);
-		CharToVec(coff0, &payload[pnl].off[0]);
+void Multistage2015::ArrangePayloadOffsets(const std::string &data, int pnl) {
+    std::stringstream ss(data);
+    std::string token;
+    int idx = 0;
 
-		if (payload[pnl].nMeshes == 2) {
-			off1 = offg.substr(findFirstSC + 1, offg.npos);
-			off1.copy(coff1, MAXLEN, 0);
-			CharToVec(coff1, &payload[pnl].off[1]);
-		}
-		else {
-			std::size_t findSecondSC = offg.find_first_of(";", findFirstSC + 1);
-			off1 = offg.substr(findFirstSC + 1, findSecondSC - findFirstSC - 1);
-			off1.copy(coff1, MAXLEN, 0);
-			CharToVec(coff1, &payload[pnl].off[1]);
-			if (payload[pnl].nMeshes == 3) {
-				off2 = offg.substr(findSecondSC + 1, offg.npos);
-				off2.copy(coff2, MAXLEN, 0);
-				CharToVec(coff2, &payload[pnl].off[2]);
-			}
-			else {
-				std::size_t findThirdSC = offg.find_first_of(";", findSecondSC + 1);
-				off2 = offg.substr(findSecondSC + 1, findThirdSC - findSecondSC - 1);
-				off2.copy(coff2, MAXLEN, 0);
-				CharToVec(coff2, &payload[pnl].off[2]);
-				if (payload[pnl].nMeshes == 4) {
-					off3 = offg.substr(findThirdSC + 1, offg.npos);
-					off3.copy(coff3, MAXLEN, 0);
-					CharToVec(coff3, &payload[pnl].off[3]);
-				}
-				else {
-					std::size_t findFourthSC = offg.find_first_of(";", findThirdSC + 1);
-					off3 = offg.substr(findThirdSC + 1, findFourthSC - findThirdSC - 1);
-					off3.copy(coff3, MAXLEN, 0);
-					CharToVec(coff3, &payload[pnl].off[3]);
-					off4 = offg.substr(findFourthSC + 1, offg.npos);
-					off4.copy(coff4, MAXLEN, 0);
-					CharToVec(coff4, &payload[pnl].off[4]);
-				}
-			}
-		}
-	}
-
+    while (std::getline(ss, token, ';') && idx < payload[pnl].nMeshes) {
+        token.erase(std::remove(token.begin(), token.end(), ' '), token.end());
+        payload[pnl].off.at(idx++) = CharToVec(token);
+    }
 }
+
 void Multistage2015::parsePayload(char filename[MAXLEN]) {
-	char payloadtxt[64];
-	char bufftxt[128];
+
+	oapiWriteLogV("%s: parsePayload() filename=%s", GetName(), filename);
+
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+	
+	std::string payloadtxt;
 
 	int pnl;
+
 	for (pnl = 0; pnl <= 10; pnl++) {
 
-		sprintf(payloadtxt, "PAYLOAD");
-		sprintf(bufftxt, "_%i", pnl + 1);
-		strcat(payloadtxt, bufftxt);
+		payloadtxt = std::format("PAYLOAD_{}", pnl + 1);
 
-		payload[pnl].nMeshes = 0;
-		GetPrivateProfileString(payloadtxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+		payload.at(pnl).nMeshes = 0;
 
-		strcpy(payload[pnl].meshname, dataparsed);
+		if(!ini.GetSection(payloadtxt.c_str())){
+			nPayloads = pnl;
+			oapiWriteLogV("%s: Number of Payloads in the ini file: %i", GetName(), nPayloads);
+			break;
+		}
 
-		if (payload[pnl].meshname[0] == '0') {
+		//GetPrivateProfileString(payloadtxt, "meshname", buffreset, dataparsed, MAXLEN, filename);
+		//strcpy(payload[pnl].meshname, dataparsed);
+		payload.at(pnl).meshname = ini.GetValue(payloadtxt.c_str(), "meshname", "");
+
+		/* if (payload[pnl].meshname[0] == '0') {
 			nPayloads = pnl;
 			sprintf(logbuff, "%s: Number of Payloads in the ini file: %i", GetName(), nPayloads);
 			oapiWriteLog(logbuff);
 			break;
-		}
-		ArrangePayloadMeshes(dataparsed, pnl);
-		GetPrivateProfileString(payloadtxt, "off", buffreset, dataparsed, MAXLEN, filename);
-		ArrangePayloadOffsets(dataparsed, pnl);
-		//CharToVec(dataparsed,&payload[pnl].off[0]);
-		GetPrivateProfileString(payloadtxt, "height", buffreset, dataparsed, MAXLEN, filename);
-		payload[pnl].height = atof(dataparsed);
-		GetPrivateProfileString(payloadtxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
-		payload[pnl].diameter = atof(dataparsed);
-		GetPrivateProfileString(payloadtxt, "mass", buffreset, dataparsed, MAXLEN, filename);
-		payload[pnl].mass = atof(dataparsed);
-		GetPrivateProfileString(payloadtxt, "module", buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
-		//sprintf(payload[pnl].module,dataparsed);
-		strcpy(payload[pnl].module, dataparsed);
-		GetPrivateProfileString(payloadtxt, "name", buffreset, dataparsed, MAXLEN, filename);
-		//sprintf(payload[pnl].name,dataparsed);
-		strcpy(payload[pnl].name, dataparsed);
-		GetPrivateProfileString(payloadtxt, "speed", buffreset, dataparsed, MAXLEN, filename);
-		//payload[pnl].speed=CharToVec(dataparsed);
-		CharToVec(dataparsed, &payload[pnl].speed);
-		GetPrivateProfileString(payloadtxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
-		//payload[pnl].rot_speed=CharToVec(dataparsed);
-		CharToVec(dataparsed, &payload[pnl].rot_speed);
-		GetPrivateProfileString(payloadtxt, "rotation", buffreset, dataparsed, MAXLEN, filename);
-		payload[pnl].Rotation = _V(0, 0, 0);
-		payload[pnl].rotated = FALSE;
-		CharToVec(dataparsed, &payload[pnl].Rotation);
-		payload[pnl].Rotation = operator*(payload[pnl].Rotation, RAD);
-		if (length(payload[pnl].Rotation) > 0) { payload[pnl].rotated = TRUE; }
+		} */
 
-		GetPrivateProfileString(payloadtxt, "render", buffreset, dataparsed, MAXLEN, filename);
-		payload[pnl].render = atoi(dataparsed);
-		if (payload[pnl].render != 1) {
-			payload[pnl].render = 0;
+		std::string meshlist = ini.GetValue(payloadtxt.c_str(), "meshname", "");
+
+		if(!meshlist.empty()){
+			ArrangePayloadMeshes(meshlist.data(), pnl);
+		} else {
+			payload.at(pnl).nMeshes = 0;
 		}
-		GetPrivateProfileString(payloadtxt, "live", buffreset, dataparsed, MAXLEN, filename);
-		int check = atoi(dataparsed);
-		if (check == 1) { payload[pnl].live = TRUE; }
-		else { payload[pnl].live = FALSE; }
+
+		//ArrangePayloadMeshes(dataparsed, pnl);
+
+		//GetPrivateProfileString(payloadtxt, "off", buffreset, dataparsed, MAXLEN, filename);
+
+		ArrangePayloadOffsets(meshlist, pnl);
+		//CharToVec(dataparsed,&payload[pnl].off[0]);
+		//GetPrivateProfileString(payloadtxt, "height", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].height = atof(dataparsed);
+		payload.at(pnl).height = std::stof(ini.GetValue(payloadtxt.c_str(), "height", "0.0"));
+		//GetPrivateProfileString(payloadtxt, "diameter", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].diameter = atof(dataparsed);
+		payload.at(pnl).diameter = std::stof(ini.GetValue(payloadtxt.c_str(), "diameter", "0.0"));
+		//GetPrivateProfileString(payloadtxt, "mass", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].mass = atof(dataparsed);
+		payload.at(pnl).mass = std::stof(ini.GetValue(payloadtxt.c_str(), "mass", "0.0"));
+		//GetPrivateProfileString(payloadtxt, "module", buffreset, dataparsed, MAXLEN, filename);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { sprintf(dataparsed, "Stage"); }
+		//sprintf(payload[pnl].module,dataparsed);
+		//strcpy(payload[pnl].module, dataparsed);
+		payload.at(pnl).module = ini.GetValue(payloadtxt.c_str(), "module", "Stage");
+		//GetPrivateProfileString(payloadtxt, "name", buffreset, dataparsed, MAXLEN, filename);
+		//sprintf(payload[pnl].name,dataparsed);
+		//strcpy(payload[pnl].name, dataparsed);
+		payload.at(pnl).name = ini.GetValue(payloadtxt.c_str(), "name", "");
+		//GetPrivateProfileString(payloadtxt, "speed", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].speed=CharToVec(dataparsed);
+		//CharToVec(dataparsed, &payload[pnl].speed);
+		std::string speed_vec = ini.GetValue(payloadtxt.c_str(), "speed", "0,0,0");
+		payload.at(pnl).speed = CharToVec(speed_vec);
+		//GetPrivateProfileString(payloadtxt, "rot_speed", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].rot_speed=CharToVec(dataparsed);
+		//CharToVec(dataparsed, &payload[pnl].rot_speed);
+		std::string rotspeed_vec = ini.GetValue(payloadtxt.c_str(), "rot_speed", "0,0,0");
+		payload.at(pnl).rot_speed = CharToVec(rotspeed_vec);
+		//GetPrivateProfileString(payloadtxt, "rotation", buffreset, dataparsed, MAXLEN, filename);
+		std::string rotation_vec = ini.GetValue(payloadtxt.c_str(), "rotation", "0,0,0");
+		payload.at(pnl).Rotation = _V(0, 0, 0);
+		payload.at(pnl).rotated = false;
+		//CharToVec(dataparsed, &payload[pnl].Rotation);
+		payload.at(pnl).Rotation = operator*(CharToVec(rotation_vec), RAD);
+		//payload[pnl].Rotation = operator*(payload[pnl].Rotation, RAD);
+		//if (length(payload[pnl].Rotation) > 0) { payload[pnl].rotated = TRUE; }
+		if(length(payload.at(pnl).Rotation) > 0) {payload.at(pnl).rotated = true;}
+
+		//GetPrivateProfileString(payloadtxt, "render", buffreset, dataparsed, MAXLEN, filename);
+		//payload[pnl].render = atoi(dataparsed);
+		payload.at(pnl).render = std::stoi(ini.GetValue(payloadtxt.c_str(), "render", "0"));
+		if (payload.at(pnl).render != 1) {
+			payload.at(pnl).render = 0;
+		}
+		
+		//GetPrivateProfileString(payloadtxt, "live", buffreset, dataparsed, MAXLEN, filename);
+		int check = std::stoi(ini.GetValue(payloadtxt.c_str(), "live", "0"));
+		if (check == 1) {
+			payload.at(pnl).live = true;
+		} else {
+			payload.at(pnl).live = false;
+		}
 
 	}
 
 
 }
+
 void Multistage2015::parseParticle(char filename[MAXLEN]) {
 	char partxt[128];
 	char bufftxt[128];
@@ -824,66 +1175,119 @@ void Multistage2015::parseParticle(char filename[MAXLEN]) {
 		else { Particle[npart].Growing = TRUE; }
 	}
 }
-void Multistage2015::parseFXMach(char filename[MAXLEN])
-{
-	char fxmtxt[128];
-	sprintf(fxmtxt, "FX_MACH");
 
-	GetPrivateProfileString(fxmtxt, "pstream", buffreset, dataparsed, MAXLEN, filename);
-	sprintf(FX_Mach.pstream, dataparsed);
-	if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { wMach = FALSE; }
-	else { wMach = TRUE; }
+void Multistage2015::parseFXMach(char filename[MAXLEN]){
 
-	GetPrivateProfileString(fxmtxt, "mach_min", buffreset, dataparsed, MAXLEN, filename);
-	FX_Mach.mach_min = atof(dataparsed);
-	GetPrivateProfileString(fxmtxt, "mach_max", buffreset, dataparsed, MAXLEN, filename);
-	FX_Mach.mach_max = atof(dataparsed);
-	for (int nmach = 0; nmach < 10; nmach++)
-	{
-		char txtbuff[MAXLEN], nbuff[15];
-		sprintf(nbuff, "_%i", nmach + 1);
-		sprintf(txtbuff, "off");
-		strcat(txtbuff, nbuff);
-		GetPrivateProfileString(fxmtxt, txtbuff, buffreset, dataparsed, MAXLEN, filename);
-		CharToVec(dataparsed, &FX_Mach.off[nmach]);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { FX_Mach.nmach = nmach; break; }
+	oapiWriteLogV("%s: parseFXMach() filename=%s", GetName(), filename);
+
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	std::string fxmtxt = "FX_MACH";
+
+	//GetPrivateProfileString(fxmtxt, "pstream", buffreset, dataparsed, MAXLEN, filename);
+	//sprintf(FX_Mach.pstream, dataparsed);
+	//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { wMach = FALSE; }
+	//else { wMach = TRUE; }
+	FX_Mach.pstream = ini.GetValue(fxmtxt.c_str(), "pstream", "");
+	if(FX_Mach.pstream.empty()){
+		wMach = false;
+	} else {
+		wMach = true;
 	}
-	GetPrivateProfileString(fxmtxt, "dir", buffreset, dataparsed, MAXLEN, filename);
-	CharToVec(dataparsed, &FX_Mach.dir);
-	FX_Mach.added = FALSE;
+
+	
+	//GetPrivateProfileString(fxmtxt, "mach_min", buffreset, dataparsed, MAXLEN, filename);
+	//FX_Mach.mach_min = atof(dataparsed);
+	FX_Mach.mach_min = std::stof(ini.GetValue(fxmtxt.c_str(), "mach_min", "0.0"));
+
+	//GetPrivateProfileString(fxmtxt, "mach_max", buffreset, dataparsed, MAXLEN, filename);
+	//FX_Mach.mach_max = atof(dataparsed);
+	FX_Mach.mach_max = std::stof(ini.GetValue(fxmtxt.c_str(), "mach_max", "0.0"));
+
+	for (int nmach = 0; nmach < 10; nmach++){
+		std::string txtbuff = std::format("off_{}", nmach + 1);
+		
+		//GetPrivateProfileString(fxmtxt, txtbuff, buffreset, dataparsed, MAXLEN, filename);
+		std::string fxmachoff_vec = ini.GetValue(fxmtxt.c_str(), txtbuff.c_str(), "0,0,0");
+		//CharToVec(dataparsed, &FX_Mach.off[nmach]);
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { FX_Mach.nmach = nmach; break; }
+		FX_Mach.off.at(nmach) = CharToVec(fxmachoff_vec);
+		if(fxmachoff_vec.empty()){
+			FX_Mach.nmach = nmach;
+			break;
+		}
+	}
+	
+	//GetPrivateProfileString(fxmtxt, "dir", buffreset, dataparsed, MAXLEN, filename);
+	//CharToVec(dataparsed, &FX_Mach.dir);
+	std::string fxmachdir_vec = ini.GetValue(fxmtxt.c_str(), "dir", "0,0,0");
+	FX_Mach.dir = CharToVec(fxmachdir_vec);
+	FX_Mach.added = false;
 
 }
 void Multistage2015::parseFXVent(char filename[MAXLEN])
 {
-	char fxvtxt[128];
-	char itemtxt[128];
-	char numtxt[128];
-	sprintf(fxvtxt, "FX_VENT");
+	oapiWriteLogV("%s: parseFXVent() filename=%s", GetName(), filename);
 
-	GetPrivateProfileString(fxvtxt, "pstream", buffreset, dataparsed, MAXLEN, filename);
-	sprintf(FX_Vent.pstream, dataparsed);
-	if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { wVent = FALSE; }
-	else { wVent = TRUE; }
+	CSimpleIniA ini(true, false, false);
+
+	if (ini.LoadFile(filename) < 0) {
+        oapiWriteLogV("%s: Failed to load INI configuration file: %s", GetName(), filename);
+        return;
+    }
+
+	std::string fxvtxt = "FX_VENT";
+	std::string itemtxt;
+	std::string numtxt;
+
+	//GetPrivateProfileString(fxvtxt, "pstream", buffreset, dataparsed, MAXLEN, filename);
+	//sprintf(FX_Vent.pstream, dataparsed);
+	FX_Vent.pstream = ini.GetValue(fxvtxt.c_str(), "pstream", "");
+	if(FX_Vent.pstream.empty()){
+		wVent = false;
+	} else {
+		wVent = true;
+	}
+
+	//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { wVent = FALSE; }
+	//else { wVent = TRUE; }
 	FX_Vent.nVent = 0;
 	for (int fv = 1; fv <= 10; fv++)
 	{
-		FX_Vent.added[fv] = FALSE;
-		sprintf(numtxt, "_%i", fv);
-		sprintf(itemtxt, "off");
-		strcat(itemtxt, numtxt);
-		GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
-		CharToVec(dataparsed, &FX_Vent.off[fv]);
-		sprintf(itemtxt, "dir");
-		strcat(itemtxt, numtxt);
-		GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
-		if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { FX_Vent.nVent = fv - 1; break; }
-		CharToVec(dataparsed, &FX_Vent.dir[fv]);
-		sprintf(itemtxt, "time_fin");
-		strcat(itemtxt, numtxt);
-		FX_Vent.time_fin[fv] = 0;
-		GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
-		FX_Vent.time_fin[fv] = atof(dataparsed);
-
+		FX_Vent.added.at(fv) = false;
+		//sprintf(numtxt, "_%i", fv);
+		//sprintf(itemtxt, "off");
+		//strcat(itemtxt, numtxt);
+		itemtxt = std::format("off_{}", fv);
+		//GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
+		//CharToVec(dataparsed, &FX_Vent.off[fv]);
+		std::string off_vec = ini.GetValue(fxvtxt.c_str(), itemtxt.c_str(), "0,0,0");
+		FX_Vent.off.at(fv) = CharToVec(off_vec);
+		//sprintf(itemtxt, "dir");
+		//strcat(itemtxt, numtxt);
+		//GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
+		itemtxt = std::format("dir_{}", fv);
+		std::string dir_vec = ini.GetValue(fxvtxt.c_str(), itemtxt.c_str(), "0,0,0");
+		//if (strncmp(dataparsed, buffreset, MAXLEN - 5) == 0) { FX_Vent.nVent = fv - 1; break; }
+		if(dir_vec.empty()){
+			FX_Vent.nVent = fv - 1;
+			break;
+		}
+		FX_Vent.dir.at(fv) = CharToVec(dir_vec);
+		//CharToVec(dataparsed, &FX_Vent.dir[fv]);
+		//sprintf(itemtxt, "time_fin");
+		//strcat(itemtxt, numtxt);
+		//FX_Vent.time_fin[fv] = 0;
+		itemtxt = std::format("time_fin_{}", fv);
+		FX_Vent.time_fin.at(fv) = 0;
+		//GetPrivateProfileString(fxvtxt, itemtxt, buffreset, dataparsed, MAXLEN, filename);
+		//FX_Vent.time_fin[fv] = atof(dataparsed);
+		FX_Vent.time_fin.at(fv) = std::stof(ini.GetValue(fxvtxt.c_str(), itemtxt.c_str(), "0.0"));
 	}
 }
 

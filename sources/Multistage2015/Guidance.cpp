@@ -671,17 +671,17 @@ void Multistage2015::VinkaConsumeStep(int step){
 		Gnc_step[step].executed=TRUE;
 		break;
 			case CM_ENGINEOUT:
-		if((Gnc_step[step].val_init>0)&&(Gnc_step[step].val_init<=(double)stage[currentStage].nEngines))
+		if((Gnc_step[step].val_init>0)&&(Gnc_step[step].val_init<=(double)stage.at(currentStage).nEngines))
 		{
-			SetThrusterLevel(stage[currentStage].th_main_h[(int)Gnc_step[step].val_init-1],0);
+			SetThrusterLevel(stage.at(currentStage).th_main_h[(int)Gnc_step[step].val_init-1],0);
 		}else{
-			SetThrusterLevel(stage[currentStage].th_main_h[stage[currentStage].nEngines-1],0);
+			SetThrusterLevel(stage.at(currentStage).th_main_h[stage.at(currentStage).nEngines-1],0);
 		}
 		Gnc_step[step].executed=TRUE;
 		break;
 			case CM_PLAY:
 //		PlayVesselWave(MyID,step);
-		PlaySound(TEXT(Gnc_step[step].trchar),NULL,SND_FILENAME|SND_ASYNC);
+		//PlaySound(TEXT(Gnc_step[step].trchar),NULL,SND_FILENAME|SND_ASYNC);
 		Gnc_step[step].executed=TRUE;
 		break;
 			case CM_ORBIT:

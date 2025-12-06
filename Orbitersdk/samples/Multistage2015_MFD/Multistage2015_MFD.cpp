@@ -251,59 +251,35 @@ Multistage2015_MFD::~Multistage2015_MFD()
 
 bool Multistage2015_MFD::ValidVessel()
 {
-	//OBJHANDLE Hvessel;
-
 	if (!outerVessel)
-	{
 		Hvessel = oapiGetFocusObject();
-	}
-	else {
+	else
 		Hvessel = oapiGetVesselByName(NewRefVesselName);
-	}
 
-	VESSEL* v;
-	v = oapiGetVesselInterface(Hvessel);
+	VESSEL* v = oapiGetVesselInterface(Hvessel);
+	if (!v) return false;
 
-	/*
-	char TestClass[20];
-	sprintf(TestClass,v->GetClassNameA());
-	for(int i=0;i<20;i++)
-	{
-		TestClass[i]=tolower(TestClass[i]);
-	}
-	if(strcmp(TestClass,"multistage2015")!=0){
-
-		CurrentView=V_NOCLASS;
-		return FALSE;
-		}else{
-		Ms = dynamic_cast<Multistage2015*>((VESSEL3*)v);
-		return TRUE;
-	}
-	*/
 	int testversion = v->Version();
-
-	//char tb[MAXLEN];
-
-	if (testversion >= 2) {
-		int test = ((VESSEL3*)v)->clbkGeneric(2015, 2015, 0);
-
-		if (test == 2015) {
-
-			Ms = dynamic_cast<Multistage2015*>((VESSEL3*)v);
-			return TRUE;
-
-		}
-		else {
-			CurrentView = V_NOCLASS;
-			return FALSE;
-		}
-	}
-	else {
+	if (testversion < 2) {
 		CurrentView = V_NOCLASS;
-		return FALSE;
+		return false;
 	}
 
+	int test = ((VESSEL3*)v)->clbkGeneric(2015, 2015, 0);
+	if (test != 2015) {
+		CurrentView = V_NOCLASS;
+		return false;
+	}
+
+	Ms = dynamic_cast<Multistage2015*>((VESSEL3*)v);
+	if (!Ms) {
+		CurrentView = V_NOCLASS;
+		return false;
+	}
+
+	return true;
 }
+
 
 double Multistage2015_MFD::ArrayMin(oapi::IVECTOR2* Array, int uptopoint)
 {
